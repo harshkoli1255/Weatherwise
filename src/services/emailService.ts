@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{success: boolean; error?: string; messageId?: string}> {
   if (!process.env.GOOGLE_SMTP_USER || !process.env.GOOGLE_SMTP_PASSWORD) {
     console.error('SMTP_USER or SMTP_PASSWORD environment variables are not set.');
-    return { success: false, error: 'Email server not configured.' };
+    return { success: false, error: 'Email server not configured. Please set GOOGLE_SMTP_USER and GOOGLE_SMTP_PASSWORD in your .env file.' };
   }
 
   const mailOptions = {
