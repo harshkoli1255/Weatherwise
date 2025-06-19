@@ -142,7 +142,7 @@ export default function WeatherPage() {
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-5 sm:mb-7 md:mb-9">
             Automatic weather, or search any city.
           </p>
-          <div className="mt-1 pl-2"> {/* Wrapper for SearchBar positioning */}
+          <div className="mt-1 pl-4"> {/* Wrapper for SearchBar positioning */}
             <SearchBar onSearch={handleSearch} isSearching={isLoading} />
           </div>
         </section>
