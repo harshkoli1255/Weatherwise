@@ -18,9 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  watchOptions: {
-    ignored: ['**/.genkit/**'],
-  },
 };
 
 export default nextConfig;
