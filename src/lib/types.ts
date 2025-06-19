@@ -132,6 +132,7 @@ export interface AlertPreferences {
   notifyExtremeTemp: boolean;
   notifyHeavyRain: boolean;
   notifyStrongWind: boolean;
+  alertsEnabled: boolean;
 }
 
 export interface IpApiLocationResponse {
