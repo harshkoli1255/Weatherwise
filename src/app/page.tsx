@@ -1,9 +1,7 @@
 
 'use client';
 
-import * as React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
@@ -24,18 +22,13 @@ const initialState: {
   cityNotFound: false,
 };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return null; // SearchBar handles its own pending state display
-}
-
 export default function WeatherPage() {
   const [state, formAction] = useActionState(fetchWeatherAndSummaryAction, initialState);
-  const { pending } = useFormStatus(); // This hook needs to be inside a form consuming component
+  const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const [showInitialMessage, setShowInitialMessage] = React.useState(true);
+  const [showInitialMessage, setShowInitialMessage] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (state.error) {
       toast({
         variant: "destructive",
@@ -50,7 +43,9 @@ export default function WeatherPage() {
 
   const handleSearch = (formData: FormData) => {
     setShowInitialMessage(false);
-    formAction(formData);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -64,11 +59,10 @@ export default function WeatherPage() {
           <p className="text-center text-muted-foreground mb-6">
             Get real-time weather updates and AI-powered summaries for any city.
           </p>
-          <SearchBar onSearch={handleSearch} isSearching={pending} />
-          <SubmitButton /> {/* For useFormStatus if SearchBar was part of this form directly */}
+          <SearchBar onSearch={handleSearch} isSearching={isPending} />
         </section>
 
-        {pending && (
+        {isPending && (
           <div className="flex flex-col items-center justify-center space-y-2 mt-8">
             <svg className="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -78,11 +72,11 @@ export default function WeatherPage() {
           </div>
         )}
 
-        {state.data && !pending && (
+        {state.data && !isPending && (
           <WeatherDisplay weatherData={state.data} />
         )}
         
-        {showInitialMessage && !state.data && !pending && (
+        {showInitialMessage && !state.data && !isPending && (
             <Card className="w-full max-w-md mt-8 bg-primary/10 border-primary/30">
                 <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
@@ -97,7 +91,7 @@ export default function WeatherPage() {
             </Card>
         )}
 
-        {state.cityNotFound && !pending && (
+        {state.cityNotFound && !isPending && (
              <Card className="w-full max-w-md mt-8 border-destructive bg-destructive/10">
                 <CardContent className="pt-6">
                     <div className="flex flex-col items-center text-center">
