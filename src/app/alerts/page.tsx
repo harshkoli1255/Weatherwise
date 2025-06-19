@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { saveAlertPreferencesAction } from './actions';
 import type { AlertPreferences } from '@/lib/types';
-import { Mail, MapPin, Thermometer, CloudRain, WindIcon, AlertTriangle, CheckCircle2, Power } from 'lucide-react';
+import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power } from 'lucide-react'; // Changed WindIcon to Wind
 
 const LOCAL_STORAGE_KEY = 'weatherAlertPrefs';
 
@@ -191,7 +191,7 @@ export default function AlertsPage() {
                   id="notifyStrongWind"
                   name="notifyStrongWind"
                   label="Strong Winds"
-                  icon={WindIcon}
+                  icon={Wind} 
                   description="Alerts for high wind speeds or gusts."
                   checked={formState.notifyStrongWind}
                   onCheckedChange={(checked) => handleSwitchChange('notifyStrongWind', checked)}
@@ -215,8 +215,8 @@ export default function AlertsPage() {
 }
 
 interface AlertOptionProps {
-  id: keyof AlertPreferences; // Keep this as keyof AlertPreferences for type safety
-  name: string; // name attribute for form submission
+  id: keyof AlertPreferences; 
+  name: string; 
   label: string;
   icon: React.ElementType;
   description: string;
@@ -231,7 +231,6 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
       <div className="flex items-center space-x-3 sm:space-x-3.5">
         <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
         <div>
-          {/* Use the id for the htmlFor attribute to link with the Switch */}
           <Label htmlFor={id as string} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'}`}>
             {label}
           </Label>
@@ -239,8 +238,8 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
         </div>
       </div>
       <Switch 
-        id={id as string} // Use id for the Switch's id
-        name={name} // Use name for the form data key
+        id={id as string} 
+        name={name} 
         checked={checked}
         onCheckedChange={onCheckedChange}
         disabled={disabled}
@@ -249,3 +248,4 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
     </div>
   );
 }
+
