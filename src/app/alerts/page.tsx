@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { saveAlertPreferencesAction, verifyCodeAction, type SaveAlertsFormState } from './actions';
 import type { AlertPreferences } from '@/lib/types';
-import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power, Loader2, KeyRound, ShieldCheck } from 'lucide-react';
+import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power, Loader2, KeyRound, ShieldCheck, Pencil } from 'lucide-react';
 
 const LOCAL_STORAGE_PREFS_KEY = 'weatherAlertPrefs';
 const LOCAL_STORAGE_VERIFIED_EMAILS_KEY = 'weatherVerifiedEmails';
@@ -81,6 +81,7 @@ export default function AlertsPage() {
   const [formState, setFormState] = useState<AlertPreferences>(initialFormState);
   const [verificationCodeInput, setVerificationCodeInput] = useState('');
   const [verifiedEmails, setVerifiedEmails] = useState<Set<string>>(new Set());
+  const [isEmailLocked, setIsEmailLocked] = useState(true);
   
   const [savePrefsActionState, savePrefsFormAction, isSavePrefsPending] = useActionState(saveAlertPreferencesAction, initialSaveActionState);
   const [verifyCodeActionState, verifyCodeFormAction, isVerifyCodePending] = useActionState(verifyCodeAction, initialSaveActionState);
@@ -88,20 +89,19 @@ export default function AlertsPage() {
   const { toast } = useToast();
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
-  // formState.email is already normalized to lowercase by handleInputChange and initial load
   const isCurrentEmailVerified = useMemo(() => {
-    return formState.email ? verifiedEmails.has(formState.email) : false;
+    return formState.email ? verifiedEmails.has(formState.email.toLowerCase()) : false;
   }, [formState.email, verifiedEmails]);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
     try {
       const savedPrefsString = localStorage.getItem(LOCAL_STORAGE_PREFS_KEY);
-      const newFormState = { ...initialFormState }; // Start with defaults
+      const newFormState = { ...initialFormState }; 
       if (savedPrefsString) {
         const savedData = JSON.parse(savedPrefsString);
         if (savedData && typeof savedData === 'object') {
-            newFormState.email = typeof savedData.email === 'string' ? savedData.email.toLowerCase() : initialFormState.email; // Normalize
+            newFormState.email = typeof savedData.email === 'string' ? savedData.email.toLowerCase() : initialFormState.email;
             newFormState.city = typeof savedData.city === 'string' ? savedData.city : initialFormState.city;
             newFormState.alertsEnabled = typeof savedData.alertsEnabled === 'boolean' ? savedData.alertsEnabled : initialFormState.alertsEnabled;
             newFormState.notifyExtremeTemp = typeof savedData.notifyExtremeTemp === 'boolean' ? savedData.notifyExtremeTemp : initialFormState.notifyExtremeTemp;
@@ -109,26 +109,27 @@ export default function AlertsPage() {
             newFormState.notifyStrongWind = typeof savedData.notifyStrongWind === 'boolean' ? savedData.notifyStrongWind : initialFormState.notifyStrongWind;
         }
       }
-      setFormState(newFormState); // Set combined state
+      setFormState(newFormState);
+      setIsEmailLocked(!!newFormState.email); // Lock email if one is loaded
 
       const savedVerifiedEmailsString = localStorage.getItem(LOCAL_STORAGE_VERIFIED_EMAILS_KEY);
       if (savedVerifiedEmailsString) {
-        // Emails in localStorage should already be lowercase from previous saves
-        setVerifiedEmails(new Set(JSON.parse(savedVerifiedEmailsString)));
+        setVerifiedEmails(new Set(JSON.parse(savedVerifiedEmailsString).map((email: string) => email.toLowerCase())));
       }
 
     } catch (error) {
       console.error("Failed to load preferences or verified emails from localStorage:", error);
       setFormState(initialFormState);
       setVerifiedEmails(new Set());
+      setIsEmailLocked(false); // No email loaded, so it's editable
     }
   }, []);
 
   useEffect(() => {
-    // formState.email is already lowercase here
     if ((formState.alertsEnabled && formState.email && formState.city) || !formState.alertsEnabled) {
       try {
-        localStorage.setItem(LOCAL_STORAGE_PREFS_KEY, JSON.stringify(formState));
+        const stateToSave = { ...formState, email: formState.email.toLowerCase() };
+        localStorage.setItem(LOCAL_STORAGE_PREFS_KEY, JSON.stringify(stateToSave));
       } catch (error) {
         console.error("Failed to save preferences to localStorage:", error);
       }
@@ -137,7 +138,6 @@ export default function AlertsPage() {
 
   useEffect(() => {
     try {
-      // Emails in verifiedEmails set are already lowercase
       localStorage.setItem(LOCAL_STORAGE_VERIFIED_EMAILS_KEY, JSON.stringify(Array.from(verifiedEmails)));
     } catch (error) {
       console.error("Failed to save verified emails to localStorage:", error);
@@ -155,17 +155,26 @@ export default function AlertsPage() {
       if (state.alertsCleared) {
         localStorage.removeItem(LOCAL_STORAGE_PREFS_KEY);
         setFormState({ ...initialFormState, alertsEnabled: false });
+        setIsEmailLocked(false); // Email cleared, make it editable
       }
+
+      if (!state.error) {
+        if (type === 'save' && !state.needsVerification && !state.alertsCleared) {
+          setIsEmailLocked(true); // Lock email on successful save if no verification needed
+        }
+        if (type === 'verify' && state.emailVerified) {
+          setIsEmailLocked(true); // Lock email on successful verification
+        }
+      }
+
 
       if (state.emailVerified) {
         let emailToAdd: string | null = null;
 
         if (type === 'verify' && state.verifiedEmailOnSuccess) {
-          emailToAdd = state.verifiedEmailOnSuccess.toLowerCase(); // Already normalized by action, but ensure
+          emailToAdd = state.verifiedEmailOnSuccess.toLowerCase();
         } else if (type === 'save' && formState.email && !state.needsVerification && !state.alertsCleared) {
-          // This implies it was a save for an already verified email (client hint was true)
-          // or a save where verification wasn't needed (e.g. disabling alerts)
-          emailToAdd = formState.email; // formState.email is already lowercase
+          emailToAdd = formState.email.toLowerCase();
         }
 
         if (emailToAdd) {
@@ -196,21 +205,20 @@ export default function AlertsPage() {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'email') {
-      setFormState(prev => ({ ...prev, email: value.toLowerCase() }));
-    } else {
-      setFormState(prev => ({ ...prev, [name]: value }));
-    }
+    setFormState(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
   }, []);
 
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
     setFormState(prev => ({ ...prev, [name]: checked }));
   }, []);
 
-  // savePrefsActionState.verificationSentTo is already normalized by the action
   const showVerificationSection = savePrefsActionState.needsVerification && 
-                                 savePrefsActionState.verificationSentTo === formState.email && // formState.email is lowercase
+                                 savePrefsActionState.verificationSentTo === formState.email.toLowerCase() &&
                                  !isCurrentEmailVerified;
+
+  const emailInputDisabled = isEmailLocked || 
+                             isSavePrefsPending || 
+                             (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20 py-0">
@@ -228,8 +236,7 @@ export default function AlertsPage() {
           {!showVerificationSection && (
             <form action={savePrefsFormAction}>
               <input type="hidden" name="isAlreadyVerified" value={isCurrentEmailVerified.toString()} />
-              {/* formState.email is already lowercase */}
-              <input type="hidden" name="email" value={formState.email} /> 
+              <input type="hidden" name="email" value={formState.email.toLowerCase()} /> 
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
                   <div className="flex items-center space-x-3 sm:space-x-3.5">
@@ -256,16 +263,30 @@ export default function AlertsPage() {
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
-                  <Input 
-                    id="emailDisplay"  // This is for display and onChange
-                    name="emailDisplay" // Not submitted directly, value from hidden input "email" is used
-                    type="email" 
-                    placeholder="you@example.com" 
-                    className="h-11 sm:h-12 text-base sm:text-lg"
-                    value={formState.email} // Display the (already lowercased) email
-                    onChange={handleInputChange} // handleInputChange will ensure it's lowercased for formState.email
-                    disabled={!formState.alertsEnabled || isSavePrefsPending} 
-                  />
+                  <div className="flex items-center space-x-2">
+                    <Input 
+                      id="emailDisplay"
+                      name="email" // Name should be email to match handleInputChange
+                      type="email" 
+                      placeholder="you@example.com" 
+                      className="flex-grow h-11 sm:h-12 text-base sm:text-lg"
+                      value={formState.email}
+                      onChange={handleInputChange}
+                      disabled={emailInputDisabled || !formState.alertsEnabled}
+                    />
+                    {isEmailLocked && !!formState.email && !emailInputDisabled && formState.alertsEnabled && (
+                       <Button 
+                         type="button" 
+                         variant="outline" 
+                         size="icon" 
+                         onClick={() => setIsEmailLocked(false)}
+                         aria-label="Edit email address"
+                         className="h-11 sm:h-12 w-11 sm:w-12 flex-shrink-0"
+                       >
+                         <Pencil className="h-5 w-5 sm:h-6 sm:w-6" />
+                       </Button>
+                    )}
+                  </div>
                   {savePrefsActionState.fieldErrors?.email && <p className="text-sm text-destructive mt-1.5">{savePrefsActionState.fieldErrors.email.join(', ')}</p>}
                 </div>
                 <div className="space-y-2.5 sm:space-y-3">
@@ -327,8 +348,7 @@ export default function AlertsPage() {
 
           {showVerificationSection && (
             <form action={verifyCodeFormAction}>
-              {/* savePrefsActionState.verificationSentTo is already normalized (lowercase) by saveAlertPreferencesAction */}
-              <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo || ''} />
+              <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo?.toLowerCase() || ''} />
               <input type="hidden" name="expectedCode" value={savePrefsActionState.generatedCode || ''} />
               <input type="hidden" name="city" value={formState.city} />
               <input type="hidden" name="notifyExtremeTemp" value={formState.notifyExtremeTemp ? 'on' : 'off'} />
@@ -410,4 +430,3 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
 }
     
     
-
