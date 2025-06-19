@@ -1,10 +1,12 @@
+
 import {
   Sun, Moon, CloudSun, CloudMoon, Cloud, CloudDrizzle,
   CloudRain, CloudLightning, Snowflake, CloudFog, Haze, CloudHail, Wind, ThermometerSun, ThermometerSnowflake
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface WeatherIconProps extends LucideProps {
+interface WeatherIconProps extends Omit<LucideProps, 'size'> { // Omit size as it will be controlled by className
   iconCode: string;
 }
 
@@ -15,7 +17,7 @@ const iconMap: Record<string, React.ElementType<LucideProps>> = {
   '02n': CloudMoon,
   '03d': Cloud,
   '03n': Cloud,
-  '04d': Cloud, // Often used for broken clouds, can be denser than 03d
+  '04d': Cloud, 
   '04n': Cloud,
   '09d': CloudDrizzle,
   '09n': CloudDrizzle,
@@ -25,17 +27,18 @@ const iconMap: Record<string, React.ElementType<LucideProps>> = {
   '11n': CloudLightning,
   '13d': Snowflake,
   '13n': Snowflake,
-  '50d': CloudFog, // Mist, Haze, Fog
+  '50d': CloudFog, 
   '50n': CloudFog,
-  // Less common codes or alternatives
   'wind': Wind,
   'hot': ThermometerSun,
   'cold': ThermometerSnowflake,
   'hail': CloudHail,
-  'default': Cloud, // Fallback icon
+  'default': Cloud, 
 };
 
-export function WeatherIcon({ iconCode, className, size = 48, ...props }: WeatherIconProps) {
+export function WeatherIcon({ iconCode, className, ...props }: WeatherIconProps) {
   const IconComponent = iconMap[iconCode] || iconMap['default'];
-  return <IconComponent className={className} size={size} {...props} />;
+  // Default size if not provided by className, can be small.
+  // Actual size should be primarily controlled by h- and w- utility classes in `className`.
+  return <IconComponent className={cn("h-8 w-8", className)} {...props} />;
 }
