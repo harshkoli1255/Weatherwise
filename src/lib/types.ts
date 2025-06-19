@@ -1,3 +1,12 @@
+
+export interface HourlyForecastData {
+  time: string; // Formatted time e.g., "3 PM" or "15:00"
+  timestamp: number; // UNIX timestamp
+  temp: number;
+  iconCode: string;
+  condition: string;
+}
+
 export interface WeatherData {
   city: string;
   country: string;
@@ -12,10 +21,11 @@ export interface WeatherData {
 
 export interface WeatherSummaryData extends WeatherData {
   aiSummary: string;
+  hourlyForecast?: HourlyForecastData[];
 }
 
-// Raw OpenWeatherMap API response structure (simplified)
-export interface OpenWeatherAPIResponse {
+// For current weather from /data/2.5/weather
+export interface OpenWeatherCurrentAPIResponse {
   coord: {
     lon: number;
     lat: number;
@@ -46,8 +56,8 @@ export interface OpenWeatherAPIResponse {
   };
   dt: number;
   sys: {
-    type: number;
-    id: number;
+    type?: number;
+    id?: number;
     country: string;
     sunrise: number;
     sunset: number;
@@ -57,4 +67,69 @@ export interface OpenWeatherAPIResponse {
   name: string;
   cod: number;
   message?: string; // For errors
+}
+
+// For forecast from /data/2.5/forecast
+export interface OpenWeatherForecastAPIResponse {
+  cod: string;
+  message: number | string; // Can be number (status) or string (error message)
+  cnt: number;
+  list: Array<{
+    dt: number;
+    main: {
+      temp: number;
+      feels_like: number;
+      temp_min: number;
+      temp_max: number;
+      pressure: number;
+      sea_level: number;
+      grnd_level: number;
+      humidity: number;
+      temp_kf: number;
+    };
+    weather: Array<{
+      id: number;
+      main: string;
+      description: string;
+      icon: string;
+    }>;
+    clouds: {
+      all: number;
+    };
+    wind: {
+      speed: number;
+      deg: number;
+      gust: number;
+    };
+    visibility: number;
+    pop: number;
+    rain?: {
+      '3h': number;
+    };
+    sys: {
+      pod: string;
+    };
+    dt_txt: string;
+  }>;
+  city: {
+    id: number;
+    name: string;
+    coord: {
+      lat: number;
+      lon: number;
+    };
+    country: string;
+    population: number;
+    timezone: number;
+    sunrise: number;
+    sunset: number;
+  };
+}
+
+export interface AlertPreferences {
+  email: string;
+  city: string;
+  notifyExtremeTemp: boolean;
+  notifyHeavyRain: boolean;
+  notifyStrongWind: boolean;
 }
