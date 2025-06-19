@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { AlertPreferences, OpenWeatherCurrentAPIResponse, WeatherConditionAlert, WeatherData } from '@/lib/types';
 import { sendEmail } from '@/services/emailService';
 import { generateVerificationCode } from '@/lib/utils';
-import { format }_from_ 'date-fns';
+import { format } from 'date-fns';
 
 const AlertPreferencesSchema = z.object({
   alertsEnabled: z.preprocess(value => value === 'on' || value === true, z.boolean().default(true)),
@@ -433,4 +433,3 @@ export async function sendTestEmailAction(
   }
 }
 
-```
