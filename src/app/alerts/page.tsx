@@ -316,13 +316,13 @@ export default function AlertsPage() {
                 </div>
               
                 <div className="space-y-2.5 sm:space-y-3">
-                  <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Label htmlFor="emailInput" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && formState.email && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Input 
-                      id="email" 
+                      id="emailInput" 
                       name="email" 
                       type="email" 
                       placeholder="you@example.com" 
@@ -446,7 +446,7 @@ export default function AlertsPage() {
           {/* Action buttons footer - shown when not in verification flow */}
           {!showVerificationSection && (
             <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
-              {formState.email && ( // Only show test email button if there's an email
+              {formState.email && formState.alertsEnabled && ( // Only show test email button if there's an email and alerts are enabled
                 <form action={testEmailFormAction} className="w-full sm:w-auto">
                     <input type="hidden" name="email" value={formState.email.toLowerCase()} />
                     <input type="hidden" name="city" value={formState.city} />
@@ -500,4 +500,3 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
     </div>
   );
 }
-```
