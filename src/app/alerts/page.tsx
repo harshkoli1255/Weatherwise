@@ -2,7 +2,7 @@
 'use client';
 
 import { useActionState, useEffect, useState, useCallback } from 'react';
-import { useFormStatus } from 'react-dom'; // Import useFormStatus
+import { useFormStatus } from 'react-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,6 @@ const initialActionState: {
   alertsCleared: false,
 };
 
-// New component for the submit button using useFormStatus
 function FormSubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -68,8 +67,17 @@ export default function AlertsPage() {
       const savedPrefsString = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedPrefsString) {
         const savedData = JSON.parse(savedPrefsString);
-        const mergedPrefs = { ...initialFormState, ...savedData };
-        setFormState(mergedPrefs);
+        const newFormState = { ...initialFormState };
+
+        if (savedData && typeof savedData === 'object') {
+            newFormState.email = typeof savedData.email === 'string' ? savedData.email : initialFormState.email;
+            newFormState.city = typeof savedData.city === 'string' ? savedData.city : initialFormState.city;
+            newFormState.alertsEnabled = typeof savedData.alertsEnabled === 'boolean' ? savedData.alertsEnabled : initialFormState.alertsEnabled;
+            newFormState.notifyExtremeTemp = typeof savedData.notifyExtremeTemp === 'boolean' ? savedData.notifyExtremeTemp : initialFormState.notifyExtremeTemp;
+            newFormState.notifyHeavyRain = typeof savedData.notifyHeavyRain === 'boolean' ? savedData.notifyHeavyRain : initialFormState.notifyHeavyRain;
+            newFormState.notifyStrongWind = typeof savedData.notifyStrongWind === 'boolean' ? savedData.notifyStrongWind : initialFormState.notifyStrongWind;
+        }
+        setFormState(newFormState);
       } else {
         setFormState(initialFormState);
       }
@@ -98,7 +106,10 @@ export default function AlertsPage() {
       });
       if (actionState.alertsCleared) {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
-        setFormState(prev => ({ ...initialFormState, alertsEnabled: prev.alertsEnabled && false })); // Reset form, keep alertsEnabled state potentially for UI until full reset
+        setFormState({
+          ...initialFormState,
+          alertsEnabled: false, 
+        });
       }
     }
   }, [actionState, toast]);
@@ -114,81 +125,81 @@ export default function AlertsPage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20 py-0">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-10 sm:py-12 md:py-16 lg:py-20 flex flex-col items-center overflow-y-auto">
+      <main className="flex-grow container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center overflow-y-auto">
         <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
-          <CardHeader className="text-center items-center pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6">
-            <AlertTriangle className="h-14 w-14 sm:h-16 md:h-20 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
-            <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
-            <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3 px-5 sm:px-7">
+          <CardHeader className="text-center items-center pt-6 sm:pt-8 md:pt-10 pb-4 sm:pb-5">
+            <AlertTriangle className="h-12 w-12 sm:h-14 md:h-16 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
+            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
+            <CardDescription className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
               Get notified about extreme weather conditions via email.
             </CardDescription>
           </CardHeader>
           <form action={formAction}>
-            <CardContent className="space-y-7 sm:space-y-8 px-6 sm:px-7 md:px-10 pt-6 sm:pt-7 pb-4 sm:pb-5">
-              <div className="flex items-center justify-between p-4 sm:p-5 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
-                <div className="flex items-center space-x-3.5 sm:space-x-4">
-                  <Power className={`h-7 w-7 sm:h-8 sm:w-8 ${formState.alertsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+            <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
+                <div className="flex items-center space-x-3 sm:space-x-3.5">
+                  <Power className={`h-6 w-6 sm:h-7 sm:w-7 ${formState.alertsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div>
-                    <Label htmlFor="alertsEnabled" className="text-lg sm:text-xl font-semibold text-foreground">
+                    <Label htmlFor="alertsEnabled" className="text-base sm:text-lg font-semibold text-foreground">
                       Enable Weather Alerts
                     </Label>
-                    <p className="text-base sm:text-lg text-muted-foreground">Master toggle for all email notifications.</p>
+                    <p className="text-sm sm:text-base text-muted-foreground">Master toggle for all email notifications.</p>
                   </div>
                 </div>
                 <Switch
                   id="alertsEnabled"
                   name="alertsEnabled"
-                  checked={formState.alertsEnabled}
+                  checked={Boolean(formState.alertsEnabled)}
                   onCheckedChange={(checked) => handleSwitchChange('alertsEnabled', checked)}
                   aria-label="Enable Weather Alerts"
-                  className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-110 sm:scale-125"
+                  className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
                 />
               </div>
             
-              <div className="space-y-3 sm:space-y-3.5">
-                <Label htmlFor="email" className="text-lg sm:text-xl font-medium text-foreground/90 flex items-center">
-                  <Mail className="mr-3 sm:mr-3.5 h-6 w-6 sm:h-7 sm:w-7 text-primary/80" /> Email Address
+              <div className="space-y-2.5 sm:space-y-3">
+                <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                 </Label>
                 <Input 
                   id="email" 
                   name="email" 
                   type="email" 
                   placeholder="you@example.com" 
-                  className="h-12 sm:h-14 text-lg sm:text-xl"
+                  className="h-11 sm:h-12 text-base sm:text-lg"
                   value={formState.email}
                   onChange={handleInputChange}
                   disabled={!formState.alertsEnabled} 
                 />
-                {actionState.fieldErrors?.email && <p className="text-base text-destructive mt-2">{actionState.fieldErrors.email.join(', ')}</p>}
+                {actionState.fieldErrors?.email && <p className="text-sm text-destructive mt-1.5">{actionState.fieldErrors.email.join(', ')}</p>}
               </div>
-              <div className="space-y-3 sm:space-y-3.5">
-                <Label htmlFor="city" className="text-lg sm:text-xl font-medium text-foreground/90 flex items-center">
-                  <MapPin className="mr-3 sm:mr-3.5 h-6 w-6 sm:h-7 sm:w-7 text-primary/80" /> City Name
+              <div className="space-y-2.5 sm:space-y-3">
+                <Label htmlFor="city" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <MapPin className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> City Name
                 </Label>
                 <Input 
                   id="city" 
                   name="city" 
                   type="text" 
                   placeholder="E.g., London" 
-                  className="h-12 sm:h-14 text-lg sm:text-xl"
+                  className="h-11 sm:h-12 text-base sm:text-lg"
                   value={formState.city}
                   onChange={handleInputChange}
                   disabled={!formState.alertsEnabled}
                 />
-                 {actionState.fieldErrors?.city && <p className="text-base text-destructive mt-2">{actionState.fieldErrors.city.join(', ')}</p>}
+                 {actionState.fieldErrors?.city && <p className="text-sm text-destructive mt-1.5">{actionState.fieldErrors.city.join(', ')}</p>}
               </div>
 
-              <div className={`space-y-4 sm:space-y-5 pt-5 sm:pt-6 border-t border-border/40 ${!formState.alertsEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-                <h4 className="text-xl sm:text-2xl font-semibold text-foreground/90">Notification Conditions:</h4>
+              <div className={`space-y-3.5 sm:space-y-4 pt-4 sm:pt-5 border-t border-border/40 ${!formState.alertsEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                <h4 className="text-lg sm:text-xl font-semibold text-foreground/90">Notification Conditions:</h4>
                 <AlertOption
                   id="notifyExtremeTemp"
                   name="notifyExtremeTemp"
                   label="Extreme Temperatures"
                   icon={Thermometer}
                   description="Alerts for unusual high or low temperatures."
-                  checked={formState.notifyExtremeTemp}
+                  checked={Boolean(formState.notifyExtremeTemp)}
                   onCheckedChange={(checked) => handleSwitchChange('notifyExtremeTemp', checked)}
                   disabled={!formState.alertsEnabled}
                 />
@@ -198,7 +209,7 @@ export default function AlertsPage() {
                   label="Heavy Rain"
                   icon={CloudRain}
                   description="Notifications for significant rainfall events."
-                  checked={formState.notifyHeavyRain}
+                  checked={Boolean(formState.notifyHeavyRain)}
                   onCheckedChange={(checked) => handleSwitchChange('notifyHeavyRain', checked)}
                    disabled={!formState.alertsEnabled}
                 />
@@ -208,19 +219,19 @@ export default function AlertsPage() {
                   label="Strong Winds"
                   icon={Wind} 
                   description="Alerts for high wind speeds or gusts."
-                  checked={formState.notifyStrongWind}
+                  checked={Boolean(formState.notifyStrongWind)}
                   onCheckedChange={(checked) => handleSwitchChange('notifyStrongWind', checked)}
                   disabled={!formState.alertsEnabled}
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end p-6 sm:p-7 md:p-8 border-t border-border/40 mt-4 sm:mt-5">
+            <CardFooter className="flex justify-end p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
               <FormSubmitButton />
             </CardFooter>
           </form>
         </Card>
       </main>
-      <footer className="py-6 sm:py-7 text-lg sm:text-xl text-center text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-sm">
+      <footer className="py-5 sm:py-6 text-base sm:text-lg text-center text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-sm">
         © {currentYear ?? ''} Weatherwise. Alerts powered by OpenWeather & Genkit AI. Email by Nodemailer.
       </footer>
     </div>
@@ -240,27 +251,27 @@ interface AlertOptionProps {
 
 function AlertOption({ id, name, label, icon: Icon, description, checked, onCheckedChange, disabled }: AlertOptionProps) {
   return (
-    <div className={`flex items-center justify-between p-4 sm:p-5 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
-      <div className="flex items-center space-x-3.5 sm:space-x-4">
-        <Icon className={`h-7 w-7 sm:h-8 sm:w-8 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
+    <div className={`flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
+      <div className="flex items-center space-x-3 sm:space-x-3.5">
+        <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
         <div>
-          <Label htmlFor={id as string} className={`text-lg sm:text-xl font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'}`}>
+          <Label htmlFor={id as string} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'}`}>
             {label}
           </Label>
-          <p className={`text-base sm:text-lg ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
+          <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
         </div>
       </div>
       <Switch 
         id={id as string} 
         name={name} 
-        checked={checked}
+        checked={Boolean(checked)} 
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         aria-label={label}
-        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-110 sm:scale-125"
+        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
       />
     </div>
   );
 }
-
+    
     
