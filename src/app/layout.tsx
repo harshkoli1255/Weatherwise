@@ -1,7 +1,9 @@
+
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
+import React from 'react'; // Explicitly import React
 
 export const metadata: Metadata = {
   title: 'Weatherwise',
