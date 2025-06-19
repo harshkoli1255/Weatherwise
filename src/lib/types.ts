@@ -47,7 +47,7 @@ export interface OpenWeatherCurrentAPIResponse {
   };
   visibility: number;
   wind: {
-    speed: number;
+    speed: number; // in m/s by default from API
     deg: number;
     gust?: number;
   };
@@ -144,4 +144,8 @@ export interface IpApiLocationResponse {
   lon?: number;
 }
 
-    
+export interface WeatherConditionAlert {
+  type: 'Extreme Temperature' | 'Heavy Rain' | 'Strong Wind';
+  details: string;
+  city: string;
+}

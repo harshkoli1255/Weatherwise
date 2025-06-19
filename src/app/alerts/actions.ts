@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import type { AlertPreferences } from '@/lib/types';
+import type { AlertPreferences, OpenWeatherCurrentAPIResponse, WeatherConditionAlert } from '@/lib/types';
 import { sendEmail } from '@/services/emailService';
 import { generateVerificationCode } from '@/lib/utils';
 
@@ -15,27 +15,90 @@ const AlertPreferencesSchema = z.object({
   notifyStrongWind: z.preprocess(value => value === 'on' || value === true, z.boolean().default(false)),
 });
 
-// Used for managing state between form submissions for verification flow
 export interface SaveAlertsFormState {
   message: string | null;
   error: boolean;
   fieldErrors?: Partial<Record<keyof AlertPreferences | 'verificationCode', string[] | undefined>>;
   alertsCleared?: boolean;
-  verificationSentTo?: string | null; // Email to which verification code was sent
-  generatedCode?: string | null; // The code sent (for prototype, pass back to client)
+  verificationSentTo?: string | null;
+  generatedCode?: string | null;
   needsVerification?: boolean;
   emailVerified?: boolean;
-  verifiedEmailOnSuccess?: string | null; // Email that was successfully verified by verifyCodeAction
+  verifiedEmailOnSuccess?: string | null;
 }
 
+const sendWeatherAlertEmail = async (email: string, alertInfo: WeatherConditionAlert) => {
+  const subject = `Weather Alert: ${alertInfo.type} in ${alertInfo.city}`;
+  const html = `
+    <h1>Weather Alert for ${alertInfo.city}</h1>
+    <p>Hello,</p>
+    <p>This is a weather alert from Weatherwise for <strong>${alertInfo.city}</strong>.</p>
+    <p><strong>Condition:</strong> ${alertInfo.type}</p>
+    <p><strong>Details:</strong> ${alertInfo.details}</p>
+    <p>Please take necessary precautions.</p>
+    <p>Thank you for using Weatherwise!</p>
+  `;
+  return sendEmail({ to: email, subject, html });
+};
+
+async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
+  if (!preferences.email || !preferences.city || !preferences.alertsEnabled) {
+    return;
+  }
+  if (!preferences.notifyExtremeTemp && !preferences.notifyHeavyRain && !preferences.notifyStrongWind) {
+    return;
+  }
+
+  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+  if (!apiKey) {
+    console.error("OpenWeather API key is not set for live alert check.");
+    return; // Cannot check weather
+  }
+
+  try {
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(preferences.city)}&appid=${apiKey}&units=metric`;
+    const weatherResponse = await fetch(weatherUrl);
+    if (!weatherResponse.ok) {
+      console.error(`Failed to fetch weather for ${preferences.city} for live alert check: ${weatherResponse.status}`);
+      return;
+    }
+    const currentWeatherData: OpenWeatherCurrentAPIResponse = await weatherResponse.json();
+
+    const temp = Math.round(currentWeatherData.main.temp);
+    const windSpeedKmh = Math.round(currentWeatherData.wind.speed * 3.6); // m/s to km/h
+    const weatherCondition = currentWeatherData.weather[0].main;
+    const weatherDescription = currentWeatherData.weather[0].description.toLowerCase();
+
+    if (preferences.notifyExtremeTemp) {
+      if (temp > 32) {
+        await sendWeatherAlertEmail(preferences.email, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C (High).` });
+      } else if (temp < 5) {
+        await sendWeatherAlertEmail(preferences.email, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C (Low).` });
+      }
+    }
+    if (preferences.notifyHeavyRain) {
+      if (weatherCondition === 'Rain' && weatherDescription.includes('heavy intensity rain')) {
+        await sendWeatherAlertEmail(preferences.email, { city: preferences.city, type: 'Heavy Rain', details: `Heavy intensity rain detected: ${weatherDescription}.` });
+      }
+    }
+    if (preferences.notifyStrongWind) {
+      if (windSpeedKmh > 35) {
+        await sendWeatherAlertEmail(preferences.email, { city: preferences.city, type: 'Strong Wind', details: `Strong winds detected at ${windSpeedKmh} km/h.` });
+      }
+    }
+  } catch (error) {
+    console.error("Error during live weather alert check:", error);
+  }
+}
+
+
 export async function saveAlertPreferencesAction(
-  // We don't use prevState directly for verification flow, but keep signature for useActionState
   prevState: SaveAlertsFormState, 
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   const rawData = {
     alertsEnabled: formData.get('alertsEnabled'),
-    email: formData.get('email'), // Client should send this potentially already lowercased
+    email: formData.get('email'),
     city: formData.get('city'),
     notifyExtremeTemp: formData.get('notifyExtremeTemp'),
     notifyHeavyRain: formData.get('notifyHeavyRain'),
@@ -51,11 +114,12 @@ export async function saveAlertPreferencesAction(
       message: "Please correct the errors in the form.",
       error: true,
       fieldErrors: fieldErrors,
+      verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
 
   const preferences = validationResult.data;
-  const emailToUse = preferences.email?.toLowerCase(); // Normalize for operations
+  const emailToUse = preferences.email?.toLowerCase();
 
   if (!preferences.alertsEnabled || !emailToUse) {
     console.log("Disabling alert preferences due to alertsEnabled=false or empty email.");
@@ -63,6 +127,7 @@ export async function saveAlertPreferencesAction(
       message: "Weather alerts have been disabled.",
       error: false,
       alertsCleared: true,
+      verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
   
@@ -71,10 +136,11 @@ export async function saveAlertPreferencesAction(
         message: "Please correct the errors in the form.",
         error: true,
         fieldErrors: { city: ["City name is required to enable alerts."] },
+        verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
 
-  if (isAlreadyVerifiedClientHint) {
+  if (isAlreadyVerifiedClientHint && emailToUse) {
     try {
       console.log("Saving alert preferences for already verified email:", preferences);
       const emailSubject = `Weather Alert Preferences Updated for ${preferences.city}`;
@@ -98,30 +164,34 @@ export async function saveAlertPreferencesAction(
         subject: emailSubject,
         html: emailHtml,
       });
+      
+      // Check for live alerts after successful save
+      await checkAndSendLiveWeatherAlerts(preferences);
 
       if (emailResult.success) {
         return {
-          message: `Alert preferences saved for ${preferences.city}! A confirmation email has been sent to ${emailToUse}.`,
+          message: `Alert preferences saved for ${preferences.city}! A confirmation email has been sent to ${emailToUse}. Current weather conditions were also checked for immediate alerts.`,
           error: false,
           emailVerified: true, 
+          verifiedEmailOnSuccess: emailToUse,
         };
       } else {
         let finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email.`;
         if (emailResult.error && (emailResult.error.includes('GOOGLE_SMTP_USER') || emailResult.error.includes('GOOGLE_SMTP_PASSWORD'))) {
-             finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email: ${emailResult.error}. Please check your email configuration.`;
+             finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email: ${emailResult.error}. Please check your email configuration. Current weather conditions were also checked.`;
         } else if (emailResult.error) {
-            finalMessage += ` Reason: ${emailResult.error}`;
+            finalMessage += ` Reason: ${emailResult.error}. Current weather conditions were also checked.`;
         } else {
-            finalMessage += ` An unknown error occurred during email sending.`;
+            finalMessage += ` An unknown error occurred during email sending. Current weather conditions were also checked.`;
         }
-        return { message: finalMessage, error: true, emailVerified: true };
+        return { message: finalMessage, error: true, emailVerified: true, verifiedEmailOnSuccess: emailToUse };
       }
     } catch (e) {
       console.error("Error saving alert preferences or sending email:", e);
       const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
-      return { message: `Failed to save alert preferences: ${errorMessage}`, error: true };
+      return { message: `Failed to save alert preferences: ${errorMessage}`, error: true, verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess, };
     }
-  } else {
+  } else if (emailToUse) { // Needs verification
     const verificationCode = generateVerificationCode();
     const emailSubject = "Verify Your Email for Weatherwise Alerts";
     const emailHtml = `
@@ -145,9 +215,10 @@ export async function saveAlertPreferencesAction(
         return {
           message: `A verification code has been sent to ${emailToUse}. Please enter it below.`,
           error: false,
-          verificationSentTo: emailToUse, // Store the normalized email
+          verificationSentTo: emailToUse,
           generatedCode: verificationCode, 
           needsVerification: true,
+          verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
         };
       } else {
         let finalMessage = `We couldn't send a verification email to ${emailToUse}.`;
@@ -158,19 +229,20 @@ export async function saveAlertPreferencesAction(
         } else {
             finalMessage += ` An unknown error occurred during email sending.`;
         }
-        return { message: finalMessage, error: true };
+        return { message: finalMessage, error: true, verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess, };
       }
     } catch (e) {
       console.error("Error sending verification email:", e);
       const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
-      return { message: `Failed to send verification email: ${errorMessage}`, error: true };
+      return { message: `Failed to send verification email: ${errorMessage}`, error: true, verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess, };
     }
   }
+  // Fallback if emailToUse is somehow not set but alertsEnabled is true (should be caught by schema)
+  return { message: "An unexpected error occurred. Email address is missing.", error: true, verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess };
 }
 
 
 const VerifyCodeSchema = z.object({
-  // email is the one verificationSentTo, which should be normalized already
   email: z.string().email(), 
   verificationCode: z.string().length(6, { message: "Verification code must be 6 digits." }),
   expectedCode: z.string().length(6), 
@@ -181,7 +253,7 @@ export async function verifyCodeAction(
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   const rawData = {
-    email: formData.get('email'), // This email was set from savePrefsActionState.verificationSentTo (should be lowercase)
+    email: formData.get('email'),
     verificationCode: formData.get('verificationCode'), 
     expectedCode: formData.get('expectedCode') 
   };
@@ -194,20 +266,29 @@ export async function verifyCodeAction(
       message: "Invalid verification data.",
       error: true,
       fieldErrors: fieldErrors, 
-      verificationSentTo: rawData.email as string | null, // Pass back the email being verified
+      verificationSentTo: rawData.email as string | null,
       generatedCode: rawData.expectedCode as string | null,
       needsVerification: true, 
+      verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
 
   const { email, verificationCode, expectedCode } = validationResult.data;
-  // email here is the one that verification was initiated for, should be lowercase from savePrefsActionState.verificationSentTo
 
   if (verificationCode === expectedCode) {
     const city = formData.get('city') as string; 
     const notifyExtremeTemp = formData.get('notifyExtremeTemp') === 'on';
     const notifyHeavyRain = formData.get('notifyHeavyRain') === 'on';
     const notifyStrongWind = formData.get('notifyStrongWind') === 'on';
+
+    const preferences: AlertPreferences = {
+      email: email,
+      city: city,
+      alertsEnabled: true, // Assumed true if verifying
+      notifyExtremeTemp,
+      notifyHeavyRain,
+      notifyStrongWind,
+    };
 
     const emailSubject = `Email Verified - Weather Alerts Active for ${city}`;
     const emailHtml = `
@@ -225,15 +306,16 @@ export async function verifyCodeAction(
     `;
     try {
         await sendEmail({to: email, subject: emailSubject, html: emailHtml});
+        await checkAndSendLiveWeatherAlerts(preferences); // Check for live alerts
     } catch (e) {
-        console.error("Failed to send post-verification confirmation email:", e);
+        console.error("Failed to send post-verification confirmation email or live alert:", e);
     }
 
     return {
-      message: `Email ${email} verified successfully! Alerts are now active for the configured city.`,
+      message: `Email ${email} verified successfully! Alerts are now active for ${city}. Current weather conditions were also checked for immediate alerts.`,
       error: false,
       emailVerified: true,
-      verifiedEmailOnSuccess: email, // Return the email that was verified
+      verifiedEmailOnSuccess: email.toLowerCase(),
       verificationSentTo: null, 
       generatedCode: null,
       needsVerification: false,
@@ -246,7 +328,54 @@ export async function verifyCodeAction(
       verificationSentTo: email,
       generatedCode: expectedCode, 
       needsVerification: true,
+      verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
 }
 
+
+export async function sendTestEmailAction(
+  prevState: { message: string | null, error: boolean }, // Simple state for this action
+  formData: FormData
+): Promise<{ message: string | null, error: boolean }> {
+  const email = formData.get('email') as string;
+
+  const emailValidation = z.string().email({ message: "Invalid email address provided for test." }).safeParse(email);
+  if (!emailValidation.success) {
+    return { message: emailValidation.error.errors[0].message, error: true };
+  }
+
+  const validatedEmail = emailValidation.data.toLowerCase();
+
+  const emailSubject = "Weatherwise Test Email";
+  const emailHtml = `
+    <h1>Hello from Weatherwise!</h1>
+    <p>This is a test email to confirm that your email settings are working correctly with the Weatherwise application.</p>
+    <p>If you received this, congratulations! Your email service is configured.</p>
+    <p>Thank you for using Weatherwise!</p>
+  `;
+
+  try {
+    const emailResult = await sendEmail({
+      to: validatedEmail,
+      subject: emailSubject,
+      html: emailHtml,
+    });
+
+    if (emailResult.success) {
+      return { message: `Test email successfully sent to ${validatedEmail}.`, error: false };
+    } else {
+      let finalMessage = `Failed to send test email to ${validatedEmail}.`;
+      if (emailResult.error && (emailResult.error.includes('GOOGLE_SMTP_USER') || emailResult.error.includes('GOOGLE_SMTP_PASSWORD'))) {
+          finalMessage = `Failed to send test email: ${emailResult.error}. Please check your .env configuration.`;
+      } else if (emailResult.error) {
+          finalMessage += ` Reason: ${emailResult.error}`;
+      }
+      return { message: finalMessage, error: true };
+    }
+  } catch (e) {
+    console.error("Error sending test email:", e);
+    const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
+    return { message: `Failed to send test email: ${errorMessage}`, error: true };
+  }
+}
