@@ -24,12 +24,12 @@ export function SearchBar({ onSearch, isSearching }: SearchBarProps) {
         type="text"
         name="city"
         placeholder="E.g., London, Tokyo, New York"
-        className="flex-grow text-sm h-11 px-3 rounded-md shadow-sm focus:ring-2 focus:ring-primary/50"
+        className="flex-grow text-sm h-10 px-3 rounded-md shadow-sm focus:ring-2 focus:ring-primary/50"
         aria-label="City name"
         disabled={isSearching}
         required
       />
-      <Button type="submit" disabled={isSearching} aria-label="Search weather" className="h-11 shadow-md hover:shadow-lg transition-shadow px-5">
+      <Button type="submit" disabled={isSearching} aria-label="Search weather" className="h-10 shadow-md hover:shadow-lg transition-shadow px-4">
         {isSearching ? (
           <>
             <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
