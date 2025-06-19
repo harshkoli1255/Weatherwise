@@ -103,6 +103,7 @@ export default function AlertsPage() {
         if (savedData && typeof savedData === 'object') {
             newFormState.email = typeof savedData.email === 'string' ? savedData.email.toLowerCase() : initialFormState.email;
             newFormState.city = typeof savedData.city === 'string' ? savedData.city : initialFormState.city;
+            // Ensure alertsEnabled defaults correctly if missing from old localStorage
             newFormState.alertsEnabled = typeof savedData.alertsEnabled === 'boolean' ? savedData.alertsEnabled : initialFormState.alertsEnabled;
             newFormState.notifyExtremeTemp = typeof savedData.notifyExtremeTemp === 'boolean' ? savedData.notifyExtremeTemp : initialFormState.notifyExtremeTemp;
             newFormState.notifyHeavyRain = typeof savedData.notifyHeavyRain === 'boolean' ? savedData.notifyHeavyRain : initialFormState.notifyHeavyRain;
@@ -110,7 +111,7 @@ export default function AlertsPage() {
         }
       }
       setFormState(newFormState);
-      setIsEmailLocked(!!newFormState.email); // Lock email if one is loaded
+      setIsEmailLocked(!!newFormState.email); 
 
       const savedVerifiedEmailsString = localStorage.getItem(LOCAL_STORAGE_VERIFIED_EMAILS_KEY);
       if (savedVerifiedEmailsString) {
@@ -121,7 +122,7 @@ export default function AlertsPage() {
       console.error("Failed to load preferences or verified emails from localStorage:", error);
       setFormState(initialFormState);
       setVerifiedEmails(new Set());
-      setIsEmailLocked(false); // No email loaded, so it's editable
+      setIsEmailLocked(false); 
     }
   }, []);
 
@@ -154,16 +155,17 @@ export default function AlertsPage() {
 
       if (state.alertsCleared) {
         localStorage.removeItem(LOCAL_STORAGE_PREFS_KEY);
-        setFormState({ ...initialFormState, alertsEnabled: false });
-        setIsEmailLocked(false); // Email cleared, make it editable
+        // Reset form but keep alertsEnabled as false
+        setFormState({ ...initialFormState, alertsEnabled: false, email: '', city: '' });
+        setIsEmailLocked(false);
       }
 
       if (!state.error) {
-        if (type === 'save' && !state.needsVerification && !state.alertsCleared) {
-          setIsEmailLocked(true); // Lock email on successful save if no verification needed
+        if (type === 'save' && !state.needsVerification && !state.alertsCleared && formState.email) {
+          setIsEmailLocked(true);
         }
-        if (type === 'verify' && state.emailVerified) {
-          setIsEmailLocked(true); // Lock email on successful verification
+        if (type === 'verify' && state.emailVerified && state.verifiedEmailOnSuccess) {
+          setIsEmailLocked(true);
         }
       }
 
@@ -174,9 +176,10 @@ export default function AlertsPage() {
         if (type === 'verify' && state.verifiedEmailOnSuccess) {
           emailToAdd = state.verifiedEmailOnSuccess.toLowerCase();
         } else if (type === 'save' && formState.email && !state.needsVerification && !state.alertsCleared) {
+          // This case covers saving already verified emails or if verification is not needed for some reason
           emailToAdd = formState.email.toLowerCase();
         }
-
+        
         if (emailToAdd) {
           setVerifiedEmails(prev => {
             if (prev.has(emailToAdd!)) return prev;
@@ -186,7 +189,8 @@ export default function AlertsPage() {
           });
         }
         
-        if ((type === 'verify' && state.emailVerified) || (type === 'save' && state.emailVerified && !state.needsVerification && !state.alertsCleared)) {
+        // Clear verification code input only on successful verification or if save didn't need verification
+        if ((type === 'verify' && state.emailVerified) || (type === 'save' && !state.needsVerification && !state.alertsCleared)) {
           setVerificationCodeInput('');
         }
       }
@@ -206,6 +210,11 @@ export default function AlertsPage() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
+    if (name === 'email') {
+        // If user changes email, it might no longer be locked, unless it's an already verified one
+        // For simplicity, allow editing and re-lock on successful save/verify
+        setIsEmailLocked(false);
+    }
   }, []);
 
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
@@ -216,9 +225,20 @@ export default function AlertsPage() {
                                  savePrefsActionState.verificationSentTo === formState.email.toLowerCase() &&
                                  !isCurrentEmailVerified;
 
-  const emailInputDisabled = isEmailLocked || 
-                             isSavePrefsPending || 
-                             (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
+  // Determine if the email input should be disabled due to an ongoing operation
+  const isEmailOperationallyLocked = isSavePrefsPending || 
+                                    (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
+                                    
+  // Final disabled state for the email input
+  const emailInputActuallyDisabled = isEmailLocked || isEmailOperationallyLocked || !formState.alertsEnabled;
+  
+  // Condition for showing the edit button
+  const showEditEmailButton = isEmailLocked && 
+                              !!formState.email && 
+                              formState.alertsEnabled && 
+                              !isSavePrefsPending && 
+                              !(showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20 py-0">
@@ -236,7 +256,8 @@ export default function AlertsPage() {
           {!showVerificationSection && (
             <form action={savePrefsFormAction}>
               <input type="hidden" name="isAlreadyVerified" value={isCurrentEmailVerified.toString()} />
-              <input type="hidden" name="email" value={formState.email.toLowerCase()} /> 
+              {/* Pass the current formState email to the action, it handles casing */}
+              <input type="hidden" name="emailForAction" value={formState.email} />
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
                   <div className="flex items-center space-x-3 sm:space-x-3.5">
@@ -259,22 +280,22 @@ export default function AlertsPage() {
                 </div>
               
                 <div className="space-y-2.5 sm:space-y-3">
-                  <Label htmlFor="emailDisplay" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Input 
-                      id="emailDisplay"
-                      name="email" // Name should be email to match handleInputChange
+                      id="email" // Corrected id to match label htmlFor
+                      name="email" 
                       type="email" 
                       placeholder="you@example.com" 
                       className="flex-grow h-11 sm:h-12 text-base sm:text-lg"
                       value={formState.email}
                       onChange={handleInputChange}
-                      disabled={emailInputDisabled || !formState.alertsEnabled}
+                      disabled={emailInputActuallyDisabled}
                     />
-                    {isEmailLocked && !!formState.email && !emailInputDisabled && formState.alertsEnabled && (
+                    {showEditEmailButton && (
                        <Button 
                          type="button" 
                          variant="outline" 
