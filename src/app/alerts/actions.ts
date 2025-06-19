@@ -25,6 +25,7 @@ export interface SaveAlertsFormState {
   generatedCode?: string | null; // The code sent (for prototype, pass back to client)
   needsVerification?: boolean;
   emailVerified?: boolean;
+  verifiedEmailOnSuccess?: string | null; // Email that was successfully verified by verifyCodeAction
 }
 
 export async function saveAlertPreferencesAction(
@@ -34,13 +35,13 @@ export async function saveAlertPreferencesAction(
 ): Promise<SaveAlertsFormState> {
   const rawData = {
     alertsEnabled: formData.get('alertsEnabled'),
-    email: formData.get('email'),
+    email: formData.get('email'), // Client should send this potentially already lowercased
     city: formData.get('city'),
     notifyExtremeTemp: formData.get('notifyExtremeTemp'),
     notifyHeavyRain: formData.get('notifyHeavyRain'),
     notifyStrongWind: formData.get('notifyStrongWind'),
   };
-  const isAlreadyVerifiedClientHint = formData.get('isAlreadyVerified') === 'true'; // Client hints if it thinks email is verified
+  const isAlreadyVerifiedClientHint = formData.get('isAlreadyVerified') === 'true';
 
   const validationResult = AlertPreferencesSchema.safeParse(rawData);
 
@@ -54,8 +55,9 @@ export async function saveAlertPreferencesAction(
   }
 
   const preferences = validationResult.data;
+  const emailToUse = preferences.email?.toLowerCase(); // Normalize for operations
 
-  if (!preferences.alertsEnabled || !preferences.email) {
+  if (!preferences.alertsEnabled || !emailToUse) {
     console.log("Disabling alert preferences due to alertsEnabled=false or empty email.");
     return {
       message: "Weather alerts have been disabled.",
@@ -72,8 +74,6 @@ export async function saveAlertPreferencesAction(
     };
   }
 
-  // If client thinks email is verified, proceed to save and send confirmation.
-  // In a real app, server would re-verify this status from DB.
   if (isAlreadyVerifiedClientHint) {
     try {
       console.log("Saving alert preferences for already verified email:", preferences);
@@ -94,21 +94,21 @@ export async function saveAlertPreferencesAction(
       `;
 
       const emailResult = await sendEmail({
-        to: preferences.email,
+        to: emailToUse,
         subject: emailSubject,
         html: emailHtml,
       });
 
       if (emailResult.success) {
         return {
-          message: `Alert preferences saved for ${preferences.city}! A confirmation email has been sent to ${preferences.email}.`,
+          message: `Alert preferences saved for ${preferences.city}! A confirmation email has been sent to ${emailToUse}.`,
           error: false,
-          emailVerified: true, // Confirming it's treated as verified
+          emailVerified: true, 
         };
       } else {
         let finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email.`;
-        if (emailResult.error && emailResult.error.includes('GOOGLE_SMTP_USER') && emailResult.error.includes('GOOGLE_SMTP_PASSWORD')) {
-            finalMessage += ` Reason: ${emailResult.error}`;
+        if (emailResult.error && (emailResult.error.includes('GOOGLE_SMTP_USER') || emailResult.error.includes('GOOGLE_SMTP_PASSWORD'))) {
+             finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email: ${emailResult.error}. Please check your email configuration.`;
         } else if (emailResult.error) {
             finalMessage += ` Reason: ${emailResult.error}`;
         } else {
@@ -122,7 +122,6 @@ export async function saveAlertPreferencesAction(
       return { message: `Failed to save alert preferences: ${errorMessage}`, error: true };
     }
   } else {
-    // Email is not yet verified by client's perspective; send verification code
     const verificationCode = generateVerificationCode();
     const emailSubject = "Verify Your Email for Weatherwise Alerts";
     const emailHtml = `
@@ -137,23 +136,23 @@ export async function saveAlertPreferencesAction(
 
     try {
       const emailResult = await sendEmail({
-        to: preferences.email,
+        to: emailToUse,
         subject: emailSubject,
         html: emailHtml,
       });
 
       if (emailResult.success) {
         return {
-          message: `A verification code has been sent to ${preferences.email}. Please enter it below.`,
+          message: `A verification code has been sent to ${emailToUse}. Please enter it below.`,
           error: false,
-          verificationSentTo: preferences.email,
-          generatedCode: verificationCode, // For prototype: sending code back to client. In Prod: store server-side.
+          verificationSentTo: emailToUse, // Store the normalized email
+          generatedCode: verificationCode, 
           needsVerification: true,
         };
       } else {
-        let finalMessage = `We couldn't send a verification email to ${preferences.email}.`;
-         if (emailResult.error && emailResult.error.includes('GOOGLE_SMTP_USER') && emailResult.error.includes('GOOGLE_SMTP_PASSWORD')) {
-            finalMessage += ` Reason: ${emailResult.error}`;
+        let finalMessage = `We couldn't send a verification email to ${emailToUse}.`;
+         if (emailResult.error && (emailResult.error.includes('GOOGLE_SMTP_USER') || emailResult.error.includes('GOOGLE_SMTP_PASSWORD'))) {
+            finalMessage = `We couldn't send a verification email to ${emailToUse}: ${emailResult.error}. Please check your email configuration.`;
         } else if (emailResult.error) {
             finalMessage += ` Reason: ${emailResult.error}`;
         } else {
@@ -171,19 +170,20 @@ export async function saveAlertPreferencesAction(
 
 
 const VerifyCodeSchema = z.object({
-  email: z.string().email(),
+  // email is the one verificationSentTo, which should be normalized already
+  email: z.string().email(), 
   verificationCode: z.string().length(6, { message: "Verification code must be 6 digits." }),
-  expectedCode: z.string().length(6), // The code that was actually sent
+  expectedCode: z.string().length(6), 
 });
 
 export async function verifyCodeAction(
-  prevState: SaveAlertsFormState, // Re-using state type for consistency
+  prevState: SaveAlertsFormState, 
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   const rawData = {
-    email: formData.get('email'), // Email being verified
-    verificationCode: formData.get('verificationCode'), // Code entered by user
-    expectedCode: formData.get('expectedCode') // Code originally generated and sent
+    email: formData.get('email'), // This email was set from savePrefsActionState.verificationSentTo (should be lowercase)
+    verificationCode: formData.get('verificationCode'), 
+    expectedCode: formData.get('expectedCode') 
   };
 
   const validationResult = VerifyCodeSchema.safeParse(rawData);
@@ -193,28 +193,21 @@ export async function verifyCodeAction(
     return {
       message: "Invalid verification data.",
       error: true,
-      fieldErrors: fieldErrors, // This will include errors for verificationCode too
-      verificationSentTo: rawData.email as string | null,
+      fieldErrors: fieldErrors, 
+      verificationSentTo: rawData.email as string | null, // Pass back the email being verified
       generatedCode: rawData.expectedCode as string | null,
-      needsVerification: true, // Still needs verification
+      needsVerification: true, 
     };
   }
 
   const { email, verificationCode, expectedCode } = validationResult.data;
+  // email here is the one that verification was initiated for, should be lowercase from savePrefsActionState.verificationSentTo
 
   if (verificationCode === expectedCode) {
-    // In a real app, mark email as verified in DB.
-    // For prototype, client will handle storing this email as verified in localStorage.
-    // Now, implicitly, the preferences related to this email can be considered active.
-    // We can re-trigger a "save" or rely on client to re-submit original preferences.
-    // For simplicity, just confirm verification. Client will then know to save with 'isAlreadyVerifiedClientHint'.
-    
-    // Send a final confirmation email that alerts are active (optional, but good UX)
-    const city = formData.get('city') as string; // Get city from original form data passed through
+    const city = formData.get('city') as string; 
     const notifyExtremeTemp = formData.get('notifyExtremeTemp') === 'on';
     const notifyHeavyRain = formData.get('notifyHeavyRain') === 'on';
     const notifyStrongWind = formData.get('notifyStrongWind') === 'on';
-
 
     const emailSubject = `Email Verified - Weather Alerts Active for ${city}`;
     const emailHtml = `
@@ -234,15 +227,14 @@ export async function verifyCodeAction(
         await sendEmail({to: email, subject: emailSubject, html: emailHtml});
     } catch (e) {
         console.error("Failed to send post-verification confirmation email:", e);
-        // Non-critical, proceed with verification success
     }
-
 
     return {
       message: `Email ${email} verified successfully! Alerts are now active for the configured city.`,
       error: false,
       emailVerified: true,
-      verificationSentTo: null, // Clear these as verification is done
+      verifiedEmailOnSuccess: email, // Return the email that was verified
+      verificationSentTo: null, 
       generatedCode: null,
       needsVerification: false,
     };
@@ -252,8 +244,9 @@ export async function verifyCodeAction(
       error: true,
       fieldErrors: { verificationCode: ["Incorrect code."] },
       verificationSentTo: email,
-      generatedCode: expectedCode, // Keep passing the expected code for retries
+      generatedCode: expectedCode, 
       needsVerification: true,
     };
   }
 }
+
