@@ -49,7 +49,7 @@ export async function saveAlertPreferencesAction(
 
   // If alerts are disabled or email is empty, treat as disabling alerts
   if (!preferences.alertsEnabled || !preferences.email) {
-    console.log("Disabling alert preferences.");
+    console.log("Disabling alert preferences due to alertsEnabled=false or empty email.");
     // In a real app, you would remove/disable these preferences in a database.
     return {
       message: "Weather alerts have been disabled.",
@@ -72,7 +72,8 @@ export async function saveAlertPreferencesAction(
     // In a real application, you would save these preferences to a database.
     console.log("Saving alert preferences:", preferences);
     
-    await new Promise(resolve => setTimeout(resolve, 300)); 
+    // Simulate async operation if any DB interaction were here.
+    // await new Promise(resolve => setTimeout(resolve, 300)); 
 
     const emailSubject = `Weather Alert Preferences Updated for ${preferences.city}`;
     const emailHtml = `
@@ -103,8 +104,20 @@ export async function saveAlertPreferencesAction(
         error: false,
       };
     } else {
+      // Refined error message construction
+      let finalMessage = `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email.`;
+      if (emailResult.error) {
+        // The error from emailService for missing .env vars is specific enough.
+        finalMessage += ` Reason: ${emailResult.error}`;
+      } else {
+        finalMessage += ` An unknown error occurred during email sending.`;
+      }
+      // Only add generic "Please check your email configuration" if the specific error doesn't already guide the user.
+      if (emailResult.error && !emailResult.error.toLowerCase().includes('email server not configured') && !emailResult.error.toLowerCase().includes('.env file')) {
+        finalMessage += ' Please check your email server configuration.';
+      }
       return {
-        message: `Alert preferences saved for ${preferences.city}, but we couldn't send a confirmation email: ${emailResult.error}. Please check your email configuration.`,
+        message: finalMessage,
         error: true, 
       };
     }
