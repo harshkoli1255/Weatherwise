@@ -19,17 +19,23 @@ export function SearchBar({ onSearch, isSearching }: SearchBarProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2 sm:space-x-3">
+    <form onSubmit={handleSubmit} className="flex w-full items-center space-x-3">
       <Input
         type="text"
         name="city"
         placeholder="E.g., London, Tokyo, New York"
-        className="flex-grow text-sm sm:text-base h-12 px-4 rounded-lg shadow-sm focus:ring-2 focus:ring-primary/50"
+        className="flex-grow text-base h-12 px-4 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/70 transition-colors duration-150"
         aria-label="City name"
         disabled={isSearching}
         required
       />
-      <Button type="submit" disabled={isSearching} aria-label="Search weather" size="lg" className="h-12 shadow-md hover:shadow-lg transition-shadow px-5">
+      <Button 
+        type="submit" 
+        disabled={isSearching} 
+        aria-label="Search weather" 
+        size="lg" 
+        className="h-12 rounded-xl px-6 shadow-md hover:shadow-lg font-semibold transition-all duration-150 ease-in-out"
+      >
         {isSearching ? (
           <>
             <svg className="animate-spin -ml-1 mr-2.5 h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
