@@ -1,14 +1,15 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
+import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, CloudSun, MapPin, WifiOff } from 'lucide-react';
+import { AlertCircle, MapPin, WifiOff } from 'lucide-react';
 import Image from 'next/image';
 
 interface WeatherPageState {
@@ -16,7 +17,7 @@ interface WeatherPageState {
   error: string | null;
   isLoading: boolean;
   loadingMessage: string | null;
-  cityNotFound: boolean; // To retain similar error display if OpenWeather can't find by coords/city
+  cityNotFound: boolean;
 }
 
 const initialState: WeatherPageState = {
@@ -38,64 +39,31 @@ export default function WeatherPage() {
   }, []);
 
   useEffect(() => {
-    if (weatherState.error) {
+    if (weatherState.error && !weatherState.isLoading) { // Only show toast if not in initial loading sequence
       toast({
         variant: "destructive",
         title: "Error",
         description: weatherState.error,
       });
     }
-  }, [weatherState.error, toast]);
+  }, [weatherState.error, weatherState.isLoading, toast]);
 
-  useEffect(() => {
-    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location..." }));
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setWeatherState(prev => ({ ...prev, loadingMessage: "Fetching weather for your current location..." }));
-          startTransition(async () => {
-            const result = await fetchWeatherAndSummaryAction({ 
-              lat: position.coords.latitude, 
-              lon: position.coords.longitude 
-            });
-            setWeatherState({
-              data: result.data,
-              error: result.error,
-              isLoading: false,
-              loadingMessage: null,
-              cityNotFound: result.cityNotFound,
-            });
-          });
-        },
-        (error) => {
-          console.warn(`Geolocation error: ${error.message}`);
-          setWeatherState(prev => ({ ...prev, loadingMessage: "Geolocation failed. Trying IP lookup..." }));
-          fetchWeatherByIp();
-        }
-      );
-    } else {
-      setWeatherState(prev => ({ ...prev, loadingMessage: "Geolocation not supported. Trying IP lookup..." }));
-      fetchWeatherByIp();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run once on mount
-
-  const fetchWeatherByIp = () => {
+  const fetchWeatherByIp = useCallback(() => {
+    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Geolocation failed. Trying IP lookup..." }));
     startTransition(async () => {
       const ipResult = await fetchCityByIpAction();
       if (ipResult.error || !ipResult.city) {
         setWeatherState({
           data: null,
-          error: ipResult.error || "Could not determine your location via IP.",
+          error: ipResult.error || "Could not determine your location via IP. Please use the search bar.",
           isLoading: false,
           loadingMessage: null,
-          cityNotFound: true, // Use this to show a general "location not found"
+          cityNotFound: true,
         });
       } else {
-        setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather for ${ipResult.city}...` }));
-        const weatherResult = await fetchWeatherAndSummaryAction({ 
-          city: ipResult.city, // We can pass city, lat, lon from IP if available
+        setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Fetching weather for ${ipResult.city} (via IP)...` }));
+        const weatherResult = await fetchWeatherAndSummaryAction({
+          city: ipResult.city,
           lat: ipResult.lat ?? undefined,
           lon: ipResult.lon ?? undefined
         });
@@ -108,21 +76,73 @@ export default function WeatherPage() {
         });
       }
     });
+  }, [startTransition]);
+
+  useEffect(() => {
+    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location..." }));
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Fetching weather for your current location..." }));
+          startTransition(async () => {
+            const result = await fetchWeatherAndSummaryAction({
+              lat: position.coords.latitude,
+              lon: position.coords.longitude
+            });
+            setWeatherState({
+              data: result.data,
+              error: result.error,
+              isLoading: false,
+              loadingMessage: null,
+              cityNotFound: result.cityNotFound,
+            });
+          });
+        },
+        (error) => {
+          console.warn(`Geolocation error: ${error.message}`);
+          fetchWeatherByIp();
+        }
+      );
+    } else {
+      fetchWeatherByIp();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchWeatherByIp]); // fetchWeatherByIp is memoized with useCallback
+
+  const handleSearch = (formData: FormData) => {
+    const city = formData.get('city') as string;
+    if (!city || city.trim() === "") {
+      setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", isLoading: false, cityNotFound: false, data: null, loadingMessage: null }));
+      return;
+    }
+
+    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Searching for ${city}...`, data: null, error: null, cityNotFound: false }));
+    startTransition(async () => {
+      const result = await fetchWeatherAndSummaryAction({ city });
+      setWeatherState({
+        data: result.data,
+        error: result.error,
+        isLoading: false,
+        loadingMessage: null,
+        cityNotFound: result.cityNotFound,
+      });
+    });
   };
-  
+
   const isLoading = weatherState.isLoading || isTransitionPending;
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col items-center">
-        <section className="w-full max-w-2xl mb-6 sm:mb-10 text-center">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col items-center">
+        <section className="w-full max-w-2xl mb-6 sm:mb-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-headline font-bold text-primary mb-3 drop-shadow-lg">
             Weatherwise
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">
-            Real-time weather updates powered by your location.
+          <p className="text-lg sm:text-xl text-muted-foreground mb-6">
+            Automatic weather for your location, or search for any city.
           </p>
+          <SearchBar onSearch={handleSearch} isSearching={isLoading} />
         </section>
 
         {isLoading && (
@@ -140,47 +160,48 @@ export default function WeatherPage() {
         {!isLoading && weatherState.data && (
           <WeatherDisplay weatherData={weatherState.data} />
         )}
-        
+
         {!isLoading && !weatherState.data && weatherState.error && (
              <Card className="w-full max-w-lg mt-6 border-destructive/60 bg-destructive/10 backdrop-blur-md shadow-xl p-6">
                 <CardHeader className="items-center text-center pt-2 pb-3">
-                    {weatherState.error.toLowerCase().includes("location") ? 
-                      <WifiOff className="h-14 w-14 text-destructive mb-3 drop-shadow-lg" /> :
+                    {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
+                      <MapPin className="h-14 w-14 text-destructive mb-3 drop-shadow-lg" /> :
                       <AlertCircle className="h-14 w-14 text-destructive mb-3 drop-shadow-lg" />
                     }
                     <CardTitle className="text-2xl font-headline text-destructive">
-                        {weatherState.error.toLowerCase().includes("location") ? "Location Error" : "Weather Error"}
+                        {weatherState.error.toLowerCase().includes("location") ? "Location Error" :
+                         weatherState.error.toLowerCase().includes("city not found") || weatherState.cityNotFound ? "City Not Found" :
+                         "Weather Error"}
                     </CardTitle>
                      <CardDescription className="text-base text-destructive/90 mt-2 px-4">
                         {weatherState.error}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-2 px-4">
-                     <Image src="https://placehold.co/300x160.png" alt="Error illustration" width={300} height={160} className="rounded-lg mt-2 opacity-90 shadow-md border border-border/20" data-ai-hint="map error network"/>
+                     <Image src="https://placehold.co/300x150.png" alt="Error illustration" width={300} height={150} className="rounded-lg mt-2 opacity-90 shadow-md border border-border/20" data-ai-hint="map error network"/>
                 </CardContent>
             </Card>
         )}
 
-        {!isLoading && !weatherState.data && !weatherState.error && ( // Fallback initial message if nothing loads and no error shown yet
+        {/* Fallback for initial state before any fetch attempt or if still resolving */}
+        {!isLoading && !weatherState.data && !weatherState.error && weatherState.loadingMessage === "Initializing Weatherwise..." && (
             <Card className="w-full max-w-lg mt-6 bg-card/80 backdrop-blur-md shadow-xl border border-primary/20 p-6">
                 <CardHeader className="items-center text-center pt-2 pb-3">
                     <MapPin className="h-14 w-14 text-primary mb-3 drop-shadow-lg" />
                     <CardTitle className="text-2xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-base text-muted-foreground mt-2 px-4">
-                        We're attempting to fetch weather for your current location. Please ensure location services are enabled if prompted.
+                        We're attempting to fetch weather for your current location. You can also use the search bar above.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-2 px-4">
-                    <Image src="https://placehold.co/320x180.png" alt="Weather illustration" width={320} height={180} className="rounded-lg mt-2 shadow-md border border-border/20" data-ai-hint="location world map"/>
+                    <Image src="https://placehold.co/320x160.png" alt="Weather illustration" width={320} height={160} className="rounded-lg mt-2 shadow-md border border-border/20" data-ai-hint="location world map"/>
                 </CardContent>
             </Card>
         )}
       </main>
-      <footer className="py-6 text-center text-base text-muted-foreground/80 border-t border-border/50 bg-background/80 backdrop-blur-sm">
+      <footer className="py-5 text-base text-muted-foreground/80 border-t border-border/50 bg-background/80 backdrop-blur-sm text-center">
         © {currentYear ?? new Date().getFullYear()} Weatherwise. Powered by OpenWeather and Genkit AI.
       </footer>
     </div>
   );
 }
-
-    
