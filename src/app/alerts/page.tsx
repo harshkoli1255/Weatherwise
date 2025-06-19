@@ -43,49 +43,49 @@ export default function AlertsPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col items-center overflow-y-auto">
-        <Card className="w-full max-w-lg shadow-xl rounded-xl bg-card/80 backdrop-blur-lg border border-primary/20">
-          <CardHeader className="text-center items-center pt-6 pb-4">
-            <AlertTriangle className="h-12 w-12 text-primary mb-3 drop-shadow-lg" />
-            <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
-            <CardDescription className="text-base sm:text-md text-muted-foreground mt-1 px-4">
-              Get notified by email about extreme weather conditions in your city.
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col items-center overflow-y-auto">
+        <Card className="w-full max-w-md shadow-xl rounded-xl bg-card/80 backdrop-blur-lg border border-primary/20">
+          <CardHeader className="text-center items-center pt-4 pb-3">
+            <AlertTriangle className="h-10 w-10 text-primary mb-2 drop-shadow-lg" />
+            <CardTitle className="text-xl sm:text-2xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-muted-foreground mt-1 px-3">
+              Get notified about extreme weather conditions.
               <br />
-              <span className="text-xs text-muted-foreground/70">(Note: Email sending is a backend feature and not fully implemented in this prototype. Preferences will be logged.)</span>
+              <span className="text-xs text-muted-foreground/70">(Email sending is a backend feature.)</span>
             </CardDescription>
           </CardHeader>
           <form action={formAction}>
-            <CardContent className="space-y-5 px-6 sm:px-8 pt-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-base font-medium text-foreground/90 flex items-center">
+            <CardContent className="space-y-4 px-4 sm:px-6 pt-3">
+              <div className="space-y-1">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground/90 flex items-center">
                   <Mail className="mr-2 h-4 w-4 text-primary/80" /> Email Address
                 </Label>
-                <Input id="email" name="email" type="email" placeholder="you@example.com" required className="h-10 text-sm" />
+                <Input id="email" name="email" type="email" placeholder="you@example.com" required className="h-9 text-xs" />
                 {state.fieldErrors?.email && <p className="text-xs text-destructive mt-1">{state.fieldErrors.email.join(', ')}</p>}
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="city" className="text-base font-medium text-foreground/90 flex items-center">
+              <div className="space-y-1">
+                <Label htmlFor="city" className="text-sm font-medium text-foreground/90 flex items-center">
                   <MapPin className="mr-2 h-4 w-4 text-primary/80" /> City Name
                 </Label>
-                <Input id="city" name="city" type="text" placeholder="E.g., London" required className="h-10 text-sm" />
+                <Input id="city" name="city" type="text" placeholder="E.g., London" required className="h-9 text-xs" />
                  {state.fieldErrors?.city && <p className="text-xs text-destructive mt-1">{state.fieldErrors.city.join(', ')}</p>}
               </div>
 
-              <div className="space-y-3 pt-3 border-t border-border/30">
-                <h4 className="text-lg font-semibold text-foreground/90">Notification Preferences:</h4>
+              <div className="space-y-2.5 pt-2 border-t border-border/30">
+                <h4 className="text-md font-semibold text-foreground/90">Notification Preferences:</h4>
                 <AlertOption
                   id="notifyExtremeTemp"
                   name="notifyExtremeTemp"
                   label="Extreme Temperatures"
                   icon={Thermometer}
-                  description="Alerts for unusually high or low temperatures."
+                  description="Alerts for unusual temperatures."
                 />
                 <AlertOption
                   id="notifyHeavyRain"
                   name="notifyHeavyRain"
                   label="Heavy Rain"
                   icon={CloudRain}
-                  description="Notifications for significant rainfall events."
+                  description="Notifications for significant rainfall."
                 />
                 <AlertOption
                   id="notifyStrongWind"
@@ -96,15 +96,15 @@ export default function AlertsPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end p-5 sm:p-6 border-t border-border/30 mt-3">
-              <Button type="submit" size="default" className="h-11 shadow-md hover:shadow-lg transition-shadow">
+            <CardFooter className="flex justify-end p-4 sm:p-5 border-t border-border/30 mt-2">
+              <Button type="submit" size="default" className="h-10 shadow-md hover:shadow-lg transition-shadow">
                 <CheckCircle2 className="mr-2 h-4 w-4" /> Save Preferences
               </Button>
             </CardFooter>
           </form>
         </Card>
       </main>
-      <footer className="py-4 text-center text-sm text-muted-foreground/80 border-t border-border/50 bg-background/70 backdrop-blur-sm">
+      <footer className="py-3 text-center text-xs text-muted-foreground/80 border-t border-border/50 bg-background/70 backdrop-blur-sm">
         © {currentYear ?? ''} Weatherwise. Powered by OpenWeather and Genkit AI.
       </footer>
     </div>
@@ -121,11 +121,11 @@ interface AlertOptionProps {
 
 function AlertOption({ id, name, label, icon: Icon, description }: AlertOptionProps) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border/20 shadow-sm">
-      <div className="flex items-center space-x-2.5">
-        <Icon className="h-5 w-5 text-primary/90" />
+    <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border/20 shadow-sm">
+      <div className="flex items-center space-x-2">
+        <Icon className="h-4 w-4 text-primary/90" />
         <div>
-          <Label htmlFor={id} className="text-base font-medium text-foreground">
+          <Label htmlFor={id} className="text-sm font-medium text-foreground">
             {label}
           </Label>
           <p className="text-xs text-muted-foreground">{description}</p>
