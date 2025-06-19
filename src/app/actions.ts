@@ -17,9 +17,9 @@ export async function fetchWeatherAndSummaryAction(
   }
   const city = cityValidation.data;
 
-  const apiKey = process.env.OPENWEATHER_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
   if (!apiKey) {
-    console.error("OpenWeather API key is not set.");
+    console.error("OpenWeather API key is not set (NEXT_PUBLIC_OPENWEATHER_API_KEY).");
     return { data: null, error: "Server configuration error. Please try again later.", cityNotFound: false };
   }
 
