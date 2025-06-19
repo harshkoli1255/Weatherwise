@@ -46,7 +46,7 @@ const initialTestEmailActionState: { message: string | null, error: boolean } = 
 function SavePreferencesButton({ form }: { form?: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending} form={form}>
+    <Button type="submit" size="lg" className="w-full sm:w-auto h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending} form={form}>
       {pending ? (
         <>
           <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
@@ -84,16 +84,16 @@ function VerifyCodeButton() {
 function SendTestEmailButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="outline" size="lg" className="h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending}>
+    <Button type="submit" variant="outline" size="lg" className="w-full sm:w-auto h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending}>
       {pending ? (
         <>
           <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
-          Sending...
+          Sending Test...
         </>
       ) : (
         <>
           <Send className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-          Send Test Email
+          Send Test Alert
         </>
       )}
     </Button>
@@ -108,7 +108,7 @@ export default function AlertsPage() {
   const [isEmailLocked, setIsEmailLocked] = useState(true);
   
   const [savePrefsActionState, savePrefsFormAction, isSavePrefsPending] = useActionState(saveAlertPreferencesAction, initialSaveActionState);
-  const [verifyCodeActionState, verifyCodeFormAction, isVerifyCodePending] = useActionState(verifyCodeAction, initialSaveActionState);
+  const [verifyCodeActionState, verifyCodeFormAction, isVerifyCodePending] = useActionState(verifyCodeAction, initialSaveActionState); // verifyCodeAction uses SaveAlertsFormState for its return
   const [testEmailActionState, testEmailFormAction, isTestEmailPending] = useActionState(sendTestEmailAction, initialTestEmailActionState);
 
   const { toast } = useToast();
@@ -183,37 +183,37 @@ export default function AlertsPage() {
       if (state.alertsCleared) {
         setFormState(prev => ({ 
             ...initialFormState, 
-            email: prev.email,
+            email: prev.email.toLowerCase(), // Keep email, but ensure lowercase
             alertsEnabled: false,
             city: '' 
         }));
-        setIsEmailLocked(!!formState.email);
+        setIsEmailLocked(!!formState.email); // Re-evaluate lock based on current formState email
       }
 
       if (!state.error) {
-        if (type === 'save' && !state.needsVerification && !state.alertsCleared && formState.email) {
+         if (type === 'save' && !state.needsVerification && !state.alertsCleared && formState.email) {
           setIsEmailLocked(true);
         }
-        if (type === 'verify' && state.emailVerified && state.verifiedEmailOnSuccess) {
-          setIsEmailLocked(true);
+        // Check for verifiedEmailOnSuccess for both save (if already verified) and verify actions
+        if (state.verifiedEmailOnSuccess) { 
+             const verifiedEmailLower = state.verifiedEmailOnSuccess.toLowerCase();
+             setVerifiedEmails(prev => {
+                if (prev.has(verifiedEmailLower)) return prev;
+                const newSet = new Set(prev);
+                newSet.add(verifiedEmailLower);
+                return newSet;
+            });
+            if (type === 'verify' && state.emailVerified) { // Lock on successful verification
+                 setIsEmailLocked(true);
+            }
         }
-      }
-
-      if (state.emailVerified && state.verifiedEmailOnSuccess) {
-          const verifiedEmailLower = state.verifiedEmailOnSuccess.toLowerCase();
-           setVerifiedEmails(prev => {
-            if (prev.has(verifiedEmailLower)) return prev;
-            const newSet = new Set(prev);
-            newSet.add(verifiedEmailLower);
-            return newSet;
-          });
       }
         
       if ((type === 'verify' && state.emailVerified) || (type === 'save' && !state.needsVerification && !state.alertsCleared)) {
-        setVerificationCodeInput('');
+        setVerificationCodeInput(''); // Clear code input after successful verify or save (if no verification needed)
       }
     }
-  }, [toast, formState.email]);
+  }, [toast, formState.email ]);
 
 
   useEffect(() => {
@@ -239,6 +239,8 @@ export default function AlertsPage() {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
     if (name === 'email') {
+        // If user starts typing in the email field, it should unlock if it was locked.
+        // It should NOT lock again automatically on typing.
         setIsEmailLocked(false);
     }
   }, []);
@@ -247,21 +249,31 @@ export default function AlertsPage() {
     setFormState(prev => ({ ...prev, [name]: checked }));
   }, []);
 
+  // Determine if verification UI should be shown
+  // Show if:
+  // 1. savePrefsActionState indicates verification is needed AND
+  // 2. The email for which verification was sent matches the current form email AND
+  // 3. The current email is NOT already in the verifiedEmails list.
   const showVerificationSection = savePrefsActionState.needsVerification && 
                                  savePrefsActionState.verificationSentTo === formState.email.toLowerCase() &&
                                  !isCurrentEmailVerified;
                                  
   const isAnyActionPending = isSavePrefsPending || isVerifyCodePending || isTestEmailPending;
 
-  const emailInputActuallyDisabled = isEmailLocked || 
-                                    (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase()) || 
+  // Email input should be disabled if:
+  // - It's locked AND alerts are enabled (to allow editing if alerts are off)
+  // - OR verification is pending for THIS email
+  // - OR any action is generally pending (to prevent changes during submission)
+  // - OR alerts are generally disabled (no email needed if all alerts off)
+  const emailInputActuallyDisabled = (isEmailLocked && formState.alertsEnabled) || 
+                                    (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase()) ||
                                     !formState.alertsEnabled ||
                                     isAnyActionPending;
   
   const showEditEmailButton = isEmailLocked && 
                               !!formState.email && 
                               formState.alertsEnabled && 
-                              !isAnyActionPending &&
+                              !isAnyActionPending && // Not while any action is pending
                               !(showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
 
 
@@ -279,8 +291,7 @@ export default function AlertsPage() {
           </CardHeader>
           
           {!showVerificationSection && (
-            // Main preferences form
-            <form action={savePrefsFormAction}>
+            <form id="mainAlertForm" action={savePrefsFormAction}>
               <input type="hidden" name="isAlreadyVerified" value={isCurrentEmailVerified.toString()} />
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
@@ -305,13 +316,13 @@ export default function AlertsPage() {
                 </div>
               
                 <div className="space-y-2.5 sm:space-y-3">
-                  <Label htmlFor="emailPrefs" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && formState.email && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Input 
-                      id="emailPrefs" 
+                      id="email" 
                       name="email" 
                       type="email" 
                       placeholder="you@example.com" 
@@ -328,7 +339,7 @@ export default function AlertsPage() {
                          onClick={() => setIsEmailLocked(false)}
                          aria-label="Edit email address"
                          className="h-11 sm:h-12 w-11 sm:w-12 flex-shrink-0"
-                         disabled={isAnyActionPending}
+                         disabled={isAnyActionPending} // Disable if any action is pending
                        >
                          <Pencil className="h-5 w-5 sm:h-6 sm:w-6" />
                        </Button>
@@ -348,12 +359,12 @@ export default function AlertsPage() {
                     className="h-11 sm:h-12 text-base sm:text-lg"
                     value={formState.city}
                     onChange={handleInputChange}
-                    disabled={!formState.alertsEnabled || isSavePrefsPending || isAnyActionPending}
+                    disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
                   {savePrefsActionState.fieldErrors?.city && <p className="text-sm text-destructive mt-1.5">{savePrefsActionState.fieldErrors.city.join(', ')}</p>}
                 </div>
 
-                <div className={`space-y-3.5 sm:space-y-4 pt-4 sm:pt-5 border-t border-border/40 ${!formState.alertsEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className={`space-y-3.5 sm:space-y-4 pt-4 sm:pt-5 border-t border-border/40 ${!formState.alertsEnabled || isAnyActionPending ? 'opacity-50 pointer-events-none' : ''}`}>
                   <h4 className="text-lg sm:text-xl font-semibold text-foreground/90">Notification Conditions:</h4>
                   <AlertOption
                     id="notifyExtremeTemp"
@@ -363,7 +374,7 @@ export default function AlertsPage() {
                     description="Alerts for high (>32°C) or low (<5°C) temperatures."
                     checked={formState.notifyExtremeTemp}
                     onCheckedChange={(checked) => handleSwitchChange('notifyExtremeTemp', checked)}
-                    disabled={!formState.alertsEnabled || isSavePrefsPending || isAnyActionPending}
+                    disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
                   <AlertOption
                     id="notifyHeavyRain"
@@ -373,7 +384,7 @@ export default function AlertsPage() {
                     description="Notifications for heavy intensity rain."
                     checked={formState.notifyHeavyRain}
                     onCheckedChange={(checked) => handleSwitchChange('notifyHeavyRain', checked)}
-                    disabled={!formState.alertsEnabled || isSavePrefsPending || isAnyActionPending}
+                    disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
                   <AlertOption
                     id="notifyStrongWind"
@@ -383,23 +394,21 @@ export default function AlertsPage() {
                     description="Alerts for wind speeds >35 km/h."
                     checked={formState.notifyStrongWind}
                     onCheckedChange={(checked) => handleSwitchChange('notifyStrongWind', checked)}
-                    disabled={!formState.alertsEnabled || isSavePrefsPending || isAnyActionPending}
+                    disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-row justify-end items-center p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
-                {/* SavePreferencesButton submits this form */}
-                <SavePreferencesButton />
-              </CardFooter>
+              {/* SavePreferencesButton is now in CardFooter, linked by form="mainAlertForm" */}
             </form>
           )}
 
           {showVerificationSection && (
-             // Verification Code Form
             <form action={verifyCodeFormAction}>
+              {/* Pass all necessary preference data for when verification succeeds */}
               <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo?.toLowerCase() || ''} />
               <input type="hidden" name="expectedCode" value={savePrefsActionState.generatedCode || ''} />
               <input type="hidden" name="city" value={formState.city} />
+              <input type="hidden" name="alertsEnabled" value={formState.alertsEnabled ? 'on' : 'off'} />
               <input type="hidden" name="notifyExtremeTemp" value={formState.notifyExtremeTemp ? 'on' : 'off'} />
               <input type="hidden" name="notifyHeavyRain" value={formState.notifyHeavyRain ? 'on' : 'off'} />
               <input type="hidden" name="notifyStrongWind" value={formState.notifyStrongWind ? 'on' : 'off'} />
@@ -434,14 +443,18 @@ export default function AlertsPage() {
             </form>
           )}
 
-          {/* Test Email Form - always rendered if not in verification flow and email is present */}
-          {!showVerificationSection && formState.email && (
-            <div className="px-5 sm:px-6 md:px-8 py-4 border-t border-border/40">
-              <form action={testEmailFormAction} className="flex">
-                  <input type="hidden" name="email" value={formState.email.toLowerCase()} />
-                  <SendTestEmailButton />
-              </form>
-            </div>
+          {/* Action buttons footer - shown when not in verification flow */}
+          {!showVerificationSection && (
+            <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
+              {formState.email && ( // Only show test email button if there's an email
+                <form action={testEmailFormAction} className="w-full sm:w-auto">
+                    <input type="hidden" name="email" value={formState.email.toLowerCase()} />
+                    <input type="hidden" name="city" value={formState.city} />
+                    <SendTestEmailButton />
+                </form>
+              )}
+              <SavePreferencesButton form="mainAlertForm" />
+            </CardFooter>
           )}
         </Card>
       </main>
@@ -487,4 +500,4 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
     </div>
   );
 }
-
+```
