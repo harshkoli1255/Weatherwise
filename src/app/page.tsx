@@ -55,7 +55,7 @@ export default function WeatherPage() {
       if (ipResult.error || !ipResult.city) {
         setWeatherState({
           data: null,
-          error: ipResult.error || "Could not determine your location via IP. Please use the search bar.",
+          error: ipResult.error || "Could not determine your location via IP. Please use the search bar if available.",
           isLoading: false,
           loadingMessage: null,
           cityNotFound: true,
@@ -134,27 +134,29 @@ export default function WeatherPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-        <section className="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mb-6 sm:mb-8 md:mb-10 text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-headline font-bold text-primary mb-3 sm:mb-4 md:mb-5 drop-shadow-lg">
+      <main className="flex-grow container mx-auto px-4 py-10 sm:py-12 md:py-16 lg:py-20 flex flex-col items-center">
+        <section className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mb-8 sm:mb-10 md:mb-12 text-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-headline font-bold text-primary mb-4 sm:mb-5 md:mb-6 drop-shadow-lg">
             Weatherwise
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-5 sm:mb-7 md:mb-9">
-            Automatic weather, or search any city.
+          <p className="text-xl sm:text-2xl md:text-3xl text-muted-foreground mb-6 sm:mb-8 md:mb-10">
+            Weather based on your location, or search any city.
           </p>
-          <div className="mt-1 pl-4"> {/* Wrapper for SearchBar positioning */}
-            <SearchBar onSearch={handleSearch} isSearching={isLoading} />
-          </div>
+          {!isLoading && (
+            <div className="mt-1 pl-4">
+              <SearchBar onSearch={handleSearch} isSearching={isLoading} />
+            </div>
+          )}
         </section>
 
         {isLoading && (
-          <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mt-6 sm:mt-8 bg-card/70 backdrop-blur-md shadow-xl border border-primary/20 p-5 sm:p-7">
-            <CardContent className="flex flex-col items-center justify-center space-y-4 sm:space-y-5 pt-5 sm:pt-7">
-              <svg className="animate-spin h-12 w-12 sm:h-14 sm:w-14 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
+            <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
+              <svg className="animate-spin h-14 w-14 sm:h-16 md:h-20 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-lg sm:text-xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
+              <p className="text-xl sm:text-2xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
             </CardContent>
           </Card>
         )}
@@ -164,47 +166,46 @@ export default function WeatherPage() {
         )}
 
         {!isLoading && !weatherState.data && weatherState.error && (
-             <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mt-6 sm:mt-8 border-destructive/60 bg-destructive/10 backdrop-blur-md shadow-xl p-5 sm:p-7">
-                <CardHeader className="items-center text-center pt-3 pb-3 sm:pb-4">
+             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 md:p-10">
+                <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
                     {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
-                      <MapPin className="h-14 w-14 sm:h-16 sm:w-16 text-destructive mb-3 sm:mb-4 drop-shadow-lg" /> :
-                      <AlertCircle className="h-14 w-14 sm:h-16 sm:w-16 text-destructive mb-3 sm:mb-4 drop-shadow-lg" />
+                      <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-destructive mb-4 sm:mb-5 drop-shadow-lg" /> :
+                      <AlertCircle className="h-16 w-16 sm:h-20 md:h-24 text-destructive mb-4 sm:mb-5 drop-shadow-lg" />
                     }
-                    <CardTitle className="text-2xl sm:text-3xl font-headline text-destructive">
+                    <CardTitle className="text-3xl sm:text-4xl font-headline text-destructive">
                         {weatherState.error.toLowerCase().includes("location") ? "Location Error" :
                          weatherState.error.toLowerCase().includes("city not found") || weatherState.cityNotFound ? "City Not Found" :
                          "Weather Error"}
                     </CardTitle>
-                     <CardDescription className="text-base sm:text-lg text-destructive/90 mt-2 sm:mt-3 px-3 sm:px-5">
+                     <CardDescription className="text-lg sm:text-xl text-destructive/90 mt-2.5 sm:mt-3.5 px-4 sm:px-6">
                         {weatherState.error}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex justify-center pb-3 px-3 sm:px-5">
-                     <Image src="https://placehold.co/300x150.png" alt="Error illustration" width={300} height={150} className="rounded-lg mt-2 sm:mt-3 opacity-90 shadow-md border border-border/20 sm:w-[350px] sm:h-[175px]" data-ai-hint="map error network"/>
+                <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
+                     <Image src="https://placehold.co/350x175.png" alt="Error illustration" width={350} height={175} className="rounded-lg mt-3 sm:mt-4 opacity-90 shadow-lg border border-border/30 sm:w-[400px] sm:h-[200px]" data-ai-hint="map error network"/>
                 </CardContent>
             </Card>
         )}
 
         {!isLoading && !weatherState.data && !weatherState.error && weatherState.loadingMessage === "Initializing Weatherwise..." && (
-            // This state is brief, primarily for the initial "Initializing" message if geolocation & IP lookup are very fast or both fail quickly.
-            // Consider if this card is still needed or if the loading spinner alone is sufficient.
-            <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mt-6 sm:mt-8 bg-card/80 backdrop-blur-md shadow-xl border border-primary/20 p-5 sm:p-7">
-                <CardHeader className="items-center text-center pt-3 pb-3 sm:pb-4">
-                    <MapPin className="h-14 w-14 sm:h-16 sm:w-16 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
-                    <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
-                    <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 sm:mt-3 px-3 sm:px-5">
-                        We're attempting to fetch weather for your current location. You can also use the search bar above.
+            <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
+                <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
+                    <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
+                    <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
+                    <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
+                        We're attempting to fetch weather for your current location. You can also use the search bar above once loading is complete.
                     </CardDescription>
                 </CardHeader>
-                 <CardContent className="flex justify-center pb-3 px-3 sm:px-5">
-                    <Image src="https://placehold.co/320x160.png" alt="Weather illustration" width={320} height={160} className="rounded-lg mt-2 sm:mt-3 shadow-md border border-border/20 sm:w-[370px] sm:h-[185px]" data-ai-hint="location world map"/>
+                 <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
+                    <Image src="https://placehold.co/370x185.png" alt="Weather illustration" width={370} height={185} className="rounded-lg mt-3 sm:mt-4 shadow-lg border border-border/30 sm:w-[420px] sm:h-[210px]" data-ai-hint="location world map"/>
                 </CardContent>
             </Card>
         )}
       </main>
-      <footer className="py-4 sm:py-5 text-base sm:text-lg text-muted-foreground/80 border-t border-border/50 bg-background/80 backdrop-blur-sm text-center">
+      <footer className="py-6 sm:py-8 text-lg sm:text-xl text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md text-center">
         © {currentYear ?? new Date().getFullYear()} Weatherwise. Powered by OpenWeather and Genkit AI.
       </footer>
     </div>
   );
-}
+
+    
