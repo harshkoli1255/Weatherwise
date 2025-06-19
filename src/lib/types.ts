@@ -133,3 +133,14 @@ export interface AlertPreferences {
   notifyHeavyRain: boolean;
   notifyStrongWind: boolean;
 }
+
+export interface IpApiLocationResponse {
+  status: 'success' | 'fail';
+  message?: string; // Present on fail
+  country?: string;
+  city?: string;
+  lat?: number;
+  lon?: number;
+}
+
+    

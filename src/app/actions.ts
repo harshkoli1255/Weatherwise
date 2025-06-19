@@ -1,20 +1,44 @@
 
 'use server';
 
-import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData } from '@/lib/types';
+import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput } from '@/ai/flows/weather-summary';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
-const CitySchema = z.string().min(1, { message: "City name cannot be empty." });
+// Helper type for location identification
+type LocationIdentifier = 
+  | { type: 'city', city: string }
+  | { type: 'coords', lat: number, lon: number };
 
-async function fetchCurrentWeather(city: string, apiKey: string): Promise<WeatherData> {
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+const CoordinatesSchema = z.object({
+  lat: z.number(),
+  lon: z.number(),
+});
+const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
+
+async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<WeatherData> {
+  let url = '';
+  if (location.type === 'city') {
+    const cityValidation = CityNameSchema.safeParse(location.city);
+    if (!cityValidation.success) {
+      throw new Error(cityValidation.error.errors[0].message);
+    }
+    url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric`;
+  } else { // type === 'coords'
+    const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
+    if (!coordsValidation.success) {
+      throw new Error("Invalid coordinates provided.");
+    }
+    url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric`;
+  }
+
   const response = await fetch(url);
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(`City "${city}" not found.`);
+      const errorMessage = location.type === 'city' ? `City "${location.city}" not found.` : "Weather data not found for the provided coordinates.";
+      throw new Error(errorMessage);
     }
     const errorData = await response.json();
     console.error("OpenWeather Current API error:", errorData);
@@ -40,8 +64,22 @@ async function fetchCurrentWeather(city: string, apiKey: string): Promise<Weathe
   };
 }
 
-async function fetchHourlyForecast(city: string, apiKey: string): Promise<HourlyForecastData[]> {
-  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&cnt=8`; // cnt=8 for 24 hours (8 * 3-hour intervals)
+async function fetchHourlyForecast(location: LocationIdentifier, apiKey: string): Promise<HourlyForecastData[]> {
+   let url = '';
+  if (location.type === 'city') {
+    const cityValidation = CityNameSchema.safeParse(location.city);
+    if (!cityValidation.success) {
+        throw new Error(cityValidation.error.errors[0].message);
+    }
+    url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric&cnt=8`;
+  } else { // type === 'coords'
+    const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
+    if (!coordsValidation.success) {
+        throw new Error("Invalid coordinates provided for forecast.");
+    }
+    url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric&cnt=8`;
+  }
+  
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -54,23 +92,15 @@ async function fetchHourlyForecast(city: string, apiKey: string): Promise<Hourly
   const data: OpenWeatherForecastAPIResponse = await response.json();
 
   if (!data.list || data.list.length === 0) {
-    return []; // Or throw an error if forecast is critical
+    return [];
   }
   
-  // Use city timezone for formatting time if available, otherwise fallback to system timezone
-  // OpenWeatherMap provides timezone offset in seconds from UTC in the forecast response
   const timezoneOffsetSeconds = data.city?.timezone ?? 0;
 
   return data.list.map(item => {
-    // Adjust timestamp by timezoneOffsetSeconds before formatting
-    // Date constructor expects milliseconds
     const localTimestamp = (item.dt + timezoneOffsetSeconds) * 1000;
     const localDate = new Date(localTimestamp);
-    
-    // Format time in a way that reflects the local time of the city
-    // We must use UTC hours because we've manually adjusted the timestamp to be "local UTC"
     const time = format(localDate, 'ha', { useAdditionalWeekYearTokens: false, useAdditionalDayOfYearTokens: false });
-
 
     return {
       time: time,
@@ -82,17 +112,19 @@ async function fetchHourlyForecast(city: string, apiKey: string): Promise<Hourly
   });
 }
 
-
 export async function fetchWeatherAndSummaryAction(
-  prevState: any,
-  formData: FormData
+  params: { city?: string; lat?: number; lon?: number }
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
-  const cityValidation = CitySchema.safeParse(formData.get('city'));
+  
+  let locationIdentifier: LocationIdentifier;
 
-  if (!cityValidation.success) {
-    return { data: null, error: cityValidation.error.errors[0].message, cityNotFound: false };
+  if (typeof params.lat === 'number' && typeof params.lon === 'number') {
+    locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
+  } else if (params.city) {
+    locationIdentifier = { type: 'city', city: params.city };
+  } else {
+    return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
   }
-  const city = cityValidation.data;
 
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
   if (!apiKey) {
@@ -101,8 +133,17 @@ export async function fetchWeatherAndSummaryAction(
   }
 
   try {
-    const currentWeatherData = await fetchCurrentWeather(city, apiKey);
-    const hourlyForecastData = await fetchHourlyForecast(city, apiKey);
+    const currentWeatherData = await fetchCurrentWeather(locationIdentifier, apiKey);
+    // If fetching by city, currentWeatherData.city will be the validated city name.
+    // If fetching by coords, currentWeatherData.city will be the name from OpenWeatherMap.
+    // We'll use these potentially more accurate coords for the forecast if we initially had only a city.
+    const forecastLocationIdentifier: LocationIdentifier = {
+        type: 'coords',
+        lat: (await fetch( `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${apiKey}&units=metric`).then(res => res.json()) as OpenWeatherCurrentAPIResponse).coord.lat,
+        lon: (await fetch( `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${apiKey}&units=metric`).then(res => res.json()) as OpenWeatherCurrentAPIResponse).coord.lon,
+    };
+    const hourlyForecastData = await fetchHourlyForecast(forecastLocationIdentifier, apiKey);
+
 
     const aiInput: WeatherSummaryInput = {
       city: currentWeatherData.city,
@@ -122,13 +163,43 @@ export async function fetchWeatherAndSummaryAction(
         hourlyForecast: hourlyForecastData,
       },
       error: null,
-      cityNotFound: false
+      cityNotFound: false // This flag is less relevant now, error message covers it
     };
 
   } catch (error) {
     console.error("Error fetching weather data or generating summary:", error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    const cityNotFound = errorMessage.toLowerCase().includes("not found");
+    // Differentiate "city not found" type errors for potential specific UI handling if needed
+    const cityNotFound = errorMessage.toLowerCase().includes("not found") || errorMessage.toLowerCase().includes("city name cannot be empty");
     return { data: null, error: errorMessage, cityNotFound };
   }
 }
+
+
+export async function fetchCityByIpAction(): Promise<{ city: string | null; country: string | null; lat: number | null; lon: number | null; error: string |null }> {
+  try {
+    // In a real app, you might get the user's IP from request headers if running this truly server-side.
+    // For a client-triggered server action, the fetch will originate from the server, 
+    // so we fetch data for the server's IP. To get client IP, this API would need to be called client-side OR ip passed.
+    // However, ip-api.com without an IP path parameter attempts to use the request IP.
+    const response = await fetch('http://ip-api.com/json/?fields=status,message,country,city,lat,lon');
+    if (!response.ok) {
+      throw new Error(`IP Geolocation service failed with status: ${response.status}`);
+    }
+    const data: IpApiLocationResponse = await response.json();
+
+    if (data.status === 'fail') {
+      console.error("IP Geolocation API error:", data.message);
+      throw new Error(data.message || "Failed to determine location from IP address.");
+    }
+    
+    return { city: data.city, country: data.country, lat: data.lat, lon: data.lon, error: null };
+
+  } catch (error) {
+    console.error("Error fetching city by IP:", error);
+    const errorMessage = error instanceof Error ? error.message : "Could not determine location via IP.";
+    return { city: null, country: null, lat: null, lon: null, error: errorMessage };
+  }
+}
+
+    
