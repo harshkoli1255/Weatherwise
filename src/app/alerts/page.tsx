@@ -43,10 +43,10 @@ const initialTestEmailActionState: { message: string | null, error: boolean } = 
 };
 
 
-function SavePreferencesButton() {
+function SavePreferencesButton({ form }: { form?: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending}>
+    <Button type="submit" size="lg" className="h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending} form={form}>
       {pending ? (
         <>
           <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
@@ -126,7 +126,7 @@ export default function AlertsPage() {
       if (savedPrefsString) {
         const savedData = JSON.parse(savedPrefsString);
         if (savedData && typeof savedData === 'object') {
-          loadedFormState = {
+           loadedFormState = {
             email: typeof savedData.email === 'string' ? savedData.email.toLowerCase() : initialFormState.email,
             city: typeof savedData.city === 'string' ? savedData.city : initialFormState.city,
             alertsEnabled: typeof savedData.alertsEnabled === 'boolean' ? savedData.alertsEnabled : initialFormState.alertsEnabled,
@@ -181,27 +181,24 @@ export default function AlertsPage() {
       });
 
       if (state.alertsCleared) {
-        // Keep email if it exists, but clear city and conditions, set alertsEnabled to false
         setFormState(prev => ({ 
             ...initialFormState, 
-            email: prev.email, // Persist current email
+            email: prev.email,
             alertsEnabled: false,
             city: '' 
         }));
-        setIsEmailLocked(!!formState.email); // Re-evaluate lock based on persisted email
+        setIsEmailLocked(!!formState.email);
       }
 
       if (!state.error) {
         if (type === 'save' && !state.needsVerification && !state.alertsCleared && formState.email) {
           setIsEmailLocked(true);
         }
-        // This is the crucial part for locking after verification
         if (type === 'verify' && state.emailVerified && state.verifiedEmailOnSuccess) {
           setIsEmailLocked(true);
         }
       }
 
-      // Handle adding to verifiedEmails set
       if (state.emailVerified && state.verifiedEmailOnSuccess) {
           const verifiedEmailLower = state.verifiedEmailOnSuccess.toLowerCase();
            setVerifiedEmails(prev => {
@@ -242,7 +239,7 @@ export default function AlertsPage() {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
     if (name === 'email') {
-        setIsEmailLocked(false); // Allow editing, lock on save/verify
+        setIsEmailLocked(false);
     }
   }, []);
 
@@ -282,6 +279,7 @@ export default function AlertsPage() {
           </CardHeader>
           
           {!showVerificationSection && (
+            // Main preferences form
             <form action={savePrefsFormAction}>
               <input type="hidden" name="isAlreadyVerified" value={isCurrentEmailVerified.toString()} />
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
@@ -307,13 +305,13 @@ export default function AlertsPage() {
                 </div>
               
                 <div className="space-y-2.5 sm:space-y-3">
-                  <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Label htmlFor="emailPrefs" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && formState.email && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Input 
-                      id="email" 
+                      id="emailPrefs" 
                       name="email" 
                       type="email" 
                       placeholder="you@example.com" 
@@ -389,21 +387,18 @@ export default function AlertsPage() {
                   />
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col sm:flex-row justify-between items-center p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4 space-y-4 sm:space-y-0 sm:space-x-4">
-                <form action={testEmailFormAction} className="w-full sm:w-auto">
-                    <input type="hidden" name="email" value={formState.email.toLowerCase()} />
-                    <SendTestEmailButton />
-                </form>
+              <CardFooter className="flex flex-row justify-end items-center p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
+                {/* SavePreferencesButton submits this form */}
                 <SavePreferencesButton />
               </CardFooter>
             </form>
           )}
 
           {showVerificationSection && (
+             // Verification Code Form
             <form action={verifyCodeFormAction}>
               <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo?.toLowerCase() || ''} />
               <input type="hidden" name="expectedCode" value={savePrefsActionState.generatedCode || ''} />
-              {/* Pass current preferences to verifyCodeAction so it can send alert email on success */}
               <input type="hidden" name="city" value={formState.city} />
               <input type="hidden" name="notifyExtremeTemp" value={formState.notifyExtremeTemp ? 'on' : 'off'} />
               <input type="hidden" name="notifyHeavyRain" value={formState.notifyHeavyRain ? 'on' : 'off'} />
@@ -437,6 +432,16 @@ export default function AlertsPage() {
                 <VerifyCodeButton />
               </CardFooter>
             </form>
+          )}
+
+          {/* Test Email Form - always rendered if not in verification flow and email is present */}
+          {!showVerificationSection && formState.email && (
+            <div className="px-5 sm:px-6 md:px-8 py-4 border-t border-border/40">
+              <form action={testEmailFormAction} className="flex">
+                  <input type="hidden" name="email" value={formState.email.toLowerCase()} />
+                  <SendTestEmailButton />
+              </form>
+            </div>
           )}
         </Card>
       </main>
@@ -482,3 +487,4 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
     </div>
   );
 }
+
