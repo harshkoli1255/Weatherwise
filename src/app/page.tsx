@@ -1,7 +1,9 @@
+
 'use client';
 
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Navbar } from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
@@ -28,7 +30,7 @@ function SubmitButton() {
 }
 
 export default function WeatherPage() {
-  const [state, formAction] = useFormState(fetchWeatherAndSummaryAction, initialState);
+  const [state, formAction] = useActionState(fetchWeatherAndSummaryAction, initialState);
   const { pending } = useFormStatus(); // This hook needs to be inside a form consuming component
   const { toast } = useToast();
   const [showInitialMessage, setShowInitialMessage] = React.useState(true);
