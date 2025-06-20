@@ -4,7 +4,8 @@
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
-import { Search } from "lucide-react"
+// Search import removed from here as it's no longer used in this component directly
+// import { Search } from "lucide-react" 
 
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -42,12 +43,14 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
+  // The div with cmdk-input-wrapper remains for styling, but the Search icon is removed
   <div className="flex items-center border-b px-3 border-border" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    {/* <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />  <- REMOVED THIS LINE */}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
         "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        // Adjusted padding: No specific left padding here by default, it will be handled by the wrapper's px-3 or by consumers.
         className
       )}
       {...props}
