@@ -1,47 +1,204 @@
 
 'use client';
 
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandLoading, CommandGroup } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { Search, Loader2, MapPin } from 'lucide-react';
+import { fetchCitySuggestionsAction } from '@/app/actions';
+import type { CitySuggestion } from '@/lib/types';
 
 interface SearchBarProps {
-  onSearch: (formData: FormData) => void;
-  isSearching: boolean;
+  onSearch: (city: string, lat?: number, lon?: number) => void;
+  isSearchingWeather: boolean;
+  currentCityName?: string;
 }
 
-export function SearchBar({ onSearch, isSearching }: SearchBarProps) {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    onSearch(formData);
+export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: SearchBarProps) {
+  const [inputValue, setInputValue] = useState('');
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
+  const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (currentCityName && inputValue === '') {
+      // Pre-fill with current city name if available and input is empty
+      // No, don't pre-fill to allow user to type freely.
+      // Instead, if currentCityName exists, it could be shown as a default/top suggestion
+      // when the list opens without any input.
+    }
+  }, [currentCityName, inputValue]);
+
+
+  const debouncedFetchSuggestions = useCallback(
+    (query: string) => {
+      if (query.length < 2) {
+        setSuggestions([]);
+        setIsSuggestionsOpen(query.length > 0 && hasFocus); // Keep open if focused and typed something
+        return;
+      }
+      startSuggestionTransition(async () => {
+        const result = await fetchCitySuggestionsAction(query);
+        if (result.suggestions) {
+          setSuggestions(result.suggestions);
+        } else {
+          setSuggestions([]);
+          console.error("Suggestion fetch error:", result.error);
+          // Optionally, show a toast or inline error for suggestion fetching
+        }
+        setIsSuggestionsOpen(true); 
+      });
+    },
+    [hasFocus] 
+  );
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (inputValue && hasFocus) {
+        debouncedFetchSuggestions(inputValue);
+      } else if (!inputValue && hasFocus && currentCityName) {
+        // If input is empty, focused, and we have a current city, show suggestions for it
+        // Or make a specific UI for "Current Location"
+        // For now, let's keep it simple: typing triggers suggestions.
+        setSuggestions([]); // Clear suggestions if input is cleared
+        setIsSuggestionsOpen(false);
+      } else if (!hasFocus) {
+        setIsSuggestionsOpen(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [inputValue, debouncedFetchSuggestions, hasFocus, currentCityName]);
+
+  const handleSelectSuggestion = (suggestion: CitySuggestion) => {
+    setInputValue(suggestion.name); // Update input field with selected city name
+    setIsSuggestionsOpen(false);
+    setSuggestions([]); // Clear suggestions
+    onSearch(suggestion.name, suggestion.lat, suggestion.lon);
+    inputRef.current?.blur(); // Remove focus
   };
 
+  const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (inputValue.trim()) {
+      setIsSuggestionsOpen(false);
+      setSuggestions([]);
+      onSearch(inputValue.trim());
+      inputRef.current?.blur(); // Remove focus
+    }
+  };
+
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+    if (value.length > 0) {
+      setIsSuggestionsOpen(true); // Open suggestions when user starts typing
+    } else {
+      setIsSuggestionsOpen(false); // Close if input is cleared
+    }
+  };
+  
+  const handleInputFocus = () => {
+    setHasFocus(true);
+    if (inputValue) { // If there's already text, try to fetch suggestions
+        debouncedFetchSuggestions(inputValue);
+    } else if (currentCityName) {
+        // If input is empty but we have a current city, maybe fetch for it?
+        // Or, just open an empty list which might show CommandEmpty or a default "Current Location" item.
+        // For now, let's not auto-fetch on focus if empty.
+        setIsSuggestionsOpen(true); // Open list, might show CommandEmpty
+    } else {
+        setIsSuggestionsOpen(true); // Open list, might show CommandEmpty
+    }
+  };
+
+  const handleInputBlur = () => {
+     // Delay blur action slightly to allow suggestion click to register
+    setTimeout(() => {
+        if (!document.activeElement || (inputRef.current && !inputRef.current.contains(document.activeElement))) {
+            setHasFocus(false);
+            setIsSuggestionsOpen(false);
+        }
+    }, 150);
+  };
+
+
   return (
-    <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2 sm:space-x-3">
-      <Input
-        type="text"
-        name="city"
-        placeholder="E.g., London, Tokyo, New York"
-        className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 rounded-lg sm:rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/70 transition-colors duration-150"
-        aria-label="City name"
-        disabled={isSearching}
-        required
-      />
+    <form onSubmit={handleSubmit} className="relative flex w-full items-center space-x-2 sm:space-x-3">
+      <Command className="w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150">
+        <CommandInput
+          ref={inputRef}
+          value={inputValue}
+          onValueChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          placeholder={currentCityName ? `Search cities (e.g., London) or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
+          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-none focus:ring-0"
+          aria-label="City name"
+          disabled={isSearchingWeather}
+          name="city" 
+        />
+        {isSuggestionsOpen && (
+          <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border">
+            {isLoadingSuggestions && (
+              <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
+              </div>
+            )}
+            {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >=2 && (
+              <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
+            )}
+             {!isLoadingSuggestions && inputValue.length < 2 && hasFocus && !currentCityName && (
+                <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
+            )}
+
+            {currentCityName && inputValue.length === 0 && !suggestions.length && hasFocus && (
+                <CommandItem
+                    key="current-location-suggestion"
+                    onSelect={() => {
+                        setInputValue(currentCityName); // Set input to trigger search for current city
+                        setIsSuggestionsOpen(false);
+                        onSearch(currentCityName);
+                        inputRef.current?.blur();
+                    }}
+                    className="cursor-pointer"
+                >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Use current location: {currentCityName}
+                </CommandItem>
+            )}
+
+            <CommandGroup>
+              {suggestions.map((suggestion, index) => (
+                <CommandItem
+                  key={`${suggestion.name}-${suggestion.country}-${suggestion.lat}-${index}`}
+                  value={`${suggestion.name}, ${suggestion.state ? suggestion.state + ', ' : ''}${suggestion.country}`}
+                  onSelect={() => handleSelectSuggestion(suggestion)}
+                  className="cursor-pointer"
+                >
+                  {suggestion.name}
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    ({suggestion.state ? `${suggestion.state}, ` : ''}{suggestion.country})
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        )}
+      </Command>
       <Button
         type="submit"
-        disabled={isSearching}
+        disabled={isSearchingWeather || !inputValue.trim()}
         aria-label="Search weather"
         size="lg"
         className="h-11 md:h-12 rounded-lg sm:rounded-xl px-4 sm:px-6 shadow-md hover:shadow-lg font-semibold transition-all duration-150 ease-in-out text-sm md:text-base"
       >
-        {isSearching ? (
+        {isSearchingWeather ? (
           <>
-            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
             Searching...
           </>
         ) : (

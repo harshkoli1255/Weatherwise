@@ -160,3 +160,10 @@ export interface WeatherConditionAlert {
   }
 }
 
+export interface CitySuggestion {
+  name: string;
+  lat: number;
+  lon: number;
+  country: string;
+  state?: string; // Optional: For states/provinces within countries like US, CA
+}

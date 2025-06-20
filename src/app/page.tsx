@@ -18,6 +18,7 @@ interface WeatherPageState {
   isLoading: boolean;
   loadingMessage: string | null;
   cityNotFound: boolean;
+  currentFetchedCityName?: string; // Store the name of the city fetched via IP/Geo
 }
 
 interface ApiLocationParams {
@@ -32,6 +33,7 @@ const initialState: WeatherPageState = {
   isLoading: true,
   loadingMessage: "Initializing Weatherwise...",
   cityNotFound: false,
+  currentFetchedCityName: undefined,
 };
 
 export default function WeatherPage() {
@@ -54,7 +56,7 @@ export default function WeatherPage() {
     }
   }, [weatherState.error, weatherState.isLoading, toast]);
 
-  const performWeatherFetch = useCallback((params: ApiLocationParams) => {
+  const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad: boolean = false) => {
     setWeatherState(prev => ({
       ...prev,
       isLoading: true,
@@ -73,17 +75,18 @@ export default function WeatherPage() {
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
+        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : weatherState.currentFetchedCityName,
       });
     });
-  }, [startTransition]);
+  }, [startTransition, weatherState.currentFetchedCityName]);
 
 
   useEffect(() => {
-    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location..." }));
+    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location...", currentFetchedCityName: undefined }));
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          performWeatherFetch({ lat: position.coords.latitude, lon: position.coords.longitude });
+          performWeatherFetch({ lat: position.coords.latitude, lon: position.coords.longitude }, true);
         },
         async (geoError) => {
           console.warn(`Geolocation error: ${geoError.message}. Falling back to IP lookup.`);
@@ -95,9 +98,10 @@ export default function WeatherPage() {
               isLoading: false,
               loadingMessage: null,
               cityNotFound: true,
+              currentFetchedCityName: undefined,
             });
           } else {
-            performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon });
+            performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, true);
           }
         }
       );
@@ -112,23 +116,28 @@ export default function WeatherPage() {
               isLoading: false,
               loadingMessage: null,
               cityNotFound: true,
+              currentFetchedCityName: undefined,
             });
         } else {
-          performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon });
+          performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, true);
         }
       })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []); // Intentionally run once on mount
 
 
-  const handleSearch = (formData: FormData) => {
-    const city = formData.get('city') as string;
+  const handleSearch = (city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
       setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
       return;
     }
-    performWeatherFetch({ city: city.trim() });
+    const params: ApiLocationParams = { city: city.trim() };
+    if (typeof lat === 'number' && typeof lon === 'number') {
+      params.lat = lat;
+      params.lon = lon;
+    }
+    performWeatherFetch(params);
   };
 
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
@@ -145,8 +154,12 @@ export default function WeatherPage() {
             Weather based on your location, or search any city.
           </p>
           {(!isLoadingDisplay || weatherState.data) && ( 
-            <div className="mt-1 pl-4">
-              <SearchBar onSearch={handleSearch} isSearching={isLoadingDisplay && !weatherState.data} />
+            <div className="mt-1"> {/* Removed pl-4 for Command component width */}
+              <SearchBar 
+                onSearch={handleSearch} 
+                isSearchingWeather={isLoadingDisplay && !weatherState.data}
+                currentCityName={weatherState.currentFetchedCityName} 
+              />
             </div>
           )}
         </section>
@@ -195,7 +208,7 @@ export default function WeatherPage() {
                     <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
-                        Please use the search bar above to find weather information for any city.
+                        Please use the search bar above to find weather information for any city, or allow location access for automatic detection.
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
