@@ -14,7 +14,7 @@ import { saveAlertPreferencesAction, verifyCodeAction, sendTestEmailAction, type
 import type { AlertPreferences } from '@/lib/types';
 import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power, Loader2, KeyRound, ShieldCheck, Pencil, Send, Info } from 'lucide-react';
 
-const LOCAL_STORAGE_PREFS_KEY = 'weatherAlertPrefsV2'; // Incremented version for new structure
+const LOCAL_STORAGE_PREFS_KEY = 'weatherAlertPrefsV2';
 const LOCAL_STORAGE_VERIFIED_EMAILS_KEY = 'weatherVerifiedEmails';
 
 const initialFormState: AlertPreferences = {
@@ -22,7 +22,7 @@ const initialFormState: AlertPreferences = {
   city: '',
   alertsEnabled: true,
   notifyExtremeTemp: false,
-  highTempThreshold: undefined, // Default to undefined, UI can show placeholder
+  highTempThreshold: undefined,
   lowTempThreshold: undefined,
   notifyHeavyRain: false,
   notifyStrongWind: false,
@@ -45,7 +45,6 @@ const initialTestEmailActionState: { message: string | null, error: boolean } = 
   error: false,
 };
 
-// Default threshold values for display if user hasn't set them
 const DEFAULT_DISPLAY_HIGH_TEMP = 32;
 const DEFAULT_DISPLAY_LOW_TEMP = 5;
 const DEFAULT_DISPLAY_WIND_SPEED = 35;
@@ -54,15 +53,20 @@ const DEFAULT_DISPLAY_WIND_SPEED = 35;
 function SavePreferencesButton({ form }: { form?: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="w-full sm:w-auto h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending} form={form}>
+    <Button 
+      type="submit" 
+      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow" 
+      disabled={pending} 
+      form={form}
+    >
       {pending ? (
         <>
-          <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
           Saving...
         </>
       ) : (
         <>
-          <CheckCircle2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7" />
+          <CheckCircle2 className="mr-2 h-5 w-5 sm:mr-2.5 sm:h-6 sm:w-6" />
           Save Preferences
         </>
       )}
@@ -73,15 +77,19 @@ function SavePreferencesButton({ form }: { form?: string }) {
 function VerifyCodeButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground" disabled={pending}>
+    <Button 
+      type="submit" 
+      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground" 
+      disabled={pending}
+    >
       {pending ? (
         <>
-          <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
           Verifying...
         </>
       ) : (
         <>
-          <ShieldCheck className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7" />
+          <ShieldCheck className="mr-2 h-5 w-5 sm:mr-2.5 sm:h-6 sm:w-6" />
           Verify Code
         </>
       )}
@@ -92,15 +100,20 @@ function VerifyCodeButton() {
 function SendTestEmailButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="outline" size="lg" className="w-full sm:w-auto h-12 sm:h-14 text-lg sm:text-xl shadow-md hover:shadow-lg transition-shadow" disabled={pending}>
+    <Button 
+      type="submit" 
+      variant="outline" 
+      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow" 
+      disabled={pending}
+    >
       {pending ? (
         <>
-          <Loader2 className="mr-2.5 sm:mr-3 h-6 w-6 sm:h-7 sm:w-7 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
           Sending Test...
         </>
       ) : (
         <>
-          <Send className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+          <Send className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5" />
           Send Test Alert
         </>
       )}
@@ -148,7 +161,7 @@ export default function AlertsPage() {
         }
       }
       setFormState(loadedFormState);
-      setIsEmailLocked(!!loadedFormState.email); 
+      setIsEmailLocked(!!loadedFormState.email && loadedFormState.alertsEnabled); 
 
       const savedVerifiedEmailsString = localStorage.getItem(LOCAL_STORAGE_VERIFIED_EMAILS_KEY);
       if (savedVerifiedEmailsString) {
@@ -198,7 +211,7 @@ export default function AlertsPage() {
             alertsEnabled: false,
             city: '' 
         }));
-        setIsEmailLocked(!!formState.email); 
+        setIsEmailLocked(!!formState.email && !formState.alertsEnabled); 
       }
 
       if (!state.error) {
@@ -223,7 +236,7 @@ export default function AlertsPage() {
         setVerificationCodeInput(''); 
       }
     }
-  }, [toast, formState.email ]);
+  }, [toast, formState.email, formState.alertsEnabled ]);
 
 
   useEffect(() => {
@@ -252,7 +265,7 @@ export default function AlertsPage() {
       [name]: name === 'email' 
         ? value.toLowerCase() 
         : type === 'number' 
-          ? (value === '' ? undefined : parseFloat(value)) // Store empty number inputs as undefined
+          ? (value === '' ? undefined : parseFloat(value))
           : value 
     }));
     if (name === 'email') {
@@ -262,7 +275,14 @@ export default function AlertsPage() {
 
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
     setFormState(prev => ({ ...prev, [name]: checked }));
-  }, []);
+    if (name === 'alertsEnabled' && !checked) {
+        setIsEmailLocked(true); // Lock email if alerts are disabled
+    } else if (name === 'alertsEnabled' && checked && formState.email) {
+        setIsEmailLocked(true); // Re-lock if email exists and alerts enabled
+    } else if (name === 'alertsEnabled' && checked && !formState.email) {
+        setIsEmailLocked(false); // Unlock if no email and alerts enabled
+    }
+  }, [formState.email]);
   
   const showVerificationSection = savePrefsActionState.needsVerification && 
                                  savePrefsActionState.verificationSentTo === formState.email.toLowerCase() &&
@@ -272,7 +292,6 @@ export default function AlertsPage() {
 
   const emailInputActuallyDisabled = (isEmailLocked && formState.alertsEnabled) || 
                                     (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase()) ||
-                                    !formState.alertsEnabled ||
                                     isAnyActionPending;
   
   const showEditEmailButton = isEmailLocked && 
@@ -321,20 +340,20 @@ export default function AlertsPage() {
                 </div>
               
                 <div className="space-y-2.5 sm:space-y-3">
-                  <Label htmlFor="emailInput" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
+                  <Label htmlFor="email" className="text-base sm:text-lg font-medium text-foreground/90 flex items-center">
                     <Mail className="mr-2.5 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 text-primary/80" /> Email Address
                     {isCurrentEmailVerified && formState.email && <ShieldCheck className="ml-2 h-5 w-5 text-green-500" title="Email Verified" />}
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Input 
-                      id="emailInput" 
+                      id="email" 
                       name="email" 
                       type="email" 
                       placeholder="you@example.com" 
                       className="flex-grow h-11 sm:h-12 text-base sm:text-lg"
                       value={formState.email}
                       onChange={handleInputChange}
-                      disabled={emailInputActuallyDisabled}
+                      disabled={emailInputActuallyDisabled || !formState.alertsEnabled}
                     />
                     {showEditEmailButton && (
                        <Button 
@@ -344,7 +363,7 @@ export default function AlertsPage() {
                          onClick={() => setIsEmailLocked(false)}
                          aria-label="Edit email address"
                          className="h-11 sm:h-12 w-11 sm:w-12 flex-shrink-0"
-                         disabled={isAnyActionPending}
+                         disabled={isAnyActionPending || !formState.alertsEnabled}
                        >
                          <Pencil className="h-5 w-5 sm:h-6 sm:w-6" />
                        </Button>
@@ -459,22 +478,21 @@ export default function AlertsPage() {
                     )}
                   </AlertOptionWithThresholds>
                 </div>
-                 {/* Hidden fields for thresholds if corresponding notify is off, to ensure they are part of the form data for verifyCodeAction */}
                 {!formState.notifyExtremeTemp && (
                     <>
-                        <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : formState.highTempThreshold} />
-                        <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : formState.lowTempThreshold} />
+                        <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : String(formState.highTempThreshold)} />
+                        <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : String(formState.lowTempThreshold)} />
                     </>
                 )}
                 {!formState.notifyStrongWind && (
-                    <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : formState.windSpeedThreshold} />
+                    <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
                 )}
               </CardContent>
             </form>
           )}
 
           {showVerificationSection && (
-            <form action={verifyCodeFormAction}>
+            <form id="verifyCodeForm" action={verifyCodeFormAction}>
               <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo?.toLowerCase() || ''} />
               <input type="hidden" name="expectedCode" value={savePrefsActionState.generatedCode || ''} />
               <input type="hidden" name="city" value={formState.city} />
@@ -518,11 +536,10 @@ export default function AlertsPage() {
 
           {!showVerificationSection && (
             <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
-              {formState.email && formState.alertsEnabled && ( 
+              {formState.email && formState.city && formState.alertsEnabled && ( 
                 <form action={testEmailFormAction} className="w-full sm:w-auto">
                     <input type="hidden" name="email" value={formState.email.toLowerCase()} />
                     <input type="hidden" name="city" value={formState.city} />
-                     {/* Pass thresholds to test email action if they exist */}
                     {formState.highTempThreshold !== undefined && <input type="hidden" name="highTempThreshold" value={String(formState.highTempThreshold)} />}
                     {formState.lowTempThreshold !== undefined && <input type="hidden" name="lowTempThreshold" value={String(formState.lowTempThreshold)} />}
                     {formState.windSpeedThreshold !== undefined && <input type="hidden" name="windSpeedThreshold" value={String(formState.windSpeedThreshold)} />}
