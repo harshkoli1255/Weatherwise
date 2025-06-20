@@ -24,7 +24,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
   const debouncedFetchSuggestions = useCallback(
     (query: string) => {
-      if (query.length < 1) { 
+      if (query.length < 1) {
         setSuggestions([]);
         setIsSuggestionsOpen(query.length > 0 && hasFocus);
         return;
@@ -32,7 +32,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       startSuggestionTransition(async () => {
         const result = await fetchCitySuggestionsAction(query);
         if (result.suggestions) {
-          setSuggestions(result.suggestions.slice(0, 8)); 
+          setSuggestions(result.suggestions.slice(0, 8));
         } else {
           setSuggestions([]);
           console.error("Suggestion fetch error:", result.error);
@@ -40,7 +40,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         setIsSuggestionsOpen(true);
       });
     },
-    [hasFocus] 
+    [hasFocus]
   );
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       if (inputValue && hasFocus) {
         debouncedFetchSuggestions(inputValue);
       } else if (!inputValue && hasFocus && currentCityName) {
-        setSuggestions([]); 
-        setIsSuggestionsOpen(false); 
+        setSuggestions([]);
+        setIsSuggestionsOpen(false);
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
       }
-    }, 300); 
+    }, 300);
 
     return () => {
       clearTimeout(handler);
@@ -92,7 +92,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     if (inputValue) {
         debouncedFetchSuggestions(inputValue);
     } else {
-        setIsSuggestionsOpen(true); 
+        setIsSuggestionsOpen(true);
     }
   };
 
@@ -107,9 +107,10 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="relative flex w-11/12 md:w-5/6 lg:w-3/4 max-w-lg sm:max-w-xl md:max-w-2xl items-center space-x-2 sm:space-x-3"
+    <form
+      onSubmit={handleSubmit}
+      // w-full ensures it takes space in its centered container, max-w controls its size, ml-* pushes it right
+      className="relative flex w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl items-center space-x-2 sm:space-x-3 ml-0 sm:ml-4 md:ml-8 lg:ml-12"
     >
       <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
@@ -144,7 +145,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     onSelect={() => {
                         setInputValue(currentCityName);
                         setIsSuggestionsOpen(false);
-                        onSearch(currentCityName); 
+                        onSearch(currentCityName);
                         inputRef.current?.blur();
                     }}
                     className="cursor-pointer text-base py-2.5"

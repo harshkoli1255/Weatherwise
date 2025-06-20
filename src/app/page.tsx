@@ -154,7 +154,7 @@ export default function WeatherPage() {
             Your smart companion for real-time weather updates and AI-powered insights. Search any city or use your current location.
           </p>
           {(!isLoadingDisplay || weatherState.data) && (
-            <div className="mt-1 w-full flex justify-end"> {/* Changed from justify-center */}
+            <div className="mt-1 w-full flex justify-center"> {/* Changed from justify-end to justify-center */}
               <SearchBar
                 onSearch={handleSearch}
                 isSearchingWeather={isLoadingDisplay && !weatherState.data}
