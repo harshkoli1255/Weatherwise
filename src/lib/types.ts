@@ -129,10 +129,14 @@ export interface OpenWeatherForecastAPIResponse {
 export interface AlertPreferences {
   email: string;
   city: string;
-  notifyExtremeTemp: boolean;
-  notifyHeavyRain: boolean;
-  notifyStrongWind: boolean;
   alertsEnabled: boolean;
+  notifyExtremeTemp: boolean;
+  highTempThreshold?: number;
+  lowTempThreshold?: number;
+  notifyHeavyRain: boolean;
+  // rainThreshold?: number; // Rain threshold customization deferred due to API complexity
+  notifyStrongWind: boolean;
+  windSpeedThreshold?: number;
 }
 
 export interface IpApiLocationResponse {
@@ -148,4 +152,10 @@ export interface WeatherConditionAlert {
   type: 'Extreme Temperature' | 'Heavy Rain' | 'Strong Wind';
   details: string;
   city: string;
+  customThresholds?: {
+    highTemp?: number;
+    lowTemp?: number;
+    windSpeed?: number;
+  }
 }
+

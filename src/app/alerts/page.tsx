@@ -12,18 +12,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { saveAlertPreferencesAction, verifyCodeAction, sendTestEmailAction, type SaveAlertsFormState } from './actions';
 import type { AlertPreferences } from '@/lib/types';
-import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power, Loader2, KeyRound, ShieldCheck, Pencil, Send } from 'lucide-react';
+import { Mail, MapPin, Thermometer, CloudRain, Wind, AlertTriangle, CheckCircle2, Power, Loader2, KeyRound, ShieldCheck, Pencil, Send, Info } from 'lucide-react';
 
-const LOCAL_STORAGE_PREFS_KEY = 'weatherAlertPrefs';
+const LOCAL_STORAGE_PREFS_KEY = 'weatherAlertPrefsV2'; // Incremented version for new structure
 const LOCAL_STORAGE_VERIFIED_EMAILS_KEY = 'weatherVerifiedEmails';
 
 const initialFormState: AlertPreferences = {
   email: '',
   city: '',
+  alertsEnabled: true,
   notifyExtremeTemp: false,
+  highTempThreshold: undefined, // Default to undefined, UI can show placeholder
+  lowTempThreshold: undefined,
   notifyHeavyRain: false,
   notifyStrongWind: false,
-  alertsEnabled: true,
+  windSpeedThreshold: undefined,
 };
 
 const initialSaveActionState: SaveAlertsFormState = {
@@ -41,6 +44,11 @@ const initialTestEmailActionState: { message: string | null, error: boolean } = 
   message: null,
   error: false,
 };
+
+// Default threshold values for display if user hasn't set them
+const DEFAULT_DISPLAY_HIGH_TEMP = 32;
+const DEFAULT_DISPLAY_LOW_TEMP = 5;
+const DEFAULT_DISPLAY_WIND_SPEED = 35;
 
 
 function SavePreferencesButton({ form }: { form?: string }) {
@@ -108,7 +116,7 @@ export default function AlertsPage() {
   const [isEmailLocked, setIsEmailLocked] = useState(true);
   
   const [savePrefsActionState, savePrefsFormAction, isSavePrefsPending] = useActionState(saveAlertPreferencesAction, initialSaveActionState);
-  const [verifyCodeActionState, verifyCodeFormAction, isVerifyCodePending] = useActionState(verifyCodeAction, initialSaveActionState); // verifyCodeAction uses SaveAlertsFormState for its return
+  const [verifyCodeActionState, verifyCodeFormAction, isVerifyCodePending] = useActionState(verifyCodeAction, initialSaveActionState); 
   const [testEmailActionState, testEmailFormAction, isTestEmailPending] = useActionState(sendTestEmailAction, initialTestEmailActionState);
 
   const { toast } = useToast();
@@ -131,8 +139,11 @@ export default function AlertsPage() {
             city: typeof savedData.city === 'string' ? savedData.city : initialFormState.city,
             alertsEnabled: typeof savedData.alertsEnabled === 'boolean' ? savedData.alertsEnabled : initialFormState.alertsEnabled,
             notifyExtremeTemp: typeof savedData.notifyExtremeTemp === 'boolean' ? savedData.notifyExtremeTemp : initialFormState.notifyExtremeTemp,
+            highTempThreshold: typeof savedData.highTempThreshold === 'number' ? savedData.highTempThreshold : initialFormState.highTempThreshold,
+            lowTempThreshold: typeof savedData.lowTempThreshold === 'number' ? savedData.lowTempThreshold : initialFormState.lowTempThreshold,
             notifyHeavyRain: typeof savedData.notifyHeavyRain === 'boolean' ? savedData.notifyHeavyRain : initialFormState.notifyHeavyRain,
             notifyStrongWind: typeof savedData.notifyStrongWind === 'boolean' ? savedData.notifyStrongWind : initialFormState.notifyStrongWind,
+            windSpeedThreshold: typeof savedData.windSpeedThreshold === 'number' ? savedData.windSpeedThreshold : initialFormState.windSpeedThreshold,
           };
         }
       }
@@ -183,18 +194,17 @@ export default function AlertsPage() {
       if (state.alertsCleared) {
         setFormState(prev => ({ 
             ...initialFormState, 
-            email: prev.email.toLowerCase(), // Keep email, but ensure lowercase
+            email: prev.email.toLowerCase(), 
             alertsEnabled: false,
             city: '' 
         }));
-        setIsEmailLocked(!!formState.email); // Re-evaluate lock based on current formState email
+        setIsEmailLocked(!!formState.email); 
       }
 
       if (!state.error) {
          if (type === 'save' && !state.needsVerification && !state.alertsCleared && formState.email) {
           setIsEmailLocked(true);
         }
-        // Check for verifiedEmailOnSuccess for both save (if already verified) and verify actions
         if (state.verifiedEmailOnSuccess) { 
              const verifiedEmailLower = state.verifiedEmailOnSuccess.toLowerCase();
              setVerifiedEmails(prev => {
@@ -203,14 +213,14 @@ export default function AlertsPage() {
                 newSet.add(verifiedEmailLower);
                 return newSet;
             });
-            if (type === 'verify' && state.emailVerified) { // Lock on successful verification
+            if (type === 'verify' && state.emailVerified) { 
                  setIsEmailLocked(true);
             }
         }
       }
         
       if ((type === 'verify' && state.emailVerified) || (type === 'save' && !state.needsVerification && !state.alertsCleared)) {
-        setVerificationCodeInput(''); // Clear code input after successful verify or save (if no verification needed)
+        setVerificationCodeInput(''); 
       }
     }
   }, [toast, formState.email ]);
@@ -236,11 +246,16 @@ export default function AlertsPage() {
 
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormState(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
+    const { name, value, type } = e.target;
+    setFormState(prev => ({ 
+      ...prev, 
+      [name]: name === 'email' 
+        ? value.toLowerCase() 
+        : type === 'number' 
+          ? (value === '' ? undefined : parseFloat(value)) // Store empty number inputs as undefined
+          : value 
+    }));
     if (name === 'email') {
-        // If user starts typing in the email field, it should unlock if it was locked.
-        // It should NOT lock again automatically on typing.
         setIsEmailLocked(false);
     }
   }, []);
@@ -248,23 +263,13 @@ export default function AlertsPage() {
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
     setFormState(prev => ({ ...prev, [name]: checked }));
   }, []);
-
-  // Determine if verification UI should be shown
-  // Show if:
-  // 1. savePrefsActionState indicates verification is needed AND
-  // 2. The email for which verification was sent matches the current form email AND
-  // 3. The current email is NOT already in the verifiedEmails list.
+  
   const showVerificationSection = savePrefsActionState.needsVerification && 
                                  savePrefsActionState.verificationSentTo === formState.email.toLowerCase() &&
                                  !isCurrentEmailVerified;
                                  
   const isAnyActionPending = isSavePrefsPending || isVerifyCodePending || isTestEmailPending;
 
-  // Email input should be disabled if:
-  // - It's locked AND alerts are enabled (to allow editing if alerts are off)
-  // - OR verification is pending for THIS email
-  // - OR any action is generally pending (to prevent changes during submission)
-  // - OR alerts are generally disabled (no email needed if all alerts off)
   const emailInputActuallyDisabled = (isEmailLocked && formState.alertsEnabled) || 
                                     (showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase()) ||
                                     !formState.alertsEnabled ||
@@ -273,7 +278,7 @@ export default function AlertsPage() {
   const showEditEmailButton = isEmailLocked && 
                               !!formState.email && 
                               formState.alertsEnabled && 
-                              !isAnyActionPending && // Not while any action is pending
+                              !isAnyActionPending && 
                               !(showVerificationSection && savePrefsActionState.verificationSentTo === formState.email.toLowerCase());
 
 
@@ -286,7 +291,7 @@ export default function AlertsPage() {
             <AlertTriangle className="h-12 w-12 sm:h-14 md:h-16 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
             <CardDescription className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
-              Get notified about extreme weather conditions. Verify your email to activate.
+              Set custom thresholds and get notified about extreme weather. Verify your email to activate.
             </CardDescription>
           </CardHeader>
           
@@ -339,7 +344,7 @@ export default function AlertsPage() {
                          onClick={() => setIsEmailLocked(false)}
                          aria-label="Edit email address"
                          className="h-11 sm:h-12 w-11 sm:w-12 flex-shrink-0"
-                         disabled={isAnyActionPending} // Disable if any action is pending
+                         disabled={isAnyActionPending}
                        >
                          <Pencil className="h-5 w-5 sm:h-6 sm:w-6" />
                        </Button>
@@ -365,53 +370,121 @@ export default function AlertsPage() {
                 </div>
 
                 <div className={`space-y-3.5 sm:space-y-4 pt-4 sm:pt-5 border-t border-border/40 ${!formState.alertsEnabled || isAnyActionPending ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <h4 className="text-lg sm:text-xl font-semibold text-foreground/90">Notification Conditions:</h4>
-                  <AlertOption
+                  <h4 className="text-lg sm:text-xl font-semibold text-foreground/90">Notification Conditions & Thresholds:</h4>
+                  <AlertOptionWithThresholds
                     id="notifyExtremeTemp"
                     name="notifyExtremeTemp"
                     label="Extreme Temperatures"
                     icon={Thermometer}
-                    description="Alerts for high (>32°C) or low (<5°C) temperatures."
+                    description="Alerts for high or low temperatures."
                     checked={formState.notifyExtremeTemp}
                     onCheckedChange={(checked) => handleSwitchChange('notifyExtremeTemp', checked)}
                     disabled={!formState.alertsEnabled || isAnyActionPending}
-                  />
+                  >
+                    {formState.notifyExtremeTemp && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4 pl-8 sm:pl-10">
+                        <div>
+                          <Label htmlFor="highTempThreshold" className="text-sm font-medium text-foreground/80">High Temp. Threshold (°C)</Label>
+                          <Input 
+                            type="number" 
+                            id="highTempThreshold" 
+                            name="highTempThreshold" 
+                            value={formState.highTempThreshold === undefined ? '' : formState.highTempThreshold}
+                            placeholder={`${DEFAULT_DISPLAY_HIGH_TEMP}`}
+                            onChange={handleInputChange}
+                            className="h-10 text-sm mt-1"
+                            disabled={!formState.alertsEnabled || isAnyActionPending} 
+                          />
+                           {savePrefsActionState.fieldErrors?.highTempThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.highTempThreshold.join(', ')}</p>}
+                        </div>
+                        <div>
+                          <Label htmlFor="lowTempThreshold" className="text-sm font-medium text-foreground/80">Low Temp. Threshold (°C)</Label>
+                          <Input 
+                            type="number" 
+                            id="lowTempThreshold" 
+                            name="lowTempThreshold" 
+                            value={formState.lowTempThreshold === undefined ? '' : formState.lowTempThreshold}
+                            placeholder={`${DEFAULT_DISPLAY_LOW_TEMP}`}
+                            onChange={handleInputChange}
+                            className="h-10 text-sm mt-1"
+                            disabled={!formState.alertsEnabled || isAnyActionPending}
+                           />
+                           {savePrefsActionState.fieldErrors?.lowTempThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.lowTempThreshold.join(', ')}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </AlertOptionWithThresholds>
+                  
                   <AlertOption
                     id="notifyHeavyRain"
                     name="notifyHeavyRain"
                     label="Heavy Rain"
                     icon={CloudRain}
-                    description="Notifications for heavy intensity rain."
+                    description="Based on intensity description from weather service."
                     checked={formState.notifyHeavyRain}
                     onCheckedChange={(checked) => handleSwitchChange('notifyHeavyRain', checked)}
                     disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
-                  <AlertOption
+                   {formState.notifyHeavyRain && (
+                      <div className="pl-8 sm:pl-10 mt-1 text-xs text-muted-foreground flex items-center">
+                        <Info className="h-3 w-3 mr-1.5" /> Note: Rain alert is based on description (e.g., "heavy rain"), not a custom mm/hr threshold.
+                      </div>
+                    )}
+
+                  <AlertOptionWithThresholds
                     id="notifyStrongWind"
                     name="notifyStrongWind"
                     label="Strong Winds"
                     icon={Wind} 
-                    description="Alerts for wind speeds >35 km/h."
+                    description="Alerts for high wind speeds."
                     checked={formState.notifyStrongWind}
                     onCheckedChange={(checked) => handleSwitchChange('notifyStrongWind', checked)}
                     disabled={!formState.alertsEnabled || isAnyActionPending}
-                  />
+                  >
+                    {formState.notifyStrongWind && (
+                      <div className="mt-3 sm:mt-4 pl-8 sm:pl-10">
+                        <Label htmlFor="windSpeedThreshold" className="text-sm font-medium text-foreground/80">Wind Speed Threshold (km/h)</Label>
+                        <Input 
+                          type="number" 
+                          id="windSpeedThreshold" 
+                          name="windSpeedThreshold" 
+                          value={formState.windSpeedThreshold === undefined ? '' : formState.windSpeedThreshold}
+                          placeholder={`${DEFAULT_DISPLAY_WIND_SPEED}`}
+                          onChange={handleInputChange}
+                          className="h-10 text-sm mt-1"
+                          disabled={!formState.alertsEnabled || isAnyActionPending}
+                        />
+                        {savePrefsActionState.fieldErrors?.windSpeedThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.windSpeedThreshold.join(', ')}</p>}
+                      </div>
+                    )}
+                  </AlertOptionWithThresholds>
                 </div>
+                 {/* Hidden fields for thresholds if corresponding notify is off, to ensure they are part of the form data for verifyCodeAction */}
+                {!formState.notifyExtremeTemp && (
+                    <>
+                        <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : formState.highTempThreshold} />
+                        <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : formState.lowTempThreshold} />
+                    </>
+                )}
+                {!formState.notifyStrongWind && (
+                    <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : formState.windSpeedThreshold} />
+                )}
               </CardContent>
-              {/* SavePreferencesButton is now in CardFooter, linked by form="mainAlertForm" */}
             </form>
           )}
 
           {showVerificationSection && (
             <form action={verifyCodeFormAction}>
-              {/* Pass all necessary preference data for when verification succeeds */}
               <input type="hidden" name="email" value={savePrefsActionState.verificationSentTo?.toLowerCase() || ''} />
               <input type="hidden" name="expectedCode" value={savePrefsActionState.generatedCode || ''} />
               <input type="hidden" name="city" value={formState.city} />
               <input type="hidden" name="alertsEnabled" value={formState.alertsEnabled ? 'on' : 'off'} />
               <input type="hidden" name="notifyExtremeTemp" value={formState.notifyExtremeTemp ? 'on' : 'off'} />
+              <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : String(formState.highTempThreshold)} />
+              <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : String(formState.lowTempThreshold)} />
               <input type="hidden" name="notifyHeavyRain" value={formState.notifyHeavyRain ? 'on' : 'off'} />
               <input type="hidden" name="notifyStrongWind" value={formState.notifyStrongWind ? 'on' : 'off'} />
+              <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
 
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="text-center mb-4">
@@ -443,13 +516,16 @@ export default function AlertsPage() {
             </form>
           )}
 
-          {/* Action buttons footer - shown when not in verification flow */}
           {!showVerificationSection && (
             <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
-              {formState.email && formState.alertsEnabled && ( // Only show test email button if there's an email and alerts are enabled
+              {formState.email && formState.alertsEnabled && ( 
                 <form action={testEmailFormAction} className="w-full sm:w-auto">
                     <input type="hidden" name="email" value={formState.email.toLowerCase()} />
                     <input type="hidden" name="city" value={formState.city} />
+                     {/* Pass thresholds to test email action if they exist */}
+                    {formState.highTempThreshold !== undefined && <input type="hidden" name="highTempThreshold" value={String(formState.highTempThreshold)} />}
+                    {formState.lowTempThreshold !== undefined && <input type="hidden" name="lowTempThreshold" value={String(formState.lowTempThreshold)} />}
+                    {formState.windSpeedThreshold !== undefined && <input type="hidden" name="windSpeedThreshold" value={String(formState.windSpeedThreshold)} />}
                     <SendTestEmailButton />
                 </form>
               )}
@@ -478,25 +554,63 @@ interface AlertOptionProps {
 
 function AlertOption({ id, name, label, icon: Icon, description, checked, onCheckedChange, disabled }: AlertOptionProps) {
   return (
-    <div className={`flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
-      <div className="flex items-center space-x-3 sm:space-x-3.5">
-        <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
-        <div>
-          <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} cursor-pointer`}>
-            {label}
-          </Label>
-          <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
+    <div className={`p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3 sm:space-x-3.5">
+          <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
+          <div>
+            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} cursor-pointer`}>
+              {label}
+            </Label>
+            <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
+          </div>
         </div>
+        <Switch 
+          id={id} 
+          name={name} 
+          checked={checked} 
+          onCheckedChange={onCheckedChange}
+          disabled={disabled}
+          aria-label={label}
+          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
+        />
       </div>
-      <Switch 
-        id={id} 
-        name={name} 
-        checked={checked} 
-        onCheckedChange={onCheckedChange}
-        disabled={disabled}
-        aria-label={label}
-        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
-      />
+    </div>
+  );
+}
+
+interface AlertOptionWithThresholdsProps extends AlertOptionProps {
+  children?: React.ReactNode;
+}
+
+function AlertOptionWithThresholds({ id, name, label, icon: Icon, description, checked, onCheckedChange, disabled, children }: AlertOptionWithThresholdsProps) {
+  return (
+    <div className={`p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-all duration-300 ease-in-out ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3 sm:space-x-3.5">
+          <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
+          <div>
+            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} cursor-pointer`}>
+              {label}
+            </Label>
+            <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
+          </div>
+        </div>
+        <Switch 
+          id={id} 
+          name={name} 
+          checked={checked} 
+          onCheckedChange={onCheckedChange}
+          disabled={disabled}
+          aria-label={label}
+          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
+        />
+      </div>
+      {checked && !disabled && children && (
+        <div className="mt-3 sm:mt-4 border-t border-border/40 pt-3 sm:pt-4">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
