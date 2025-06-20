@@ -43,9 +43,8 @@ const shouldIncludeFeelsLikeTool = ai.defineTool(
     }),
     outputSchema: z.boolean().describe('Returns true if the difference between temperature and feelsLike is greater than 5 degrees, otherwise false.'),
   },
-  async (input) => {
-    // Only mention "feels like" if it's significantly different (e.g., > 5 degrees)
-    return Math.abs(input.temperature - input.feelsLike) > 5;
+  async (toolInput: { temperature: number; feelsLike: number }) => {
+    return Math.abs(toolInput.temperature - toolInput.feelsLike) > 5;
   }
 );
 
@@ -67,8 +66,8 @@ Current weather data for {{city}}:
 Instructions:
 1.  Analyze the difference between the actual temperature ({{temperature}}°C) and the 'feels like' temperature ({{feelsLike}}°C).
 2.  Use the 'shouldIncludeFeelsLike' tool to decide if the 'feels like' temperature is significant enough to be mentioned.
-3.  If the tool confirms its significance, incorporate the 'feels like' temperature into your summary. For example, "it feels like X°C".
-4.  Based on all conditions (temperature, feels like, condition, humidity, wind speed), determine if the overall weather sentiment is 'good', 'bad', or 'neutral'.
+3.  If the tool confirms its significance (returns true), incorporate the 'feels like' temperature into your summary. For example, "it feels like X°C". Otherwise, do not mention the 'feels like' temperature.
+4.  Based on all conditions (temperature, actual condition, humidity, wind speed), determine if the overall weather sentiment is 'good', 'bad', or 'neutral'.
     -   'Bad' weather: Extreme temperatures (e.g., below 5°C or above 30°C), significant precipitation (rain, snow, storm), high winds (above 30 km/h).
     -   'Good' weather: Pleasant temperatures (e.g., 15°C-25°C), clear or partly cloudy skies, light winds.
     -   'Neutral' weather: Conditions that don't strongly fit 'good' or 'bad'.
@@ -85,12 +84,12 @@ const weatherSummaryFlow = ai.defineFlow(
     inputSchema: WeatherSummaryInputSchema,
     outputSchema: WeatherSummaryOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (flowInput: WeatherSummaryInput) => {
+    const plainInput = { ...flowInput }; // Clone input to ensure it's a plain object
+    const {output} = await prompt(plainInput);
     if (!output) {
       throw new Error('AI failed to generate weather summary output.');
     }
     return output;
   }
 );
-

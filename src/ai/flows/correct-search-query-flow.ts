@@ -66,23 +66,24 @@ const correctCitySearchQueryFlow = ai.defineFlow(
     inputSchema: CorrectCitySearchQueryInputSchema,
     outputSchema: CorrectCitySearchQueryOutputSchema,
   },
-  async (input) => {
+  async (flowInput: CorrectCitySearchQueryInput) => {
     try {
-      const {output} = await prompt(input);
+      const plainInput = { ...flowInput }; // Clone input to ensure it's a plain object
+      const {output} = await prompt(plainInput);
       if (output) {
         // Basic validation: if the corrected query is wildly different or very short, maybe revert.
         // For simplicity, we'll trust the LLM for now, but this could be a point of refinement.
         if (output.correctedQuery.trim().length === 0) {
-            return { correctedQuery: input.query, wasCorrected: false };
+            return { correctedQuery: flowInput.query, wasCorrected: false };
         }
         return output;
       }
       // If prompt output is null, fallback to original query
-      return { correctedQuery: input.query, wasCorrected: false };
+      return { correctedQuery: flowInput.query, wasCorrected: false };
     } catch (error) {
       console.error('Error in correctCitySearchQueryFlow:', error);
       // If the AI call fails, return the original query
-      return { correctedQuery: input.query, wasCorrected: false };
+      return { correctedQuery: flowInput.query, wasCorrected: false };
     }
   }
 );
