@@ -2,7 +2,7 @@
 'use server';
 
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse } from '@/lib/types';
-import { summarizeWeather, type WeatherSummaryInput } from '@/ai/flows/weather-summary';
+import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -134,9 +134,6 @@ export async function fetchWeatherAndSummaryAction(
 
   try {
     const currentWeatherData = await fetchCurrentWeather(locationIdentifier, apiKey);
-    // If fetching by city, currentWeatherData.city will be the validated city name.
-    // If fetching by coords, currentWeatherData.city will be the name from OpenWeatherMap.
-    // We'll use these potentially more accurate coords for the forecast if we initially had only a city.
     const forecastLocationIdentifier: LocationIdentifier = {
         type: 'coords',
         lat: (await fetch( `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${apiKey}&units=metric`).then(res => res.json()) as OpenWeatherCurrentAPIResponse).coord.lat,
@@ -154,22 +151,22 @@ export async function fetchWeatherAndSummaryAction(
       condition: currentWeatherData.description,
     };
 
-    const aiSummaryOutput = await summarizeWeather(aiInput);
+    const aiSummaryOutput: WeatherSummaryOutput = await summarizeWeather(aiInput);
     
     return {
       data: { 
         ...currentWeatherData, 
         aiSummary: aiSummaryOutput.summary,
+        weatherSentiment: aiSummaryOutput.weatherSentiment,
         hourlyForecast: hourlyForecastData,
       },
       error: null,
-      cityNotFound: false // This flag is less relevant now, error message covers it
+      cityNotFound: false
     };
 
   } catch (error) {
     console.error("Error fetching weather data or generating summary:", error);
     const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    // Differentiate "city not found" type errors for potential specific UI handling if needed
     const cityNotFound = errorMessage.toLowerCase().includes("not found") || errorMessage.toLowerCase().includes("city name cannot be empty");
     return { data: null, error: errorMessage, cityNotFound };
   }
@@ -178,10 +175,6 @@ export async function fetchWeatherAndSummaryAction(
 
 export async function fetchCityByIpAction(): Promise<{ city: string | null; country: string | null; lat: number | null; lon: number | null; error: string |null }> {
   try {
-    // In a real app, you might get the user's IP from request headers if running this truly server-side.
-    // For a client-triggered server action, the fetch will originate from the server, 
-    // so we fetch data for the server's IP. To get client IP, this API would need to be called client-side OR ip passed.
-    // However, ip-api.com without an IP path parameter attempts to use the request IP.
     const response = await fetch('http://ip-api.com/json/?fields=status,message,country,city,lat,lon');
     if (!response.ok) {
       throw new Error(`IP Geolocation service failed with status: ${response.status}`);
@@ -201,5 +194,3 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
     return { city: null, country: null, lat: null, lon: null, error: errorMessage };
   }
 }
-
-    

@@ -22,6 +22,7 @@ export interface WeatherData {
 export interface WeatherSummaryData extends WeatherData {
   aiSummary: string;
   hourlyForecast?: HourlyForecastData[];
+  weatherSentiment?: 'good' | 'bad' | 'neutral';
 }
 
 // For current weather from /data/2.5/weather
