@@ -55,18 +55,18 @@ function SavePreferencesButton({ form }: { form?: string }) {
   return (
     <Button 
       type="submit" 
-      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow" 
+      className="w-full sm:w-auto h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow" 
       disabled={pending} 
       form={form}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           Saving...
         </>
       ) : (
         <>
-          <CheckCircle2 className="mr-2 h-5 w-5 sm:mr-2.5 sm:h-6 sm:w-6" />
+          <CheckCircle2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           Save Preferences
         </>
       )}
@@ -79,17 +79,17 @@ function VerifyCodeButton() {
   return (
     <Button 
       type="submit" 
-      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground" 
+      className="w-full sm:w-auto h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground" 
       disabled={pending}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           Verifying...
         </>
       ) : (
         <>
-          <ShieldCheck className="mr-2 h-5 w-5 sm:mr-2.5 sm:h-6 sm:w-6" />
+          <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           Verify Code
         </>
       )}
@@ -103,17 +103,17 @@ function SendTestEmailButton() {
     <Button 
       type="submit" 
       variant="outline" 
-      className="w-full sm:w-auto h-11 px-4 sm:h-12 sm:px-6 text-base sm:text-lg shadow-md hover:shadow-lg transition-shadow" 
+      className="w-full sm:w-auto h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow" 
       disabled={pending}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           Sending Test...
         </>
       ) : (
         <>
-          <Send className="mr-2 h-4 w-4 sm:mr-2.5 sm:h-5 sm:w-5" />
+          <Send className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           Send Test Alert
         </>
       )}
@@ -276,11 +276,11 @@ export default function AlertsPage() {
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
     setFormState(prev => ({ ...prev, [name]: checked }));
     if (name === 'alertsEnabled' && !checked) {
-        setIsEmailLocked(true); // Lock email if alerts are disabled
+        setIsEmailLocked(true); 
     } else if (name === 'alertsEnabled' && checked && formState.email) {
-        setIsEmailLocked(true); // Re-lock if email exists and alerts enabled
+        setIsEmailLocked(true); 
     } else if (name === 'alertsEnabled' && checked && !formState.email) {
-        setIsEmailLocked(false); // Unlock if no email and alerts enabled
+        setIsEmailLocked(false); 
     }
   }, [formState.email]);
   
