@@ -54,15 +54,7 @@ const BORDER_COLOR_HSL = "220 30% 85%"; // --border
 
 
 // Function to get weather icon URL.
-// For animated:true, it returns a placeholder for a .png URL (to ensure generic box).
-// Users should replace this with their actual hosted animated GIF URLs.
-const getWeatherIconUrl = (iconCode: string, animated: boolean = false): string => {
-  if (animated) {
-    // IMPORTANT: Replace this logic with your actual animated GIF URLs based on iconCode.
-    // This placeholder forces a generic light gray box from placehold.co.
-    // For example: `https://your-cdn.com/animated-weather-icons/${iconCode}.gif`
-    return `https://placehold.co/80x80/EFEFEF/EFEFEF.png`; 
-  }
+const getWeatherIconUrl = (iconCode: string): string => {
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 };
 
@@ -89,8 +81,8 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
         .button:hover { background-color: hsl(210 85% 45%); } /* Darker primary */
         .footer { text-align: center; padding-top: 25px; border-top: 1px solid hsl(${BORDER_COLOR_HSL}); font-size: 13px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 30px; }
         .weather-icon-container { text-align: center; margin-bottom: 20px; }
-        .weather-icon { width: 80px; height: 80px; vertical-align: middle; border-radius: 8px; }
-        .weather-details { margin-top: 20px; padding: 20px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); border-radius: 8px; border: 1px solid hsl(210 70% 90%); } /* Using secondary color for border */
+        .weather-icon { width: 80px; height: 80px; vertical-align: middle; border-radius: 8px; background-color: hsl(210 70% 90% / 0.5); } /* Light background for icon */
+        .weather-details { margin-top: 20px; padding: 20px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); border-radius: 8px; border: 1px solid hsl(210 70% 90%); } 
         .weather-details p { margin: 8px 0; font-size: 15px; }
         .weather-details strong { font-weight: 600; color: hsl(${PRIMARY_COLOR_HSL});}
         .alert-highlight { color: hsl(${ACCENT_COLOR_HSL}); font-weight: bold; font-size: 18px; margin-bottom: 10px !important; }
@@ -113,7 +105,7 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
 
 const sendWeatherAlertEmail = async (email: string, weatherData: WeatherData, alertInfo: WeatherConditionAlert) => {
   const subject = `Weather Alert: ${alertInfo.type} in ${weatherData.city}`;
-  const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); // Request "animated" (placeholder)
+  const iconUrl = getWeatherIconUrl(weatherData.iconCode);
   const preheader = `${alertInfo.type} detected in ${weatherData.city}. Current temperature: ${weatherData.temperature}°C.`;
 
   let customThresholdsText = '';
@@ -129,7 +121,7 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherData, al
   const content = `
     <p>Hello,</p>
     <p>This is a weather alert from <strong>${APP_NAME}</strong> for <strong>${weatherData.city}</strong>.</p>
-    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather animated"></div>
+    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition"></div>
     <p class="alert-highlight"><strong>Alert: ${alertInfo.type}</strong></p>
     <p><strong>Details:</strong> ${alertInfo.details}</p>
     ${customThresholdsText}
@@ -578,13 +570,13 @@ export async function sendTestEmailAction(
       const weatherData = await fetchCurrentWeatherForAlert(city, apiKey);
       if (weatherData) {
         emailTitle = `${APP_NAME} Test Weather Report for ${city}`;
-        const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); // Request "animated" (placeholder)
+        const iconUrl = getWeatherIconUrl(weatherData.iconCode); 
         preheader = `Test weather report for ${city}: ${weatherData.temperature}°C, ${weatherData.description}.`;
 
         testContent = `
           <p>Hello,</p>
           <p>This is a <strong>test weather report</strong> from ${APP_NAME}, showing current conditions for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
-          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather animated"></div>
+          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition"></div>
           <div class="weather-details">
             <p>Current conditions:</p>
             <p><strong>Temperature:</strong> ${weatherData.temperature}°C (Feels like: ${weatherData.feelsLike}°C)</p>
@@ -637,4 +629,4 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
-
+    
