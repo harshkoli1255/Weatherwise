@@ -223,7 +223,7 @@ export async function fetchWeatherAndSummaryAction(
           console.log("Attempting to generate AI weather summary for:", aiInput.city);
           aiSummaryOutput = await summarizeWeather(aiInput);
           console.log("AI summary successfully generated.");
-      } catch (err) { // Changed aiErr to err to avoid typescript unused var if only using err.message
+      } catch (err) { 
           const strongError = err as Error & { status?: number; code?: number; details?: string; cause?: any };
           console.error("Error generating AI weather summary. Raw Error:", strongError);
           console.error("Error Name:", strongError.name);
@@ -240,9 +240,9 @@ export async function fetchWeatherAndSummaryAction(
               lowerAiError.includes("billing") ||
               lowerAiError.includes("quota") ||
               lowerAiError.includes("resource has been exhausted") ||
-              lowerAiError.includes("429") || // Too Many Requests
-              (strongError.status && [401, 403, 429].includes(strongError.status)) || // HTTP status codes
-              (strongError.code && [7, 8, 14].includes(strongError.code)) // Common gRPC codes for these issues
+              lowerAiError.includes("429") || 
+              (strongError.status && [401, 403, 429].includes(strongError.status)) || 
+              (strongError.code && [7, 8, 14].includes(strongError.code)) 
             ) {
               aiError = "The AI weather summary service is temporarily unavailable due to API key, quota, or billing issues. Weather data is still available.";
           } else {
@@ -262,7 +262,7 @@ export async function fetchWeatherAndSummaryAction(
       weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
       hourlyForecast: hourlyForecastData || [], 
     },
-    error: null, // No OpenWeather error if we reached here
+    error: null, 
     cityNotFound: false
   };
 }
@@ -313,7 +313,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
   let processedQuery = query.trim();
 
-  // Attempt AI-powered query correction
   const geminiApiKeysString = process.env.GEMINI_API_KEYS;
   const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
 
@@ -330,7 +329,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       }
     } catch (correctionError) {
       console.error("Error during AI query correction:", correctionError);
-      // Proceed with original query if AI correction fails
     }
   } else {
     console.log("AI query correction skipped: Gemini API key not configured.");
@@ -365,14 +363,26 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         continue;
       }
       const data: any[] = await response.json();
-      const suggestions: CitySuggestion[] = data.map(item => ({
-        name: item.name,
-        lat: item.lat,
-        lon: item.lon,
-        country: item.country,
-        state: item.state,
-      }));
-      return { suggestions, error: null };
+      
+      const uniqueSuggestions: CitySuggestion[] = [];
+      const seenKeys = new Set<string>();
+
+      for (const item of data) {
+        // Create a key that identifies a unique place, allowing for minor lat/lon differences.
+        // Grouping by name, country, state (if present), and lat/lon rounded to 2 decimal places (approx accuracy of 1km).
+        const key = `${item.name}|${item.country}|${item.state || 'NO_STATE'}|${(item.lat || 0).toFixed(2)}|${(item.lon || 0).toFixed(2)}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          uniqueSuggestions.push({
+            name: item.name,
+            lat: item.lat,
+            lon: item.lon,
+            country: item.country,
+            state: item.state,
+          });
+        }
+      }
+      return { suggestions: uniqueSuggestions, error: null };
     } catch (e) {
       lastError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
       console.error("Error fetching city suggestions:", e);
@@ -380,3 +390,4 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   }
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
+    
