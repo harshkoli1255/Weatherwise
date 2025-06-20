@@ -230,7 +230,6 @@ export async function fetchWeatherAndSummaryAction(
           console.error("Error Message:", strongError.message);
           console.error("Error Cause:", strongError.cause);
 
-
           aiError = strongError.message || "An unexpected error occurred with the AI summary service.";
           
           const lowerAiError = aiError.toLowerCase();
@@ -244,9 +243,9 @@ export async function fetchWeatherAndSummaryAction(
               (strongError.status && [401, 403, 429].includes(strongError.status)) || 
               (strongError.code && [7, 8, 14].includes(strongError.code)) 
             ) {
-              aiError = "The AI weather summary service is temporarily unavailable due to API key, quota, or billing issues. Weather data is still available.";
+              aiError = "The AI weather summary service is temporarily unavailable due to API key, quota, or billing issues. Please check your GEMINI_API_KEYS in the .env file and ensure the first key is valid and has quota. Weather data is still available. Review server logs for more details.";
           } else {
-              aiError = "Could not generate AI weather summary at this time.";
+              aiError = "Could not generate AI weather summary at this time. This might be due to a model issue or a problem with the AI service configuration. Please review server logs for specific error messages.";
           }
           console.log("Assigned AI Error message:", aiError);
       }
@@ -390,4 +389,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   }
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
+    
+
     
