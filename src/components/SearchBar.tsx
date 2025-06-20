@@ -59,8 +59,8 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       if (inputValue && hasFocus) {
         debouncedFetchSuggestions(inputValue);
       } else if (!inputValue && hasFocus && currentCityName) {
-        setSuggestions([]);
-        setIsSuggestionsOpen(false);
+        setSuggestions([]); // Clear if input is empty but focused with a current city (to avoid stale suggestions)
+        setIsSuggestionsOpen(false); // Optionally close, or keep open for "Use current location"
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
       }
@@ -103,24 +103,27 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     if (inputValue) {
         debouncedFetchSuggestions(inputValue);
     } else if (currentCityName) {
-        setIsSuggestionsOpen(true);
+        // Could potentially show "Use current location: [currentCityName]" as the only item
+        // For now, let's just allow typing
+        setIsSuggestionsOpen(true); // Open to show empty/loading state or if user types
     } else {
-        setIsSuggestionsOpen(true);
+        setIsSuggestionsOpen(true); // Open to show empty/loading state
     }
   };
 
   const handleInputBlur = () => {
+    // Delay blur to allow click on suggestion item
     setTimeout(() => {
         if (!document.activeElement || (inputRef.current && !inputRef.current.contains(document.activeElement))) {
             setHasFocus(false);
             setIsSuggestionsOpen(false);
         }
-    }, 150);
+    }, 150); // 150ms delay
   };
 
 
   return (
-    <form onSubmit={handleSubmit} className="relative flex w-11/12 sm:w-10/12 md:w-4/5 lg:w-3/4 items-center space-x-2 sm:space-x-3">
+    <form onSubmit={handleSubmit} className="relative flex w-full max-w-md sm:max-w-lg md:max-w-xl items-center space-x-2 sm:space-x-3">
       <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
           ref={inputRef}
@@ -154,7 +157,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     onSelect={() => {
                         setInputValue(currentCityName);
                         setIsSuggestionsOpen(false);
-                        onSearch(currentCityName);
+                        onSearch(currentCityName); // Assuming onSearch can handle city name directly for current location
                         inputRef.current?.blur();
                     }}
                     className="cursor-pointer text-base py-2.5"
@@ -202,3 +205,4 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     </form>
   );
 }
+

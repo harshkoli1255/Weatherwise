@@ -154,7 +154,7 @@ export default function WeatherPage() {
             Your smart companion for real-time weather updates and AI-powered insights. Search any city or use your current location.
           </p>
           {(!isLoadingDisplay || weatherState.data) && (
-            <div className="mt-1 w-full flex justify-end">
+            <div className="mt-1 w-full flex justify-center">
               <SearchBar
                 onSearch={handleSearch}
                 isSearchingWeather={isLoadingDisplay && !weatherState.data}
@@ -165,7 +165,7 @@ export default function WeatherPage() {
         </section>
 
         {isLoadingDisplay && !weatherState.data && (
-          <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
+          <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10 rounded-xl">
             <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
               <svg className="animate-spin h-20 w-20 sm:h-24 md:h-28 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -181,7 +181,7 @@ export default function WeatherPage() {
         )}
 
         {!isLoadingDisplay && !weatherState.data && weatherState.error && (
-             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 md:p-10">
+             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 md:p-10 rounded-xl">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
                     {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
                       <MapPin className="h-20 w-20 sm:h-24 md:h-28 text-destructive mb-4 sm:mb-5 drop-shadow-lg" /> :
@@ -203,7 +203,7 @@ export default function WeatherPage() {
         )}
 
         {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
-             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
+             <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10 rounded-xl">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
                     <Compass className="h-20 w-20 sm:h-24 md:h-28 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
@@ -223,3 +223,4 @@ export default function WeatherPage() {
     </div>
   );
 }
+
