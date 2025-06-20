@@ -6,6 +6,7 @@ import type { AlertPreferences, OpenWeatherCurrentAPIResponse, WeatherConditionA
 import { sendEmail } from '@/services/emailService';
 import { generateVerificationCode } from '@/lib/utils';
 import { format } from 'date-fns';
+import { fetchWeatherAndSummaryAction } from '@/app/actions';
 
 const AlertPreferencesSchema = z.object({
   alertsEnabled: z.preprocess(value => value === 'on' || value === true, z.boolean().default(true)),
@@ -41,19 +42,22 @@ export interface SaveAlertsFormState {
 }
 
 const APP_NAME = "Weatherwise";
-const PRIMARY_COLOR_HSL = "210 85% 55%"; 
-const ACCENT_COLOR_HSL = "35 90% 60%";  
-const BACKGROUND_COLOR_LIGHT_HSL = "220 60% 97%"; 
-const TEXT_COLOR_DARK_HSL = "220 20% 25%"; 
-const TEXT_COLOR_LIGHT_HSL = "220 20% 45%"; 
-const CARD_BACKGROUND_COLOR_HSL = "220 40% 100%"; 
-const BORDER_COLOR_HSL = "220 30% 85%"; 
-const ICON_BACKGROUND_COLOR = "#dbeafe"; // A light blue, e.g., HSL(210, 70%, 90%)
-const GOOD_WEATHER_COLOR = "#28a745"; // Green
-const BAD_WEATHER_COLOR = "#dc3545"; // Red
+// Theme Colors (ensure these align with your globals.css for conceptual consistency)
+const PRIMARY_COLOR_HSL = "210 85% 55%"; // Sky Blue
+const ACCENT_COLOR_HSL = "35 90% 60%";   // Sunny Yellow
+const BACKGROUND_COLOR_LIGHT_HSL = "220 60% 97%"; // Light Gray (slightly blue)
+const TEXT_COLOR_DARK_HSL = "220 20% 25%"; // Dark Grayish Blue
+const TEXT_COLOR_LIGHT_HSL = "220 20% 45%"; // Lighter Grayish Blue
+const CARD_BACKGROUND_COLOR_HSL = "220 40% 100%"; // White
+const BORDER_COLOR_HSL = "220 30% 85%"; // Light border color
+const ICON_BACKGROUND_COLOR = "hsl(210, 70%, 90%)"; // A light blue, e.g., HSL(210, 70%, 90%)
+
+// Sentiment Colors
+const GOOD_WEATHER_COLOR = "hsl(120, 60%, 45%)"; // Green
+const BAD_WEATHER_COLOR = "hsl(0, 70%, 50%)";   // Red
 const NEUTRAL_WEATHER_COLOR = TEXT_COLOR_DARK_HSL; // Default text color
 
-// Function to get weather icon URL. Uses @4x for better resolution.
+
 const getWeatherIconUrl = (iconCode: string): string => {
   return `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
 };
@@ -67,31 +71,38 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
       <style>
-        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); color: hsl(${TEXT_COLOR_DARK_HSL}); line-height: 1.6; }
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); color: hsl(${TEXT_COLOR_DARK_HSL}); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .preheader { display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; }
-        .container { max-width: 600px; margin: 20px auto; background-color: hsl(${CARD_BACKGROUND_COLOR_HSL}); padding: 20px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); border: 1px solid hsl(${BORDER_COLOR_HSL}); }
-        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid hsl(${BORDER_COLOR_HSL}); margin-bottom: 20px; }
-        .header h1 { color: hsl(${PRIMARY_COLOR_HSL}); font-family: 'Poppins', sans-serif; font-size: 28px; margin:0; font-weight: 700; }
+        .container { max-width: 600px; margin: 20px auto; background-color: hsl(${CARD_BACKGROUND_COLOR_HSL}); padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 1px solid hsl(${BORDER_COLOR_HSL}); }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid hsl(${BORDER_COLOR_HSL}); margin-bottom: 25px; }
+        .header h1 { color: hsl(${PRIMARY_COLOR_HSL}); font-family: 'Poppins', sans-serif; font-size: 30px; margin:0; font-weight: 700; }
         .content { padding: 0; font-size: 16px; }
-        .content p { margin: 0 0 15px 0; }
+        .content p { margin: 0 0 16px 0; }
         .content strong { color: hsl(${PRIMARY_COLOR_HSL}); font-weight: 600; }
-        .button-container { text-align: center; margin: 25px 0; }
-        .button { display: inline-block; background-color: hsl(${PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; }
-        .button:hover { background-color: hsl(210 85% 45%); }
-        .footer { text-align: center; padding-top: 20px; border-top: 1px solid hsl(${BORDER_COLOR_HSL}); font-size: 12px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 25px; }
-        .weather-icon-cell { background-color: ${ICON_BACKGROUND_COLOR}; border-radius: 10px; padding: 10px; text-align: center; width: 100px; height: 100px; vertical-align: middle; }
-        .weather-icon { width: 80px; height: 80px; max-width: 80px; max-height: 80px; }
-        .weather-details-table { width: 100%; margin-top: 15px; border-spacing: 0 10px; }
-        .weather-details-table td { padding: 8px; vertical-align: middle; }
-        .weather-details-table .label { font-weight: 600; color: hsl(${PRIMARY_COLOR_HSL}); }
-        .weather-details-table .value { text-align: right; }
-        .ai-summary-box { margin-top: 20px; padding: 15px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); border-radius: 8px; border: 1px solid hsl(${BORDER_COLOR_HSL});}
-        .ai-summary-box p { margin: 0; }
-        .alert-highlight { color: hsl(${ACCENT_COLOR_HSL}); font-weight: bold; font-size: 18px; margin-bottom: 10px !important; }
-        .threshold-info { font-size: 14px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 5px;}
+        .button-container { text-align: center; margin: 30px 0; }
+        .button { display: inline-block; background-color: hsl(${PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; transition: background-color 0.2s ease-in-out; }
+        .button:hover { background-color: hsl(210 85% 48%); } /* Slightly darker primary on hover */
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid hsl(${BORDER_COLOR_HSL}); font-size: 13px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 30px; }
+        .weather-icon-cell { background-color: ${ICON_BACKGROUND_COLOR}; border-radius: 10px; padding: 15px; text-align: center; width: 120px; height: 120px; vertical-align: middle; margin-bottom:15px; display:inline-block; }
+        .weather-icon { width: 100px; height: 100px; max-width: 100px; max-height: 100px; }
+        .weather-details-main { text-align: center; margin-bottom: 20px; }
+        .weather-details-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        .weather-details-table td { padding: 10px 5px; vertical-align: middle; border-bottom: 1px solid hsl(${BORDER_COLOR_HSL}, 0.5); }
+        .weather-details-table tr:last-child td { border-bottom: none; }
+        .weather-details-table .label { font-weight: 500; color: hsl(${TEXT_COLOR_LIGHT_HSL}); text-align:left; }
+        .weather-details-table .value { text-align: right; font-weight: 600; color: hsl(${TEXT_COLOR_DARK_HSL});}
+        .ai-summary-box { margin-top: 25px; padding: 18px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}, 0.7); border-radius: 8px; border: 1px solid hsl(${BORDER_COLOR_HSL});}
+        .ai-summary-box .summary-title { font-family: 'Poppins', sans-serif; font-weight: 600; color: hsl(${PRIMARY_COLOR_HSL}); margin:0 0 8px 0; font-size: 17px;}
+        .ai-summary-box p.summary-text { margin: 0; font-size: 15px; line-height: 1.7; }
+        .alert-highlight { color: hsl(${ACCENT_COLOR_HSL}); font-weight: bold; font-size: 18px; margin-bottom: 10px !important; text-align: center; }
+        .threshold-info { font-size: 14px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 5px; text-align:center; margin-bottom: 15px;}
         ul { margin: 15px 0; padding-left: 25px; }
         li { margin-bottom: 8px; }
+        .preferences-list strong { font-weight: 600; }
       </style>
     </head>
     <body>
@@ -120,7 +131,7 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
     }
   }
 
-  let aiSummaryStyle = `color: hsl(${NEUTRAL_WEATHER_COLOR});`;
+  let aiSummaryStyle = `color: ${NEUTRAL_WEATHER_COLOR};`;
   if (weatherData.weatherSentiment === 'good') {
     aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: bold;`;
   } else if (weatherData.weatherSentiment === 'bad') {
@@ -130,31 +141,32 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
   const content = `
     <p>Hello,</p>
     <p>This is a weather alert from <strong>${APP_NAME}</strong> for <strong>${weatherData.city}</strong>.</p>
-    <p class="alert-highlight"><strong>Alert: ${alertInfo.type}</strong></p>
-    <p><strong>Details:</strong> ${alertInfo.details}</p>
+    <p class="alert-highlight">${alertInfo.type}</p>
+    <p style="text-align:center; margin-bottom: 10px;"><strong>Details:</strong> ${alertInfo.details}</p>
     ${customThresholdsText}
+
+    <div class="weather-details-main">
+      <div class="weather-icon-cell">
+        <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
+      </div>
+      <p style="font-size: 36px; font-weight: 700; color: hsl(${PRIMARY_COLOR_HSL}); margin: 5px 0 0 0;">${weatherData.temperature}°C</p>
+      <p style="font-size: 18px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
+      <p style="font-size: 15px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
+    </div>
+
     <table class="weather-details-table" role="presentation">
-      <tr>
-        <td class="weather-icon-cell" style="background-color: ${ICON_BACKGROUND_COLOR}; border-radius: 10px; padding: 10px; text-align: center; width: 100px; height: 100px; vertical-align: middle;">
-          <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition" width="80" height="80" style="width: 80px; height: 80px; max-width: 80px; max-height: 80px;">
-        </td>
-        <td style="padding-left: 20px;">
-          <p style="font-size: 24px; font-weight: bold; color: hsl(${PRIMARY_COLOR_HSL}); margin:0 0 5px 0;">${weatherData.temperature}°C</p>
-          <p style="font-size: 16px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
-          <p style="font-size: 14px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
-        </td>
-      </tr>
-    </table>
-    <table class="weather-details-table" role="presentation" style="margin-top: 5px;">
       <tr><td class="label">Humidity:</td><td class="value">${weatherData.humidity}%</td></tr>
-      <tr><td class="label">Wind:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
+      <tr><td class="label">Wind Speed:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
     </table>
+    
     ${weatherData.aiSummary ? `
-    <div class="ai-summary-box" style="margin-top: 20px; padding: 15px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); border-radius: 8px; border: 1px solid hsl(${BORDER_COLOR_HSL});">
-      <p style="margin:0; ${aiSummaryStyle}">${weatherData.aiSummary}</p>
+    <div class="ai-summary-box">
+      <p class="summary-title">AI Weather Summary</p>
+      <p class="summary-text" style="${aiSummaryStyle}">${weatherData.aiSummary}</p>
     </div>
     ` : ''}
-    <p>Please take necessary precautions.</p>
+
+    <p style="margin-top:25px;">Please take necessary precautions.</p>
     <div class="button-container">
       <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="button">View Dashboard</a>
     </div>
@@ -163,42 +175,6 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
   return sendEmail({ to: email, subject, html });
 };
 
-async function fetchCurrentWeatherForAlert(city: string, apiKey: string): Promise<WeatherSummaryData | null> {
-  try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
-    const response = await fetch(url);
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Failed to fetch weather for ${city} for alert: ${response.status}`, errorData.message);
-      return null;
-    }
-    const data: OpenWeatherCurrentAPIResponse = await response.json();
-    if (!data.weather || data.weather.length === 0) return null;
-    
-    // For test/alert emails, we don't need hourly forecast, but need AI summary.
-    // In a real app, we might call fetchWeatherAndSummaryAction here or replicate its AI part.
-    // For simplicity, let's assume AI summary is not included in this specific fetch for alerts or use a simplified one.
-    // Or, ideally, integrate with the existing AI summary flow if performance allows.
-    // For now, we'll omit the AI summary from this direct fetch to keep it lean.
-    // We'll add it in sendTestEmailAction if that function calls a full weather summary fetch.
-    return {
-      city: data.name,
-      country: data.sys.country,
-      temperature: Math.round(data.main.temp),
-      feelsLike: Math.round(data.main.feels_like),
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind.speed * 3.6), // m/s to km/h
-      condition: data.weather[0].main,
-      description: data.weather[0].description,
-      iconCode: data.weather[0].icon,
-      aiSummary: "AI summary for direct alerts is TBD or fetched separately.", // Placeholder
-      weatherSentiment: 'neutral' // Placeholder
-    };
-  } catch (error) {
-    console.error(`Error fetching current weather for ${city} for alert:`, error);
-    return null;
-  }
-}
 
 // Default thresholds if not set by user
 const DEFAULT_HIGH_TEMP_THRESHOLD = 32;
@@ -219,9 +195,6 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
     return;
   }
   
-  // We need the AI summary and sentiment here, so we use the main action
-  // This import is fine as it's a server action calling another server module.
-  const { fetchWeatherAndSummaryAction } = await import('@/app/actions'); 
   const weatherResult = await fetchWeatherAndSummaryAction({ city: preferences.city });
 
   if (weatherResult.error || !weatherResult.data) {
@@ -248,9 +221,9 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
 
   if (preferences.notifyExtremeTemp) {
     if (temp > highTempThreshold) {
-      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C (High).`, customThresholds: alertDetails });
+      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C, which is above your high threshold of ${highTempThreshold}°C.`, customThresholds: alertDetails });
     } else if (temp < lowTempThreshold) {
-      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C (Low).`, customThresholds: alertDetails });
+      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Extreme Temperature', details: `Current temperature is ${temp}°C, which is below your low threshold of ${lowTempThreshold}°C.`, customThresholds: alertDetails });
     }
   }
   if (preferences.notifyHeavyRain) {
@@ -260,7 +233,7 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
   }
   if (preferences.notifyStrongWind) {
     if (windSpeedKmh > windSpeedThreshold) {
-      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Strong Wind', details: `Strong winds detected at ${windSpeedKmh} km/h.`, customThresholds: alertDetails });
+      await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Strong Wind', details: `Strong winds detected at ${windSpeedKmh} km/h, exceeding your threshold of ${windSpeedThreshold} km/h.`, customThresholds: alertDetails });
     }
   }
 }
@@ -341,23 +314,23 @@ export async function saveAlertPreferencesAction(
 
       let conditionsHtmlList = [];
       if (preferences.notifyExtremeTemp) {
-        conditionsHtmlList.push(`<li>Extreme Temperatures (High > ${preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD}°C, Low < ${preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD}°C)</li>`);
+        conditionsHtmlList.push(`<li><strong>Extreme Temperatures:</strong> High > ${preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD}°C, Low < ${preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD}°C</li>`);
       }
       if (preferences.notifyHeavyRain) {
-        conditionsHtmlList.push(`<li>Heavy Rain (based on intensity description)</li>`);
+        conditionsHtmlList.push(`<li><strong>Heavy Rain:</strong> Based on intensity description</li>`);
       }
       if (preferences.notifyStrongWind) {
-        conditionsHtmlList.push(`<li>Strong Winds (> ${preferences.windSpeedThreshold ?? DEFAULT_WIND_SPEED_THRESHOLD} km/h)</li>`);
+        conditionsHtmlList.push(`<li><strong>Strong Winds:</strong> Speed > ${preferences.windSpeedThreshold ?? DEFAULT_WIND_SPEED_THRESHOLD} km/h</li>`);
       }
 
       const noConditionsSelected = conditionsHtmlList.length === 0;
-      const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul>${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
+      const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul class="preferences-list">${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
 
       const preheader = `Alert preferences updated for ${preferences.city}.`;
       const confirmationContent = `
         <p>Hello,</p>
         <p>Your weather alert preferences for <strong>${preferences.city}</strong> have been successfully updated with ${APP_NAME}.</p>
-        <p>You are set to receive alerts for:</p>
+        <p>You are set to receive alerts for the following conditions:</p>
         ${conditionsHtml}
         <p>If you wish to change these alerts, you can update your preferences on the Weatherwise app.</p>
         <div class="button-container">
@@ -404,7 +377,7 @@ export async function saveAlertPreferencesAction(
     const verificationContent = `
       <p>Hello,</p>
       <p>Thank you for setting up weather alerts with ${APP_NAME} for the city: <strong>${preferences.city}</strong>.</p>
-      <p>Your verification code is: <strong style="font-size: 24px; color: hsl(${ACCENT_COLOR_HSL}); letter-spacing: 2px;">${verificationCode}</strong></p>
+      <p>Your verification code is: <strong style="font-size: 24px; color: hsl(${ACCENT_COLOR_HSL}); letter-spacing: 2px; display:block; text-align:center; margin: 15px 0;">${verificationCode}</strong></p>
       <p>Please enter this code on the Weatherwise alerts page to activate your notifications.</p>
       <p>If you did not request this, please ignore this email.</p>
     `;
@@ -519,23 +492,23 @@ export async function verifyCodeAction(
   if (verificationCode === expectedCode) {
     let conditionsHtmlList = [];
     if (preferences.notifyExtremeTemp) {
-      conditionsHtmlList.push(`<li>Extreme Temperatures (High > ${preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD}°C, Low < ${preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD}°C)</li>`);
+      conditionsHtmlList.push(`<li><strong>Extreme Temperatures:</strong> High > ${preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD}°C, Low < ${preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD}°C</li>`);
     }
     if (preferences.notifyHeavyRain) {
-      conditionsHtmlList.push(`<li>Heavy Rain (based on intensity description)</li>`);
+      conditionsHtmlList.push(`<li><strong>Heavy Rain:</strong> Based on intensity description</li>`);
     }
     if (preferences.notifyStrongWind) {
-      conditionsHtmlList.push(`<li>Strong Winds (> ${preferences.windSpeedThreshold ?? DEFAULT_WIND_SPEED_THRESHOLD} km/h)</li>`);
+      conditionsHtmlList.push(`<li><strong>Strong Winds:</strong> Speed > ${preferences.windSpeedThreshold ?? DEFAULT_WIND_SPEED_THRESHOLD} km/h</li>`);
     }
 
     const noConditionsSelected = conditionsHtmlList.length === 0;
-    const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul>${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
+    const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul class="preferences-list">${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
 
     const preheader = `Email verified! Weather alerts for ${preferences.city} are now active.`;
     const emailContent = `
       <p>Hello,</p>
       <p>Your email <strong>${email}</strong> has been successfully verified for ${APP_NAME} alerts for the city: <strong>${preferences.city}</strong>.</p>
-      <p>Your alert preferences are now active. You are set to receive alerts for:</p>
+      <p>Your alert preferences are now active. You are set to receive alerts for the following conditions:</p>
       ${conditionsHtml}
       <div class="button-container">
           <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}/alerts" class="button">Manage Preferences</a>
@@ -602,67 +575,60 @@ export async function sendTestEmailAction(
   `;
 
   if (city) {
-    const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-    if (apiKey) {
-      const { fetchWeatherAndSummaryAction } = await import('@/app/actions'); 
-      const weatherResult = await fetchWeatherAndSummaryAction({ city });
-      
-      if (weatherResult.data) {
-        const weatherData = weatherResult.data;
-        emailTitle = `${APP_NAME} Test Weather Report for ${city}`;
-        const iconUrl = getWeatherIconUrl(weatherData.iconCode); 
-        preheader = `Test weather report for ${city}: ${weatherData.temperature}°C, ${weatherData.description}.`;
+    emailTitle = `${APP_NAME} Test Weather Report for ${city}`;
+    const weatherResult = await fetchWeatherAndSummaryAction({ city });
+    
+    if (weatherResult.data) {
+      const weatherData = weatherResult.data;
+      const iconUrl = getWeatherIconUrl(weatherData.iconCode); 
+      preheader = `Test weather report for ${city}: ${weatherData.temperature}°C, ${weatherData.description}.`;
 
-        let aiSummaryStyle = `color: hsl(${NEUTRAL_WEATHER_COLOR});`;
-        if (weatherData.weatherSentiment === 'good') {
-          aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: bold;`;
-        } else if (weatherData.weatherSentiment === 'bad') {
-          aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: bold;`;
-        }
-
-        testContent = `
-          <p>Hello,</p>
-          <p>This is a <strong>test weather report</strong> from ${APP_NAME}, simulating an alert for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
-          
-          <table class="weather-details-table" role="presentation">
-            <tr>
-              <td class="weather-icon-cell" style="background-color: ${ICON_BACKGROUND_COLOR}; border-radius: 10px; padding: 10px; text-align: center; width: 100px; height: 100px; vertical-align: middle;">
-                 <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition" width="80" height="80" style="width: 80px; height: 80px; max-width: 80px; max-height: 80px;">
-              </td>
-              <td style="padding-left: 20px;">
-                <p style="font-size: 24px; font-weight: bold; color: hsl(${PRIMARY_COLOR_HSL}); margin:0 0 5px 0;">${weatherData.temperature}°C</p>
-                <p style="font-size: 16px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
-                <p style="font-size: 14px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
-              </td>
-            </tr>
-          </table>
-          <table class="weather-details-table" role="presentation" style="margin-top: 5px;">
-            <tr><td class="label">Humidity:</td><td class="value">${weatherData.humidity}%</td></tr>
-            <tr><td class="label">Wind:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
-          </table>
-
-          ${weatherData.aiSummary ? `
-          <div class="ai-summary-box" style="margin-top: 20px; padding: 15px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); border-radius: 8px; border: 1px solid hsl(${BORDER_COLOR_HSL});">
-            <p style="font-weight: bold; margin:0 0 5px 0;">AI Summary:</p>
-            <p style="margin:0; ${aiSummaryStyle}">${weatherData.aiSummary}</p>
-          </div>
-          ` : ''}
-
-          <p style="margin-top: 20px;">This is only a test. If this were a real alert, it would specify the condition that triggered it based on your preferences, for example:</p>
-          <ul>
-            <li>Extreme Temperatures (e.g., High > ${highTempThreshold}°C, Low < ${lowTempThreshold}°C)</li>
-            <li>Heavy Rain (based on intensity description)</li>
-            <li>Strong Winds (e.g., > ${windSpeedThreshold} km/h)</li>
-          </ul>
-        `;
-      } else {
-        testContent += `<p>We attempted to fetch current weather for <strong>${city}</strong> to include in this test, but could not retrieve the data. Error: ${weatherResult.error}</p>`;
+      let aiSummaryStyle = `color: ${NEUTRAL_WEATHER_COLOR};`;
+      if (weatherData.weatherSentiment === 'good') {
+        aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: bold;`;
+      } else if (weatherData.weatherSentiment === 'bad') {
+        aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: bold;`;
       }
+
+      testContent = `
+        <p>Hello,</p>
+        <p>This is a <strong>test weather report</strong> from ${APP_NAME}, simulating an alert for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
+        
+        <div class="weather-details-main">
+          <div class="weather-icon-cell">
+            <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
+          </div>
+          <p style="font-size: 36px; font-weight: 700; color: hsl(${PRIMARY_COLOR_HSL}); margin: 5px 0 0 0;">${weatherData.temperature}°C</p>
+          <p style="font-size: 18px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
+          <p style="font-size: 15px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
+        </div>
+
+        <table class="weather-details-table" role="presentation">
+          <tr><td class="label">Humidity:</td><td class="value">${weatherData.humidity}%</td></tr>
+          <tr><td class="label">Wind Speed:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
+        </table>
+
+        ${weatherData.aiSummary ? `
+        <div class="ai-summary-box">
+          <p class="summary-title">AI Weather Summary</p>
+          <p class="summary-text" style="${aiSummaryStyle}">${weatherData.aiSummary}</p>
+        </div>
+        ` : ''}
+
+        <p style="margin-top: 25px;">This is only a test. If this were a real alert, it would specify the condition that triggered it based on your preferences, for example:</p>
+        <ul class="preferences-list">
+          <li><strong>Extreme Temperatures:</strong> High > ${highTempThreshold}°C, Low < ${lowTempThreshold}°C</li>
+          <li><strong>Heavy Rain:</strong> Based on intensity description</li>
+          <li><strong>Strong Winds:</strong> Speed > ${windSpeedThreshold} km/h</li>
+        </ul>
+      `;
     } else {
-      testContent += `<p>Weather data for <strong>${city}</strong> could not be fetched for this test because the OpenWeather API key is not configured on the server.</p>`;
+      testContent += `<p style="margin-top:15px;">We attempted to fetch current weather for <strong>${city}</strong> to include in this test, but could not retrieve the data. Error: ${weatherResult.error}</p>`;
     }
+  } else {
+     testContent += `<p style="margin-top:15px;">To see a more detailed test email with live weather data, please enter a city name in the alerts form before sending a test.</p>`;
   }
-  testContent += `<p>If you received this, congratulations! Your email service seems to be configured correctly.</p>
+  testContent += `<p style="margin-top:25px;">If you received this, congratulations! Your email service seems to be configured correctly.</p>
                   <div class="button-container">
                     <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="button">Visit Weatherwise</a>
                   </div>`;
