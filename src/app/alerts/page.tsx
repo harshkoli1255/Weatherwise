@@ -55,18 +55,18 @@ function SavePreferencesButton({ form }: { form?: string }) {
   return (
     <Button
       type="submit"
-      className="w-full sm:flex-1 h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow"
+      className="w-full sm:flex-1 h-11 px-4 text-base sm:h-12 sm:px-6 sm:text-lg shadow-md hover:shadow-lg transition-shadow font-semibold"
       disabled={pending}
       form={form}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
           Saving...
         </>
       ) : (
         <>
-          <CheckCircle2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <CheckCircle2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
           Save Preferences
         </>
       )}
@@ -79,17 +79,17 @@ function VerifyCodeButton() {
   return (
     <Button
       type="submit"
-      className="w-full h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground"
+      className="w-full h-11 px-4 text-base sm:h-12 sm:px-6 sm:text-lg shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
       disabled={pending}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
           Verifying...
         </>
       ) : (
         <>
-          <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <ShieldCheck className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
           Verify Code
         </>
       )}
@@ -103,17 +103,17 @@ function SendTestEmailButton() {
     <Button
       type="submit"
       variant="outline"
-      className="w-full h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow"
+      className="w-full h-11 px-4 text-base sm:h-12 sm:px-6 sm:text-lg shadow-md hover:shadow-lg transition-shadow font-medium"
       disabled={pending}
     >
       {pending ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+          <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
           Sending Test...
         </>
       ) : (
         <>
-          <Send className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <Send className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
           Send Test Alert
         </>
       )}
@@ -276,11 +276,11 @@ export default function AlertsPage() {
   const handleSwitchChange = useCallback((name: keyof AlertPreferences, checked: boolean) => {
     setFormState(prev => ({ ...prev, [name]: checked }));
     if (name === 'alertsEnabled' && !checked) {
-        setIsEmailLocked(true);
+        setIsEmailLocked(true); // Lock email if alerts disabled, regardless of email content
     } else if (name === 'alertsEnabled' && checked && formState.email) {
-        setIsEmailLocked(true);
+        setIsEmailLocked(true); // Lock email if alerts enabled AND email exists
     } else if (name === 'alertsEnabled' && checked && !formState.email) {
-        setIsEmailLocked(false);
+        setIsEmailLocked(false); // Unlock email if alerts enabled but no email yet
     }
   }, [formState.email]);
 
@@ -307,7 +307,7 @@ export default function AlertsPage() {
       <main className="flex-grow container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center overflow-y-auto">
         <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
           <CardHeader className="text-center items-center pt-6 sm:pt-8 md:pt-10 pb-4 sm:pb-5">
-            <AlertTriangle className="h-12 w-12 sm:h-14 md:h-16 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
+            <AlertTriangle className="h-14 w-14 sm:h-16 md:h-20 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Configure Weather Alerts</CardTitle>
             <CardDescription className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
               Set custom thresholds and get notified about extreme weather. Verify your email to activate.
@@ -317,10 +317,10 @@ export default function AlertsPage() {
           {!showVerificationSection && (
             <form id="mainAlertForm" action={savePrefsFormAction}>
               <input type="hidden" name="isAlreadyVerified" value={isCurrentEmailVerified.toString()} />
-              <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
-                <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
+              <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-7 md:px-10 pt-5 sm:pt-6 pb-3 sm:pb-4">
+                <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
                   <div className="flex items-center space-x-3 sm:space-x-3.5">
-                    <Power className={`h-6 w-6 sm:h-7 sm:w-7 ${formState.alertsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Power className={`h-7 w-7 sm:h-8 sm:w-8 ${formState.alertsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
                     <div>
                       <Label htmlFor="alertsEnabled" className="text-base sm:text-lg font-semibold text-foreground">
                         Enable Weather Alerts
@@ -334,7 +334,7 @@ export default function AlertsPage() {
                     checked={formState.alertsEnabled}
                     onCheckedChange={(checked) => handleSwitchChange('alertsEnabled', checked)}
                     aria-label="Enable Weather Alerts"
-                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
+                    className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-105 sm:scale-110"
                     disabled={isAnyActionPending}
                   />
                 </div>
@@ -388,8 +388,8 @@ export default function AlertsPage() {
                   {savePrefsActionState.fieldErrors?.city && <p className="text-sm text-destructive mt-1.5">{savePrefsActionState.fieldErrors.city.join(', ')}</p>}
                 </div>
 
-                <div className={`space-y-3.5 sm:space-y-4 pt-4 sm:pt-5 border-t border-border/40 ${!formState.alertsEnabled || isAnyActionPending ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <h4 className="text-lg sm:text-xl font-semibold text-foreground/90">Notification Conditions & Thresholds:</h4>
+                <div className={`space-y-4 sm:space-y-5 pt-4 sm:pt-5 border-t border-border/50 ${!formState.alertsEnabled || isAnyActionPending ? 'opacity-60 pointer-events-none' : ''}`}>
+                  <h4 className="text-lg sm:text-xl font-headline font-semibold text-foreground/90">Notification Conditions & Thresholds:</h4>
                   <AlertOptionWithThresholds
                     id="notifyExtremeTemp"
                     name="notifyExtremeTemp"
@@ -401,7 +401,7 @@ export default function AlertsPage() {
                     disabled={!formState.alertsEnabled || isAnyActionPending}
                   >
                     {formState.notifyExtremeTemp && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4 pl-8 sm:pl-10">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 mt-3.5 sm:mt-4 pl-9 sm:pl-11">
                         <div>
                           <Label htmlFor="highTempThreshold" className="text-sm font-medium text-foreground/80">High Temp. Threshold (°C)</Label>
                           <Input
@@ -411,7 +411,7 @@ export default function AlertsPage() {
                             value={formState.highTempThreshold === undefined ? '' : formState.highTempThreshold}
                             placeholder={`${DEFAULT_DISPLAY_HIGH_TEMP}`}
                             onChange={handleInputChange}
-                            className="h-10 text-sm mt-1"
+                            className="h-10 text-base mt-1.5"
                             disabled={!formState.alertsEnabled || isAnyActionPending}
                           />
                            {savePrefsActionState.fieldErrors?.highTempThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.highTempThreshold.join(', ')}</p>}
@@ -425,7 +425,7 @@ export default function AlertsPage() {
                             value={formState.lowTempThreshold === undefined ? '' : formState.lowTempThreshold}
                             placeholder={`${DEFAULT_DISPLAY_LOW_TEMP}`}
                             onChange={handleInputChange}
-                            className="h-10 text-sm mt-1"
+                            className="h-10 text-base mt-1.5"
                             disabled={!formState.alertsEnabled || isAnyActionPending}
                            />
                            {savePrefsActionState.fieldErrors?.lowTempThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.lowTempThreshold.join(', ')}</p>}
@@ -445,8 +445,8 @@ export default function AlertsPage() {
                     disabled={!formState.alertsEnabled || isAnyActionPending}
                   />
                    {formState.notifyHeavyRain && (
-                      <div className="pl-8 sm:pl-10 mt-1 text-xs text-muted-foreground flex items-center">
-                        <Info className="h-3 w-3 mr-1.5" /> Note: Rain alert is based on description (e.g., "heavy rain"), not a custom mm/hr threshold.
+                      <div className="pl-9 sm:pl-11 mt-1.5 text-xs text-muted-foreground flex items-center">
+                        <Info className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" /> Note: Rain alert is based on description (e.g., "heavy rain").
                       </div>
                     )}
 
@@ -461,7 +461,7 @@ export default function AlertsPage() {
                     disabled={!formState.alertsEnabled || isAnyActionPending}
                   >
                     {formState.notifyStrongWind && (
-                      <div className="mt-3 sm:mt-4 pl-8 sm:pl-10">
+                      <div className="mt-3.5 sm:mt-4 pl-9 sm:pl-11">
                         <Label htmlFor="windSpeedThreshold" className="text-sm font-medium text-foreground/80">Wind Speed Threshold (km/h)</Label>
                         <Input
                           type="number"
@@ -470,7 +470,7 @@ export default function AlertsPage() {
                           value={formState.windSpeedThreshold === undefined ? '' : formState.windSpeedThreshold}
                           placeholder={`${DEFAULT_DISPLAY_WIND_SPEED}`}
                           onChange={handleInputChange}
-                          className="h-10 text-sm mt-1"
+                          className="h-10 text-base mt-1.5"
                           disabled={!formState.alertsEnabled || isAnyActionPending}
                         />
                         {savePrefsActionState.fieldErrors?.windSpeedThreshold && <p className="text-xs text-destructive mt-1">{savePrefsActionState.fieldErrors.windSpeedThreshold.join(', ')}</p>}
@@ -504,7 +504,7 @@ export default function AlertsPage() {
               <input type="hidden" name="notifyStrongWind" value={formState.notifyStrongWind ? 'on' : 'off'} />
               <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
 
-              <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 pb-3 sm:pb-4">
+              <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-7 md:px-10 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="text-center mb-4">
                   <p className="text-lg text-foreground">A verification code was sent to <strong>{savePrefsActionState.verificationSentTo}</strong>.</p>
                   <p className="text-muted-foreground">Please enter it below to activate alerts.</p>
@@ -528,14 +528,14 @@ export default function AlertsPage() {
                   {verifyCodeActionState.error && verifyCodeActionState.message && !verifyCodeActionState.fieldErrors?.verificationCode && <p className="text-sm text-destructive mt-1.5">{verifyCodeActionState.message}</p>}
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
+              <CardFooter className="flex justify-end p-5 sm:p-6 md:p-7 border-t border-border/50 mt-3 sm:mt-4">
                 <VerifyCodeButton />
               </CardFooter>
             </form>
           )}
 
           {!showVerificationSection && (
-            <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
+            <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/50 mt-3 sm:mt-4">
               {formState.email && formState.city && formState.alertsEnabled && (
                 <form action={testEmailFormAction} className="w-full sm:flex-1">
                     <input type="hidden" name="email" value={formState.email.toLowerCase()} />
@@ -571,12 +571,12 @@ interface AlertOptionProps {
 
 function AlertOption({ id, name, label, icon: Icon, description, checked, onCheckedChange, disabled }: AlertOptionProps) {
   return (
-    <div className={`p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
+    <div className={`p-3.5 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-colors ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:bg-muted/80'}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 sm:space-x-3.5">
-          <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
+          <Icon className={`h-7 w-7 sm:h-8 sm:w-8 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
           <div>
-            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} cursor-pointer`}>
+            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} ${disabled ? 'cursor-not-allowed': 'cursor-pointer'}`}>
               {label}
             </Label>
             <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
@@ -589,7 +589,7 @@ function AlertOption({ id, name, label, icon: Icon, description, checked, onChec
           onCheckedChange={onCheckedChange}
           disabled={disabled}
           aria-label={label}
-          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
+          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-105 sm:scale-110"
         />
       </div>
     </div>
@@ -602,12 +602,12 @@ interface AlertOptionWithThresholdsProps extends AlertOptionProps {
 
 function AlertOptionWithThresholds({ id, name, label, icon: Icon, description, checked, onCheckedChange, disabled, children }: AlertOptionWithThresholdsProps) {
   return (
-    <div className={`p-3 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-all duration-300 ease-in-out ${disabled ? 'opacity-70' : 'hover:bg-muted/70'}`}>
+    <div className={`p-3.5 sm:p-4 rounded-lg bg-muted/50 border border-border/30 shadow-sm transition-all duration-300 ease-in-out ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:bg-muted/80'}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 sm:space-x-3.5">
-          <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
+          <Icon className={`h-7 w-7 sm:h-8 sm:w-8 ${disabled ? 'text-muted-foreground/70' : 'text-primary/90'}`} />
           <div>
-            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} cursor-pointer`}>
+            <Label htmlFor={id} className={`text-base sm:text-lg font-medium ${disabled ? 'text-muted-foreground/80' : 'text-foreground'} ${disabled ? 'cursor-not-allowed': 'cursor-pointer'}`}>
               {label}
             </Label>
             <p className={`text-sm sm:text-base ${disabled ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>{description}</p>
@@ -620,11 +620,11 @@ function AlertOptionWithThresholds({ id, name, label, icon: Icon, description, c
           onCheckedChange={onCheckedChange}
           disabled={disabled}
           aria-label={label}
-          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-100 sm:scale-110"
+          className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-input scale-105 sm:scale-110"
         />
       </div>
       {checked && !disabled && children && (
-        <div className="mt-3 sm:mt-4 border-t border-border/40 pt-3 sm:pt-4">
+        <div className="mt-3.5 sm:mt-4 border-t border-border/40 pt-3.5 sm:pt-4">
           {children}
         </div>
       )}

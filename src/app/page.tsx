@@ -9,7 +9,7 @@ import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, MapPin } from 'lucide-react';
+import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import Image from 'next/image';
 
 interface WeatherPageState {
@@ -18,7 +18,7 @@ interface WeatherPageState {
   isLoading: boolean;
   loadingMessage: string | null;
   cityNotFound: boolean;
-  currentFetchedCityName?: string; // Store the name of the city fetched via IP/Geo
+  currentFetchedCityName?: string; 
 }
 
 interface ApiLocationParams {
@@ -69,16 +69,16 @@ export default function WeatherPage() {
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
       
-      setWeatherState({
+      setWeatherState(prev => ({ // Use prev in setWeatherState to avoid stale closure for currentFetchedCityName
         data: result.data,
         error: result.error,
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
-        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : weatherState.currentFetchedCityName,
-      });
+        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : prev.currentFetchedCityName,
+      }));
     });
-  }, [startTransition, weatherState.currentFetchedCityName]);
+  }, [startTransition]);
 
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export default function WeatherPage() {
       })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Intentionally run once on mount
+  }, []); 
 
 
   const handleSearch = (city: string, lat?: number, lon?: number) => {
@@ -147,14 +147,14 @@ export default function WeatherPage() {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-10 sm:py-12 md:py-16 lg:py-20 flex flex-col items-center">
         <section className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mb-8 sm:mb-10 md:mb-12 text-center">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-headline font-bold text-primary mb-4 sm:mb-5 md:mb-6 drop-shadow-lg">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-headline font-extrabold text-primary mb-4 sm:mb-5 md:mb-6 drop-shadow-lg">
             Weatherwise
           </h1>
-          <p className="text-xl sm:text-2xl md:text-3xl text-muted-foreground mb-6 sm:mb-8 md:mb-10">
-            Weather based on your location, or search any city.
+          <p className="text-xl sm:text-2xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 md:mb-10 px-2">
+            Your smart companion for real-time weather updates and AI-powered insights. Search any city or use your current location.
           </p>
           {(!isLoadingDisplay || weatherState.data) && ( 
-            <div className="mt-1"> {/* Removed pl-4 for Command component width */}
+            <div className="mt-1"> 
               <SearchBar 
                 onSearch={handleSearch} 
                 isSearchingWeather={isLoadingDisplay && !weatherState.data}
@@ -167,7 +167,7 @@ export default function WeatherPage() {
         {isLoadingDisplay && !weatherState.data && ( 
           <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
             <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
-              <svg className="animate-spin h-14 w-14 sm:h-16 md:h-20 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-16 w-16 sm:h-20 md:h-24 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -197,7 +197,7 @@ export default function WeatherPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
-                     <Image src="https://placehold.co/350x175.png" alt="Error illustration" width={350} height={175} className="rounded-lg mt-3 sm:mt-4 opacity-90 shadow-lg border border-border/30 sm:w-[400px] sm:h-[200px]" data-ai-hint="map error network"/>
+                     <Image src="https://placehold.co/400x200.png" alt="Error illustration" width={400} height={200} className="rounded-lg mt-3 sm:mt-4 opacity-90 shadow-lg border border-border/30" data-ai-hint="map network error"/>
                 </CardContent>
             </Card>
         )}
@@ -205,19 +205,19 @@ export default function WeatherPage() {
         {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
-                    <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
+                    <Compass className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
                         Please use the search bar above to find weather information for any city, or allow location access for automatic detection.
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
-                    <Image src="https://placehold.co/370x185.png" alt="Weather illustration" width={370} height={185} className="rounded-lg mt-3 sm:mt-4 shadow-lg border border-border/30 sm:w-[420px] sm:h-[210px]" data-ai-hint="location world map"/>
+                    <Image src="https://placehold.co/420x210.png" alt="Weather exploration illustration" width={420} height={210} className="rounded-lg mt-3 sm:mt-4 shadow-lg border border-border/30" data-ai-hint="world map journey"/>
                 </CardContent>
             </Card>
         )}
       </main>
-      <footer className="py-6 sm:py-8 text-lg sm:text-xl text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md text-center">
+      <footer className="py-6 sm:py-8 text-base sm:text-lg text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md text-center">
         © {currentYear ?? new Date().getFullYear()} Weatherwise. Powered by OpenWeather and Genkit AI.
       </footer>
     </div>
