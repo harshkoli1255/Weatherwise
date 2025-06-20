@@ -128,7 +128,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
   return (
     <form onSubmit={handleSubmit} className="relative flex w-full items-center space-x-2 sm:space-x-3">
-      <Command className="w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150">
+      <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150">
         <CommandInput
           ref={inputRef}
           value={inputValue}
@@ -210,3 +210,4 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     </form>
   );
 }
+

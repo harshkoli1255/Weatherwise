@@ -182,6 +182,8 @@ export async function fetchWeatherAndSummaryAction(
         break; 
       } else {
         lastOpenWeatherError = `Forecast fetch failed: ${hourlyForecastResult.error} (Key ${currentKeyIndex})`;
+        // Only break if it's not a key-related error (401, 403, 429)
+        // If it IS a key-related error, we want to continue to the next key.
         if (![401, 403, 429].includes(hourlyForecastResult.status ?? 0)) {
            break; 
         }
@@ -192,6 +194,8 @@ export async function fetchWeatherAndSummaryAction(
         const cityNotFound = lastOpenWeatherError.toLowerCase().includes("not found") || lastOpenWeatherError.toLowerCase().includes("city name cannot be empty");
         return { data: null, error: lastOpenWeatherError, cityNotFound };
       }
+      // Only break if it's not a key-related error (401, 403, 429)
+      // If it IS a key-related error, we want to continue to the next key.
       if (![401, 403, 429].includes(currentWeatherResult.status ?? 0)) {
         break;
       }
@@ -306,7 +310,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
   for (const apiKey of openWeatherApiKeys) {
     currentKeyIndex++;
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${apiKey}`;
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=8&appid=${apiKey}`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -338,3 +342,4 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   // If all keys failed
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
+
