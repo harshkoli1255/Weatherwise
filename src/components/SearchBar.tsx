@@ -42,7 +42,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       startSuggestionTransition(async () => {
         const result = await fetchCitySuggestionsAction(query);
         if (result.suggestions) {
-          setSuggestions(result.suggestions);
+          setSuggestions(result.suggestions.slice(0, 8)); // Ensure max 8 suggestions
         } else {
           setSuggestions([]);
           console.error("Suggestion fetch error:", result.error);
@@ -59,10 +59,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       if (inputValue && hasFocus) {
         debouncedFetchSuggestions(inputValue);
       } else if (!inputValue && hasFocus && currentCityName) {
-        // If input is empty, focused, and we have a current city, show suggestions for it
-        // Or make a specific UI for "Current Location"
-        // For now, let's keep it simple: typing triggers suggestions.
-        setSuggestions([]); // Clear suggestions if input is cleared
+        setSuggestions([]); 
         setIsSuggestionsOpen(false);
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
@@ -75,11 +72,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   }, [inputValue, debouncedFetchSuggestions, hasFocus, currentCityName]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    setInputValue(suggestion.name); // Update input field with selected city name
+    setInputValue(suggestion.name); 
     setIsSuggestionsOpen(false);
-    setSuggestions([]); // Clear suggestions
+    setSuggestions([]); 
     onSearch(suggestion.name, suggestion.lat, suggestion.lon);
-    inputRef.current?.blur(); // Remove focus
+    inputRef.current?.blur(); 
   };
 
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
@@ -88,35 +85,31 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       setIsSuggestionsOpen(false);
       setSuggestions([]);
       onSearch(inputValue.trim());
-      inputRef.current?.blur(); // Remove focus
+      inputRef.current?.blur(); 
     }
   };
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
     if (value.length > 0) {
-      setIsSuggestionsOpen(true); // Open suggestions when user starts typing
+      setIsSuggestionsOpen(true); 
     } else {
-      setIsSuggestionsOpen(false); // Close if input is cleared
+      setIsSuggestionsOpen(false); 
     }
   };
   
   const handleInputFocus = () => {
     setHasFocus(true);
-    if (inputValue) { // If there's already text, try to fetch suggestions
+    if (inputValue) { 
         debouncedFetchSuggestions(inputValue);
     } else if (currentCityName) {
-        // If input is empty but we have a current city, maybe fetch for it?
-        // Or, just open an empty list which might show CommandEmpty or a default "Current Location" item.
-        // For now, let's not auto-fetch on focus if empty.
-        setIsSuggestionsOpen(true); // Open list, might show CommandEmpty
+        setIsSuggestionsOpen(true); 
     } else {
-        setIsSuggestionsOpen(true); // Open list, might show CommandEmpty
+        setIsSuggestionsOpen(true); 
     }
   };
 
   const handleInputBlur = () => {
-     // Delay blur action slightly to allow suggestion click to register
     setTimeout(() => {
         if (!document.activeElement || (inputRef.current && !inputRef.current.contains(document.activeElement))) {
             setHasFocus(false);
@@ -136,7 +129,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           placeholder={currentCityName ? `Search cities (e.g., London) or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
-          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0"
+          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
           aria-label="City name"
           disabled={isSearchingWeather}
           name="city" 
@@ -159,7 +152,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                 <CommandItem
                     key="current-location-suggestion"
                     onSelect={() => {
-                        setInputValue(currentCityName); // Set input to trigger search for current city
+                        setInputValue(currentCityName); 
                         setIsSuggestionsOpen(false);
                         onSearch(currentCityName);
                         inputRef.current?.blur();
@@ -193,7 +186,6 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         type="submit"
         disabled={isSearchingWeather || !inputValue.trim()}
         aria-label="Search weather"
-        size="lg"
         className="h-11 md:h-12 rounded-lg sm:rounded-xl px-4 sm:px-6 shadow-md hover:shadow-lg font-semibold transition-all duration-150 ease-in-out text-sm md:text-base"
       >
         {isSearchingWeather ? (
