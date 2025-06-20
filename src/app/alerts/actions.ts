@@ -42,24 +42,25 @@ export interface SaveAlertsFormState {
 }
 
 const APP_NAME = "Weatherwise";
-// Theme Colors (ensure these align with your globals.css for conceptual consistency)
-const PRIMARY_COLOR_HSL = "210 85% 55%"; // Sky Blue
-const ACCENT_COLOR_HSL = "35 90% 60%";   // Sunny Yellow
-const BACKGROUND_COLOR_LIGHT_HSL = "220 60% 97%"; // Light Gray (slightly blue)
-const TEXT_COLOR_DARK_HSL = "220 20% 25%"; // Dark Grayish Blue
-const TEXT_COLOR_LIGHT_HSL = "220 20% 45%"; // Lighter Grayish Blue
-const CARD_BACKGROUND_COLOR_HSL = "220 40% 100%"; // White
-const BORDER_COLOR_HSL = "220 30% 85%"; // Light border color
-const ICON_BACKGROUND_COLOR = "hsl(210, 70%, 90%)"; // A light blue, e.g., HSL(210, 70%, 90%)
 
-// Sentiment Colors
+// New Email Theme Colors
+const EMAIL_PRIMARY_COLOR_HSL = "195 53% 40%"; // Dark Slate Blue/Teal
+const EMAIL_ACCENT_COLOR_HSL = "45 86% 60%";   // Golden Yellow
+const EMAIL_BACKGROUND_COLOR_HSL = "210 30% 96%"; // Very Light Cool Gray
+const EMAIL_TEXT_COLOR_DARK_HSL = "210 25% 20%"; // Dark Cool Gray
+const EMAIL_TEXT_COLOR_LIGHT_HSL = "210 20% 40%"; // Medium Cool Gray
+const EMAIL_CARD_BACKGROUND_COLOR_HSL = "0 0% 100%"; // White
+const EMAIL_BORDER_COLOR_HSL = "210 20% 85%"; // Light Cool Gray Border
+const EMAIL_ICON_BACKGROUND_COLOR_HSL = "195 40% 90%"; // Light version of primary
+
+// Sentiment Colors (kept universal)
 const GOOD_WEATHER_COLOR = "hsl(120, 60%, 45%)"; // Green
 const BAD_WEATHER_COLOR = "hsl(0, 70%, 50%)";   // Red
-const NEUTRAL_WEATHER_COLOR = TEXT_COLOR_DARK_HSL; // Default text color
+const NEUTRAL_WEATHER_COLOR = `hsl(${EMAIL_TEXT_COLOR_DARK_HSL})`;
 
 
 const getWeatherIconUrl = (iconCode: string): string => {
-  return `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
+  return `https://openweathermap.org/img/wn/${iconCode}@4x.png`; // Using @4x for larger, clearer icons
 };
 
 
@@ -73,36 +74,42 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
       <title>${title}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
       <style>
-        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}); color: hsl(${TEXT_COLOR_DARK_HSL}); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: hsl(${EMAIL_BACKGROUND_COLOR_HSL}); color: hsl(${EMAIL_TEXT_COLOR_DARK_HSL}); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .preheader { display: none !important; visibility: hidden; opacity: 0; color: transparent; height: 0; width: 0; }
-        .container { max-width: 600px; margin: 20px auto; background-color: hsl(${CARD_BACKGROUND_COLOR_HSL}); padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 1px solid hsl(${BORDER_COLOR_HSL}); }
-        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid hsl(${BORDER_COLOR_HSL}); margin-bottom: 25px; }
-        .header h1 { color: hsl(${PRIMARY_COLOR_HSL}); font-family: 'Poppins', sans-serif; font-size: 30px; margin:0; font-weight: 700; }
+        .container { max-width: 600px; margin: 20px auto; background-color: hsl(${EMAIL_CARD_BACKGROUND_COLOR_HSL}); padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid hsl(${EMAIL_BORDER_COLOR_HSL}); }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid hsl(${EMAIL_BORDER_COLOR_HSL}); margin-bottom: 25px; }
+        .header h1 { font-family: 'Poppins', sans-serif; color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); font-size: 32px; margin:0; font-weight: 700; letter-spacing: -0.5px; }
         .content { padding: 0; font-size: 16px; }
-        .content p { margin: 0 0 16px 0; }
-        .content strong { color: hsl(${PRIMARY_COLOR_HSL}); font-weight: 600; }
-        .button-container { text-align: center; margin: 30px 0; }
-        .button { display: inline-block; background-color: hsl(${PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; transition: background-color 0.2s ease-in-out; }
-        .button:hover { background-color: hsl(210 85% 48%); } /* Slightly darker primary on hover */
-        .footer { text-align: center; padding-top: 20px; border-top: 1px solid hsl(${BORDER_COLOR_HSL}); font-size: 13px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 30px; }
-        .weather-icon-cell { background-color: ${ICON_BACKGROUND_COLOR}; border-radius: 10px; padding: 15px; text-align: center; width: 120px; height: 120px; vertical-align: middle; margin-bottom:15px; display:inline-block; }
-        .weather-icon { width: 100px; height: 100px; max-width: 100px; max-height: 100px; }
-        .weather-details-main { text-align: center; margin-bottom: 20px; }
-        .weather-details-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        .weather-details-table td { padding: 10px 5px; vertical-align: middle; border-bottom: 1px solid hsl(${BORDER_COLOR_HSL}, 0.5); }
-        .weather-details-table tr:last-child td { border-bottom: none; }
-        .weather-details-table .label { font-weight: 500; color: hsl(${TEXT_COLOR_LIGHT_HSL}); text-align:left; }
-        .weather-details-table .value { text-align: right; font-weight: 600; color: hsl(${TEXT_COLOR_DARK_HSL});}
-        .ai-summary-box { margin-top: 25px; padding: 18px; background-color: hsl(${BACKGROUND_COLOR_LIGHT_HSL}, 0.7); border-radius: 8px; border: 1px solid hsl(${BORDER_COLOR_HSL});}
-        .ai-summary-box .summary-title { font-family: 'Poppins', sans-serif; font-weight: 600; color: hsl(${PRIMARY_COLOR_HSL}); margin:0 0 8px 0; font-size: 17px;}
+        .content p { margin: 0 0 18px 0; }
+        .content strong { color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); font-weight: 600; }
+        .button-container { text-align: center; margin: 35px 0; }
+        .button { display: inline-block; background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; transition: background-color 0.2s ease-in-out; letter-spacing: 0.5px; }
+        .button:hover { background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}, 0.9); filter: brightness(110%); } /* Darken slightly on hover for primary */
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid hsl(${EMAIL_BORDER_COLOR_HSL}); font-size: 13px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin-top: 30px; }
+        
+        .weather-display-main { display: flex; align-items: center; justify-content: space-around; text-align: left; margin-bottom: 25px; padding: 20px; background-color: hsl(${EMAIL_BACKGROUND_COLOR_HSL}, 0.5); border-radius: 10px; }
+        .weather-icon-wrapper { background-color: hsl(${EMAIL_ICON_BACKGROUND_COLOR_HSL}); border-radius: 50%; padding: 15px; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-right: 20px; }
+        .weather-icon { width: 70px; height: 70px; max-width: 70px; max-height: 70px; }
+        .weather-temp-details .temperature { font-size: 48px; font-weight: 700; color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); margin:0; line-height: 1; }
+        .weather-temp-details .description { font-size: 18px; color: hsl(${EMAIL_TEXT_COLOR_DARK_HSL}); margin: 5px 0 8px 0; text-transform: capitalize; font-weight: 500; }
+        .weather-temp-details .feels-like { font-size: 15px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin:0; }
+
+        .weather-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; margin-bottom: 25px; }
+        .weather-detail-item { background-color: hsl(${EMAIL_BACKGROUND_COLOR_HSL}, 0.5); padding: 15px; border-radius: 8px; text-align: center; }
+        .weather-detail-item .label { font-size: 13px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin-bottom: 5px; display: block; }
+        .weather-detail-item .value { font-size: 18px; font-weight: 600; color: hsl(${EMAIL_TEXT_COLOR_DARK_HSL}); }
+
+        .ai-summary-box { margin-top: 25px; padding: 20px; background-color: hsl(${EMAIL_BACKGROUND_COLOR_HSL}, 0.6); border-radius: 8px; border: 1px solid hsl(${EMAIL_BORDER_COLOR_HSL}); }
+        .ai-summary-box .summary-title { font-family: 'Poppins', sans-serif; font-weight: 600; color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); margin:0 0 10px 0; font-size: 18px;}
         .ai-summary-box p.summary-text { margin: 0; font-size: 15px; line-height: 1.7; }
-        .alert-highlight { color: hsl(${ACCENT_COLOR_HSL}); font-weight: bold; font-size: 18px; margin-bottom: 10px !important; text-align: center; }
-        .threshold-info { font-size: 14px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin-top: 5px; text-align:center; margin-bottom: 15px;}
-        ul { margin: 15px 0; padding-left: 25px; }
-        li { margin-bottom: 8px; }
-        .preferences-list strong { font-weight: 600; }
+        
+        .alert-highlight { color: hsl(${EMAIL_ACCENT_COLOR_HSL}); font-weight: bold; font-size: 20px; margin-bottom: 12px !important; text-align: center; }
+        .threshold-info { font-size: 14px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin-top: 5px; text-align:center; margin-bottom: 18px;}
+        ul.preferences-list { margin: 18px 0; padding-left: 25px; list-style-type: disc; }
+        ul.preferences-list li { margin-bottom: 10px; }
+        ul.preferences-list strong { font-weight: 600; color: hsl(${EMAIL_TEXT_COLOR_DARK_HSL}); }
       </style>
     </head>
     <body>
@@ -125,17 +132,17 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
   let customThresholdsText = '';
   if (alertInfo.customThresholds) {
     if (alertInfo.type === 'Extreme Temperature') {
-      customThresholdsText = `<p class="threshold-info">Triggered by: High > ${alertInfo.customThresholds.highTemp ?? 'N/A'}°C or Low < ${alertInfo.customThresholds.lowTemp ?? 'N/A'}°C.</p>`;
+      customThresholdsText = `<p class="threshold-info">Triggered by: Temp ${weatherData.temperature}°C (Thresholds: High > ${alertInfo.customThresholds.highTemp ?? 'N/A'}°C, Low < ${alertInfo.customThresholds.lowTemp ?? 'N/A'}°C)</p>`;
     } else if (alertInfo.type === 'Strong Wind') {
-      customThresholdsText = `<p class="threshold-info">Triggered by: Wind Speed > ${alertInfo.customThresholds.windSpeed ?? 'N/A'} km/h.</p>`;
+      customThresholdsText = `<p class="threshold-info">Triggered by: Wind ${weatherData.windSpeed} km/h (Threshold: > ${alertInfo.customThresholds.windSpeed ?? 'N/A'} km/h)</p>`;
     }
   }
 
   let aiSummaryStyle = `color: ${NEUTRAL_WEATHER_COLOR};`;
   if (weatherData.weatherSentiment === 'good') {
-    aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: bold;`;
+    aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: 600;`;
   } else if (weatherData.weatherSentiment === 'bad') {
-    aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: bold;`;
+    aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: 600;`;
   }
 
   const content = `
@@ -145,19 +152,21 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
     <p style="text-align:center; margin-bottom: 10px;"><strong>Details:</strong> ${alertInfo.details}</p>
     ${customThresholdsText}
 
-    <div class="weather-details-main">
-      <div class="weather-icon-cell">
+    <div class="weather-display-main">
+      <div class="weather-icon-wrapper">
         <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
       </div>
-      <p style="font-size: 36px; font-weight: 700; color: hsl(${PRIMARY_COLOR_HSL}); margin: 5px 0 0 0;">${weatherData.temperature}°C</p>
-      <p style="font-size: 18px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
-      <p style="font-size: 15px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
+      <div class="weather-temp-details">
+        <p class="temperature">${weatherData.temperature}°C</p>
+        <p class="description">${weatherData.description}</p>
+        <p class="feels-like">Feels like: ${weatherData.feelsLike}°C</p>
+      </div>
     </div>
 
-    <table class="weather-details-table" role="presentation">
-      <tr><td class="label">Humidity:</td><td class="value">${weatherData.humidity}%</td></tr>
-      <tr><td class="label">Wind Speed:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
-    </table>
+    <div class="weather-details-grid">
+      <div class="weather-detail-item"><span class="label">Humidity</span><span class="value">${weatherData.humidity}%</span></div>
+      <div class="weather-detail-item"><span class="label">Wind Speed</span><span class="value">${weatherData.windSpeed} km/h</span></div>
+    </div>
     
     ${weatherData.aiSummary ? `
     <div class="ai-summary-box">
@@ -186,12 +195,6 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
     return;
   }
   if (!preferences.notifyExtremeTemp && !preferences.notifyHeavyRain && !preferences.notifyStrongWind) {
-    return;
-  }
-
-  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-  if (!apiKey) {
-    console.error("OpenWeather API key is not set for live alert check.");
     return;
   }
   
@@ -377,7 +380,7 @@ export async function saveAlertPreferencesAction(
     const verificationContent = `
       <p>Hello,</p>
       <p>Thank you for setting up weather alerts with ${APP_NAME} for the city: <strong>${preferences.city}</strong>.</p>
-      <p>Your verification code is: <strong style="font-size: 24px; color: hsl(${ACCENT_COLOR_HSL}); letter-spacing: 2px; display:block; text-align:center; margin: 15px 0;">${verificationCode}</strong></p>
+      <p>Your verification code is: <strong style="font-size: 28px; color: hsl(${EMAIL_ACCENT_COLOR_HSL}); letter-spacing: 3px; display:block; text-align:center; margin: 20px 0; font-weight: 700;">${verificationCode}</strong></p>
       <p>Please enter this code on the Weatherwise alerts page to activate your notifications.</p>
       <p>If you did not request this, please ignore this email.</p>
     `;
@@ -585,28 +588,30 @@ export async function sendTestEmailAction(
 
       let aiSummaryStyle = `color: ${NEUTRAL_WEATHER_COLOR};`;
       if (weatherData.weatherSentiment === 'good') {
-        aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: bold;`;
+        aiSummaryStyle = `color: ${GOOD_WEATHER_COLOR}; font-weight: 600;`;
       } else if (weatherData.weatherSentiment === 'bad') {
-        aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: bold;`;
+        aiSummaryStyle = `color: ${BAD_WEATHER_COLOR}; font-weight: 600;`;
       }
 
       testContent = `
         <p>Hello,</p>
         <p>This is a <strong>test weather report</strong> from ${APP_NAME}, simulating an alert for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
         
-        <div class="weather-details-main">
-          <div class="weather-icon-cell">
+        <div class="weather-display-main">
+          <div class="weather-icon-wrapper">
             <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
           </div>
-          <p style="font-size: 36px; font-weight: 700; color: hsl(${PRIMARY_COLOR_HSL}); margin: 5px 0 0 0;">${weatherData.temperature}°C</p>
-          <p style="font-size: 18px; color: hsl(${TEXT_COLOR_DARK_HSL}); margin:0 0 5px 0; text-transform: capitalize;">${weatherData.description}</p>
-          <p style="font-size: 15px; color: hsl(${TEXT_COLOR_LIGHT_HSL}); margin:0;">Feels like: ${weatherData.feelsLike}°C</p>
+          <div class="weather-temp-details">
+            <p class="temperature">${weatherData.temperature}°C</p>
+            <p class="description">${weatherData.description}</p>
+            <p class="feels-like">Feels like: ${weatherData.feelsLike}°C</p>
+          </div>
         </div>
 
-        <table class="weather-details-table" role="presentation">
-          <tr><td class="label">Humidity:</td><td class="value">${weatherData.humidity}%</td></tr>
-          <tr><td class="label">Wind Speed:</td><td class="value">${weatherData.windSpeed} km/h</td></tr>
-        </table>
+        <div class="weather-details-grid">
+            <div class="weather-detail-item"><span class="label">Humidity</span><span class="value">${weatherData.humidity}%</span></div>
+            <div class="weather-detail-item"><span class="label">Wind Speed</span><span class="value">${weatherData.windSpeed} km/h</span></div>
+        </div>
 
         ${weatherData.aiSummary ? `
         <div class="ai-summary-box">
@@ -659,3 +664,6 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
+
+
+      
