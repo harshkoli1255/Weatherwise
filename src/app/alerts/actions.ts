@@ -59,9 +59,9 @@ const BORDER_COLOR_HSL = "220 30% 85%"; // --border
 const getWeatherIconUrl = (iconCode: string, animated: boolean = false): string => {
   if (animated) {
     // IMPORTANT: Replace this logic with your actual animated GIF URLs based on iconCode.
-    // This is a placeholder demonstrating the .png extension for a generic box.
+    // This placeholder forces a generic light gray box from placehold.co.
     // For example: `https://your-cdn.com/animated-weather-icons/${iconCode}.gif`
-    return `https://placehold.co/80x80.png`; // Using .png to ensure a generic image box
+    return `https://placehold.co/80x80/EFEFEF/EFEFEF.png`; 
   }
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 };
@@ -129,7 +129,7 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherData, al
   const content = `
     <p>Hello,</p>
     <p>This is a weather alert from <strong>${APP_NAME}</strong> for <strong>${weatherData.city}</strong>.</p>
-    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition animated"></div>
+    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather animated"></div>
     <p class="alert-highlight"><strong>Alert: ${alertInfo.type}</strong></p>
     <p><strong>Details:</strong> ${alertInfo.details}</p>
     ${customThresholdsText}
@@ -584,7 +584,7 @@ export async function sendTestEmailAction(
         testContent = `
           <p>Hello,</p>
           <p>This is a <strong>test weather report</strong> from ${APP_NAME}, showing current conditions for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
-          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition animated"></div>
+          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather animated"></div>
           <div class="weather-details">
             <p>Current conditions:</p>
             <p><strong>Temperature:</strong> ${weatherData.temperature}°C (Feels like: ${weatherData.feelsLike}°C)</p>
@@ -637,3 +637,4 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
+
