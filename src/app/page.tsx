@@ -73,8 +73,8 @@ export default function WeatherPage() {
         cityNotFound: false,
       }));
     } else { // For polling
-      // For polls, we still set isLoading true which will show the main spinner.
-      // A more subtle UI for "refreshing" could be a future enhancement.
+      // For polls, we still set isLoading true which will show the main spinner if no data is currently displayed.
+      // If data is displayed, it will refresh without showing the main spinner, just updating values.
       setWeatherState(prev => ({ ...prev, isLoading: true, error: null /* Clear previous poll error */ }));
     }
 
@@ -103,7 +103,6 @@ export default function WeatherPage() {
         setLastSuccessfulApiParams(null);
         if (isPoll && result.error) {
             // If a poll itself fails, show a specific toast.
-            // The main error toast effect might also trigger if weatherState.error is set.
              toast({
                 variant: "destructive",
                 title: "Refresh Failed",
@@ -117,7 +116,6 @@ export default function WeatherPage() {
 
   // Effect for initial weather fetch (geolocation or IP)
   useEffect(() => {
-    // This effect runs once on mount to get initial weather
     setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location..." }));
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -128,46 +126,46 @@ export default function WeatherPage() {
           console.warn(`Geolocation error: ${geoError.message}. Falling back to IP lookup.`);
           const ipResult = await fetchCityByIpAction();
           if (ipResult.error || !ipResult.city) {
-            setWeatherState({ // Final error state if everything fails
+            setWeatherState({ 
               data: null,
               error: ipResult.error || "Could not determine your location. Please use the search bar.",
               isLoading: false,
               loadingMessage: null,
               cityNotFound: true,
             });
-            setLastSuccessfulApiParams(null); // Ensure no polling
+            setLastSuccessfulApiParams(null); 
           } else {
             performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, false);
           }
         }
       );
-    } else { // Geolocation not supported
+    } else { 
       (async () => {
         console.warn('Geolocation not supported. Falling back to IP lookup.');
         const ipResult = await fetchCityByIpAction();
         if (ipResult.error || !ipResult.city) {
-           setWeatherState({ // Final error state if everything fails
+           setWeatherState({ 
               data: null,
               error: ipResult.error || "Could not determine your location. Please use the search bar.",
               isLoading: false,
               loadingMessage: null,
               cityNotFound: true,
             });
-           setLastSuccessfulApiParams(null); // Ensure no polling
+           setLastSuccessfulApiParams(null); 
         } else {
           performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, false);
         }
       })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // performWeatherFetch is memoized but not listed as dep for mount-only effect.
+  }, []); 
 
 
   const handleSearch = (formData: FormData) => {
     const city = formData.get('city') as string;
     if (!city || city.trim() === "") {
       setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
-      setLastSuccessfulApiParams(null); // Clear polling on empty/failed search
+      setLastSuccessfulApiParams(null); 
       return;
     }
     performWeatherFetch({ city: city.trim() }, false);
@@ -178,14 +176,13 @@ export default function WeatherPage() {
     let intervalId: NodeJS.Timeout | undefined;
 
     if (lastSuccessfulApiParams && weatherState.data && !weatherState.error) {
-      // Only poll if we have valid parameters, current data, and no errors.
       console.log(`Starting weather poll for: ${lastSuccessfulApiParams.city || `lat/lon: ${lastSuccessfulApiParams.lat}/${lastSuccessfulApiParams.lon}`}. Interval: 1 second.`);
       intervalId = setInterval(() => {
         console.log(`Polling weather data for: ${lastSuccessfulApiParams.city || `lat/lon: ${lastSuccessfulApiParams.lat}/${lastSuccessfulApiParams.lon}`}`);
         performWeatherFetch(lastSuccessfulApiParams, true);
-      }, 1000); // User requested every second - VERY FREQUENT, RISK OF RATE LIMITING
+      }, 1000); 
     } else {
-      if (intervalId) clearInterval(intervalId); // Should be cleared by return, but as a safeguard
+      if (intervalId) clearInterval(intervalId); 
       console.log('Polling conditions not met. Current polling parameters:', lastSuccessfulApiParams, 'Data present:', !!weatherState.data, 'No error:', !weatherState.error);
     }
 
@@ -210,14 +207,14 @@ export default function WeatherPage() {
           <p className="text-xl sm:text-2xl md:text-3xl text-muted-foreground mb-6 sm:mb-8 md:mb-10">
             Weather based on your location, or search any city.
           </p>
-          {(!isLoadingDisplay || weatherState.data) && ( // Show search bar if not loading OR if already showing data (even if a poll is happening)
+          {(!isLoadingDisplay || weatherState.data) && ( 
             <div className="mt-1 pl-4">
-              <SearchBar onSearch={handleSearch} isSearching={isLoadingDisplay && !weatherState.data} /> {/* Only disable search if truly initial loading */}
+              <SearchBar onSearch={handleSearch} isSearching={isLoadingDisplay && !weatherState.data} />
             </div>
           )}
         </section>
 
-        {isLoadingDisplay && !weatherState.data && ( // Show main loading card only if there's no data to display
+        {isLoadingDisplay && !weatherState.data && ( 
           <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
             <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
               <svg className="animate-spin h-14 w-14 sm:h-16 md:h-20 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -233,7 +230,6 @@ export default function WeatherPage() {
           <WeatherDisplay weatherData={weatherState.data} />
         )}
         
-        {/* This covers the case where loading is finished, there's an error, and no data */}
         {!isLoadingDisplay && !weatherState.data && weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
@@ -256,14 +252,14 @@ export default function WeatherPage() {
             </Card>
         )}
 
-        {/* Fallback for initial state before any fetch attempt has started or if geolocation/IP fail without search */}
-        {!isLoadingDisplay && !weatherState.data && !weatherState.error && weatherState.loadingMessage === "Initializing Weatherwise..." && (
+        {/* Fallback for initial state or if loading is done, no data, and no error */}
+        {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
                     <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
-                        We're attempting to fetch weather for your current location. You can also use the search bar above.
+                        Please use the search bar above to find weather information for any city.
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
