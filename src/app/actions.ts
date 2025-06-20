@@ -6,7 +6,6 @@ import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput }
 import { z } from 'zod';
 import { format } from 'date-fns';
 
-// Helper type for location identification
 type LocationIdentifier = 
   | { type: 'city', city: string }
   | { type: 'coords', lat: number, lon: number };
@@ -126,20 +125,40 @@ export async function fetchWeatherAndSummaryAction(
     return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-  if (!apiKey) {
+  const openWeatherApiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
+  if (!openWeatherApiKey) {
     console.error("OpenWeather API key is not set (NEXT_PUBLIC_OPENWEATHER_API_KEY).");
-    return { data: null, error: "Server configuration error. Please try again later.", cityNotFound: false };
+    return { data: null, error: "Server configuration error: OpenWeather API key missing. Please try again later.", cityNotFound: false };
+  }
+  
+  const geminiApiKey = process.env.GEMINI_API_KEY_1;
+  if (!geminiApiKey) {
+    console.warn("Gemini API key (GEMINI_API_KEY_1) is not set. AI summaries may not be available.");
   }
 
+
   try {
-    const currentWeatherData = await fetchCurrentWeather(locationIdentifier, apiKey);
-    const forecastLocationIdentifier: LocationIdentifier = {
-        type: 'coords',
-        lat: (await fetch( `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${apiKey}&units=metric`).then(res => res.json()) as OpenWeatherCurrentAPIResponse).coord.lat,
-        lon: (await fetch( `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${apiKey}&units=metric`).then(res => res.json()) as OpenWeatherCurrentAPIResponse).coord.lon,
-    };
-    const hourlyForecastData = await fetchHourlyForecast(forecastLocationIdentifier, apiKey);
+    const currentWeatherData = await fetchCurrentWeather(locationIdentifier, openWeatherApiKey);
+    
+    // To get coordinates for the forecast, we use the city name returned by the current weather API,
+    // as it might be a canonical name or a location resolved from coordinates.
+    // We need to fetch current weather data again just for coordinates if initial call was by city name.
+    // This ensures forecast is for the exact location OpenWeatherMap identified.
+    let forecastLat = params.lat;
+    let forecastLon = params.lon;
+
+    if (locationIdentifier.type === 'city' || !forecastLat || !forecastLon) {
+        // If initial was by city, or if lat/lon were not originally provided,
+        // use the coordinates from the current weather data response.
+        const coordDataResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(currentWeatherData.city)}&appid=${openWeatherApiKey}&units=metric`);
+        if (!coordDataResponse.ok) throw new Error('Failed to fetch coordinates for forecast');
+        const coordData = await coordDataResponse.json() as OpenWeatherCurrentAPIResponse;
+        forecastLat = coordData.coord.lat;
+        forecastLon = coordData.coord.lon;
+    }
+    
+    const forecastLocationIdentifier: LocationIdentifier = { type: 'coords', lat: forecastLat as number, lon: forecastLon as number };
+    const hourlyForecastData = await fetchHourlyForecast(forecastLocationIdentifier, openWeatherApiKey);
 
 
     const aiInput: WeatherSummaryInput = {
@@ -151,22 +170,41 @@ export async function fetchWeatherAndSummaryAction(
       condition: currentWeatherData.description,
     };
 
-    const aiSummaryOutput: WeatherSummaryOutput = await summarizeWeather(aiInput);
+    let aiSummaryOutput: WeatherSummaryOutput | null = null;
+    let aiError: string | null = null;
+
+    if (geminiApiKey) { // Only attempt AI summary if a key is configured
+        try {
+            aiSummaryOutput = await summarizeWeather(aiInput);
+        } catch (aiErr) {
+            console.error("Error generating AI weather summary:", aiErr);
+            aiError = aiErr instanceof Error ? aiErr.message : "An unexpected error occurred with the AI summary service.";
+            
+            // Check for common Gemini quota error indicators
+            if (aiError.includes("429") || aiError.toLowerCase().includes("quota") || aiError.toLowerCase().includes("resource has been exhausted")) {
+                aiError = "The AI weather summary service is temporarily unavailable due to high demand (quota exceeded). Weather data is still available.";
+            } else {
+                aiError = "Could not generate AI weather summary at this time.";
+            }
+        }
+    } else {
+        aiError = "AI summary service is not configured.";
+    }
     
     return {
       data: { 
         ...currentWeatherData, 
-        aiSummary: aiSummaryOutput.summary,
-        weatherSentiment: aiSummaryOutput.weatherSentiment,
+        aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.", // Show AI error or a default message if summary fails
+        weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral', // Default to neutral if summary fails
         hourlyForecast: hourlyForecastData,
       },
-      error: null,
+      error: null, // Main weather fetch succeeded, AI error is handled within data.aiSummary
       cityNotFound: false
     };
 
   } catch (error) {
-    console.error("Error fetching weather data or generating summary:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+    console.error("Error fetching weather data:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred while fetching weather.";
     const cityNotFound = errorMessage.toLowerCase().includes("not found") || errorMessage.toLowerCase().includes("city name cannot be empty");
     return { data: null, error: errorMessage, cityNotFound };
   }

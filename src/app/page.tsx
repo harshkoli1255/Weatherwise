@@ -20,7 +20,6 @@ interface WeatherPageState {
   cityNotFound: boolean;
 }
 
-// Interface for the location used in API calls and for polling state
 interface ApiLocationParams {
   city?: string;
   lat?: number;
@@ -40,87 +39,51 @@ export default function WeatherPage() {
   const [isTransitionPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [currentYear, setCurrentYear] = useState<number | null>(null);
-  // Store the parameters of the last successful fetch for polling
-  const [lastSuccessfulApiParams, setLastSuccessfulApiParams] = useState<ApiLocationParams | null>(null);
-
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
 
   useEffect(() => {
-    // Show toast on error, but only if not in an active loading state initiated by direct user action (search/initial)
-    // This helps avoid double toasting if the error also stops a poll.
-    if (weatherState.error && !weatherState.isLoading && 
-        !(weatherState.loadingMessage && weatherState.loadingMessage.includes("Searching for"))) {
+    if (weatherState.error && !weatherState.isLoading) {
       toast({
         variant: "destructive",
         title: "Error",
         description: weatherState.error,
       });
     }
-  }, [weatherState.error, weatherState.isLoading, weatherState.loadingMessage, toast]);
+  }, [weatherState.error, weatherState.isLoading, toast]);
 
-  // Unified function to fetch weather and update state
-  const performWeatherFetch = useCallback((params: ApiLocationParams, isPoll: boolean = false) => {
-    if (!isPoll) { // For initial load or user search
-      setWeatherState(prev => ({
-        ...prev,
-        isLoading: true,
-        loadingMessage: params.city ? `Searching for ${params.city}...` : "Fetching weather for your location...",
-        data: null, // Clear previous data for a new search/load
-        error: null,
-        cityNotFound: false,
-      }));
-    } else { // For polling
-      // For polls, we still set isLoading true which will show the main spinner if no data is currently displayed.
-      // If data is displayed, it will refresh without showing the main spinner, just updating values.
-      setWeatherState(prev => ({ ...prev, isLoading: true, error: null /* Clear previous poll error */ }));
-    }
+  const performWeatherFetch = useCallback((params: ApiLocationParams) => {
+    setWeatherState(prev => ({
+      ...prev,
+      isLoading: true,
+      loadingMessage: params.city ? `Searching for ${params.city}...` : "Fetching weather for your location...",
+      data: null, 
+      error: null,
+      cityNotFound: false,
+    }));
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
       
-      setWeatherState({ // This update applies to both poll and initial/search
+      setWeatherState({
         data: result.data,
         error: result.error,
         isLoading: false,
-        loadingMessage: null, // Clear loading message after fetch
+        loadingMessage: null,
         cityNotFound: result.cityNotFound,
       });
-
-      if (result.data) {
-        // If successful, store these params for polling.
-        // Use result.data.city because the API might return a canonical city name.
-        // Preserve original lat/lon if they were provided in params for accuracy.
-        setLastSuccessfulApiParams({
-            city: result.data.city,
-            lat: params.lat, 
-            lon: params.lon,
-        });
-      } else {
-        // If any fetch (initial, search, or poll) fails to get data, stop polling.
-        setLastSuccessfulApiParams(null);
-        if (isPoll && result.error) {
-            // If a poll itself fails, show a specific toast.
-             toast({
-                variant: "destructive",
-                title: "Refresh Failed",
-                description: result.error || "Could not refresh weather data.",
-            });
-        }
-      }
     });
-  }, [startTransition, toast]);
+  }, [startTransition]);
 
 
-  // Effect for initial weather fetch (geolocation or IP)
   useEffect(() => {
     setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location..." }));
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          performWeatherFetch({ lat: position.coords.latitude, lon: position.coords.longitude }, false);
+          performWeatherFetch({ lat: position.coords.latitude, lon: position.coords.longitude });
         },
         async (geoError) => {
           console.warn(`Geolocation error: ${geoError.message}. Falling back to IP lookup.`);
@@ -133,9 +96,8 @@ export default function WeatherPage() {
               loadingMessage: null,
               cityNotFound: true,
             });
-            setLastSuccessfulApiParams(null); 
           } else {
-            performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, false);
+            performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon });
           }
         }
       );
@@ -151,9 +113,8 @@ export default function WeatherPage() {
               loadingMessage: null,
               cityNotFound: true,
             });
-           setLastSuccessfulApiParams(null); 
         } else {
-          performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, false);
+          performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon });
         }
       })();
     }
@@ -165,34 +126,10 @@ export default function WeatherPage() {
     const city = formData.get('city') as string;
     if (!city || city.trim() === "") {
       setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
-      setLastSuccessfulApiParams(null); 
       return;
     }
-    performWeatherFetch({ city: city.trim() }, false);
+    performWeatherFetch({ city: city.trim() });
   };
-
-  // Effect for polling
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined;
-
-    if (lastSuccessfulApiParams && weatherState.data && !weatherState.error) {
-      console.log(`Starting weather poll for: ${lastSuccessfulApiParams.city || `lat/lon: ${lastSuccessfulApiParams.lat}/${lastSuccessfulApiParams.lon}`}. Interval: 1 second.`);
-      intervalId = setInterval(() => {
-        console.log(`Polling weather data for: ${lastSuccessfulApiParams.city || `lat/lon: ${lastSuccessfulApiParams.lat}/${lastSuccessfulApiParams.lon}`}`);
-        performWeatherFetch(lastSuccessfulApiParams, true);
-      }, 1000); 
-    } else {
-      if (intervalId) clearInterval(intervalId); 
-      console.log('Polling conditions not met. Current polling parameters:', lastSuccessfulApiParams, 'Data present:', !!weatherState.data, 'No error:', !weatherState.error);
-    }
-
-    return () => {
-      if (intervalId) {
-        console.log('Clearing weather poll interval.');
-        clearInterval(intervalId);
-      }
-    };
-  }, [lastSuccessfulApiParams, weatherState.data, weatherState.error, performWeatherFetch]);
 
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
@@ -252,7 +189,6 @@ export default function WeatherPage() {
             </Card>
         )}
 
-        {/* Fallback for initial state or if loading is done, no data, and no error */}
         {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
