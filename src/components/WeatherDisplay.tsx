@@ -10,6 +10,13 @@ interface WeatherDisplayProps {
 }
 
 export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
+  let iconColorClass = 'text-primary'; // Default for neutral
+  if (weatherData.weatherSentiment === 'good') {
+    iconColorClass = 'text-green-500';
+  } else if (weatherData.weatherSentiment === 'bad') {
+    iconColorClass = 'text-destructive';
+  }
+
   return (
     <Card className="w-full max-w-xs sm:max-w-md md:max-w-xl lg:max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20 transform hover:scale-[1.005] transition-transform duration-300 mt-4 sm:mt-6">
       <CardHeader className="text-center pt-5 sm:pt-6 md:pt-7 pb-3 sm:pb-4 items-center border-b border-border/50">
@@ -19,7 +26,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
       <CardContent className="space-y-4 sm:space-y-5 md:space-y-6 px-4 sm:px-5 md:px-6 pt-4 sm:pt-5 pb-5 sm:pb-6 md:pb-7">
         <div className="flex flex-col sm:flex-row items-center justify-around text-center gap-3 sm:gap-4 md:gap-5">
           <div className="flex-shrink-0">
-            <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-accent drop-shadow-xl mx-auto" />
+            <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${iconColorClass} drop-shadow-xl mx-auto`} />
           </div>
           <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-primary drop-shadow-lg">
             {weatherData.temperature}°C
@@ -97,4 +104,3 @@ function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
     </div>
   );
 }
-
