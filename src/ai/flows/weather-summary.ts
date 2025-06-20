@@ -77,8 +77,9 @@ Instructions:
 Begin your response with the summary.
 `,
   config: {
-    temperature: 0.5, // Adjusted for a bit more creativity in summaries while maintaining factual basis.
-    safetySettings: [ // Added safety settings
+    model: 'googleai/gemini-1.5-flash-latest', // Explicitly set the model
+    temperature: 0.5,
+    safetySettings: [
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -94,10 +95,9 @@ const weatherSummaryFlow = ai.defineFlow(
     outputSchema: WeatherSummaryOutputSchema,
   },
   async (flowInput: WeatherSummaryInput) => {
-    const plainInput = { ...flowInput }; // Clone input to ensure it's a plain object
+    const plainInput = { ...flowInput };
     const {output} = await prompt(plainInput);
     if (!output) {
-      // Updated error message for more clarity
       throw new Error('AI failed to generate weather summary output (model response did not conform to schema, was empty, or was blocked by safety filters).');
     }
     return output;
