@@ -79,7 +79,7 @@ function VerifyCodeButton() {
   return (
     <Button
       type="submit"
-      className="w-full sm:w-auto h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground"
+      className="w-full h-10 px-3 text-sm sm:h-11 sm:px-5 sm:text-base shadow-md hover:shadow-lg transition-shadow bg-accent hover:bg-accent/90 text-accent-foreground"
       disabled={pending}
     >
       {pending ? (
@@ -535,14 +535,14 @@ export default function AlertsPage() {
           )}
 
           {!showVerificationSection && (
-            <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
+            <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/40 mt-3 sm:mt-4">
               {formState.email && formState.city && formState.alertsEnabled && (
                 <form action={testEmailFormAction} className="w-full sm:flex-1">
                     <input type="hidden" name="email" value={formState.email.toLowerCase()} />
                     <input type="hidden" name="city" value={formState.city} />
-                    {formState.highTempThreshold !== undefined && <input type="hidden" name="highTempThreshold" value={String(formState.highTempThreshold)} />}
-                    {formState.lowTempThreshold !== undefined && <input type="hidden" name="lowTempThreshold" value={String(formState.lowTempThreshold)} />}
-                    {formState.windSpeedThreshold !== undefined && <input type="hidden" name="windSpeedThreshold" value={String(formState.windSpeedThreshold)} />}
+                    <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : String(formState.highTempThreshold)} />
+                    <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : String(formState.lowTempThreshold)} />
+                    <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
                     <SendTestEmailButton />
                 </form>
               )}
@@ -631,3 +631,4 @@ function AlertOptionWithThresholds({ id, name, label, icon: Icon, description, c
     </div>
   );
 }
+

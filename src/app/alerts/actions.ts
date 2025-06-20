@@ -43,22 +43,22 @@ export interface SaveAlertsFormState {
 // --- Enhanced Email HTML Generation ---
 
 const APP_NAME = "Weatherwise";
-const PRIMARY_COLOR = "#2563EB"; 
-const ACCENT_COLOR = "#F97316"; 
-const TEXT_COLOR_DARK = "#1F2937"; 
-const TEXT_COLOR_LIGHT = "#4B5563"; 
-const BACKGROUND_COLOR_LIGHT = "#F3F4F6"; // Lighter gray
-const CARD_BACKGROUND_COLOR = "#FFFFFF";
+const PRIMARY_COLOR = "#2563EB"; // Blue-600
+const ACCENT_COLOR = "#F97316"; // Orange-500
+const TEXT_COLOR_DARK = "#1F2937"; // Gray-800
+const TEXT_COLOR_LIGHT = "#4B5563"; // Gray-600
+const BACKGROUND_COLOR_LIGHT = "#F3F4F6"; // Gray-100
+const CARD_BACKGROUND_COLOR = "#FFFFFF"; // White
 
-// Placeholder for animated GIF. Replace with actual animated GIF URLs.
-// For now, it will use OpenWeatherMap static icons but structure is ready.
-// Using placehold.co to make it look like a GIF for demonstration of the .gif extension in src.
+// Function to get weather icon URL.
+// For animated:true, it returns a placeholder .gif URL.
+// Users should replace this with their actual hosted animated GIF URLs.
 const getWeatherIconUrl = (iconCode: string, animated: boolean = false): string => {
   if (animated) {
-    // Replace this logic with your actual animated GIF URLs based on iconCode
-    // For demonstration, appending .gif to a placeholder.
-    // In a real scenario, you'd map iconCode to your specific animated GIF files.
-    return `https://placehold.co/64x64.gif?text=${iconCode}`; 
+    // IMPORTANT: Replace this logic with your actual animated GIF URLs based on iconCode.
+    // This is a placeholder demonstrating the .gif extension.
+    // For example: `https://your-cdn.com/animated-weather-icons/${iconCode}.gif`
+    return `https://placehold.co/80x80.gif?text=${iconCode}`;
   }
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 };
@@ -69,7 +69,7 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
     <!DOCTYPE html>
     <html lang="en">
     <head>
-      <meta charset="UTF-F8">
+      <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
       <style>
@@ -110,8 +110,7 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
 
 const sendWeatherAlertEmail = async (email: string, weatherData: WeatherData, alertInfo: WeatherConditionAlert) => {
   const subject = `Weather Alert: ${alertInfo.type} in ${weatherData.city}`;
-  // Using the animated GIF placeholder logic
-  const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); 
+  const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); // Request animated GIF placeholder
   const preheader = `${alertInfo.type} detected in ${weatherData.city}. Current temperature: ${weatherData.temperature}°C.`;
 
   let customThresholdsText = '';
@@ -202,8 +201,8 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
 
   const temp = currentWeatherData.temperature;
   const windSpeedKmh = currentWeatherData.windSpeed;
-  const weatherConditionMain = currentWeatherData.condition.toLowerCase(); 
-  const weatherDescription = currentWeatherData.description.toLowerCase(); 
+  const weatherConditionMain = currentWeatherData.condition.toLowerCase();
+  const weatherDescription = currentWeatherData.description.toLowerCase();
 
   const highTempThreshold = preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD;
   const lowTempThreshold = preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD;
@@ -224,12 +223,13 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
   }
   if (preferences.notifyHeavyRain) {
     // Rain check remains keyword-based due to API limitations for simple rate alerts.
+    // More specific keywords for "heavy rain"
     if (weatherConditionMain === 'rain' && (weatherDescription.includes('heavy') || weatherDescription.includes('extreme') || weatherDescription.includes('torrential') || weatherDescription.includes('very heavy'))) {
       await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Heavy Rain', details: `Heavy rain detected: ${currentWeatherData.description}.`, customThresholds: alertDetails });
     }
   }
   if (preferences.notifyStrongWind) {
-    if (windSpeedKmh > windSpeedThreshold) { 
+    if (windSpeedKmh > windSpeedThreshold) {
       await sendWeatherAlertEmail(preferences.email, currentWeatherData, { city: preferences.city, type: 'Strong Wind', details: `Strong winds detected at ${windSpeedKmh} km/h.`, customThresholds: alertDetails });
     }
   }
@@ -237,7 +237,7 @@ async function checkAndSendLiveWeatherAlerts(preferences: AlertPreferences) {
 
 
 export async function saveAlertPreferencesAction(
-  prevState: SaveAlertsFormState, 
+  prevState: SaveAlertsFormState,
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   const rawData = {
@@ -280,7 +280,7 @@ export async function saveAlertPreferencesAction(
         </div>
     `;
     const html = getBaseEmailHtml("Weather Alerts Disabled", content, preheader);
-    if (emailToUse) { 
+    if (emailToUse) {
         await sendEmail({
             to: emailToUse,
             subject: "Weatherwise Alerts Disabled",
@@ -295,7 +295,7 @@ export async function saveAlertPreferencesAction(
       verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
     };
   }
-  
+
   if (!preferences.city) {
     return {
         message: "Please correct the errors in the form.",
@@ -308,7 +308,7 @@ export async function saveAlertPreferencesAction(
   if (isAlreadyVerifiedClientHint && emailToUse) {
     try {
       console.log("Saving alert preferences for already verified email:", preferences);
-      
+
       let conditionsHtmlList = [];
       if (preferences.notifyExtremeTemp) {
         conditionsHtmlList.push(`<li>Extreme Temperatures (High > ${preferences.highTempThreshold ?? DEFAULT_HIGH_TEMP_THRESHOLD}°C, Low < ${preferences.lowTempThreshold ?? DEFAULT_LOW_TEMP_THRESHOLD}°C)</li>`);
@@ -322,7 +322,7 @@ export async function saveAlertPreferencesAction(
 
       const noConditionsSelected = conditionsHtmlList.length === 0;
       const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul>${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
-      
+
       const preheader = `Alert preferences updated for ${preferences.city}.`;
       const confirmationContent = `
         <p>Hello,</p>
@@ -341,14 +341,14 @@ export async function saveAlertPreferencesAction(
         subject: `Weather Alert Preferences Updated for ${preferences.city}`,
         html: confirmationHtml,
       });
-      
+
       await checkAndSendLiveWeatherAlerts(preferences);
 
       if (emailResult.success) {
         return {
           message: `Alert preferences saved for ${preferences.city}! A confirmation email has been sent to ${emailToUse}. Current weather conditions were also checked for immediate alerts.`,
           error: false,
-          emailVerified: true, 
+          emailVerified: true,
           verifiedEmailOnSuccess: emailToUse,
         };
       } else {
@@ -368,7 +368,7 @@ export async function saveAlertPreferencesAction(
       const errorMessage = e instanceof Error ? e.message : "An unexpected error occurred.";
       return { message: `Failed to save alert preferences: ${errorMessage}`, error: true, verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess };
     }
-  } else if (emailToUse) { 
+  } else if (emailToUse) {
     const verificationCode = generateVerificationCode();
     const preheader = `Your ${APP_NAME} verification code is ${verificationCode}.`;
     const verificationContent = `
@@ -392,7 +392,7 @@ export async function saveAlertPreferencesAction(
           message: `A verification code has been sent to ${emailToUse}. Please enter it below.`,
           error: false,
           verificationSentTo: emailToUse,
-          generatedCode: verificationCode, 
+          generatedCode: verificationCode,
           needsVerification: true,
           verifiedEmailOnSuccess: prevState.verifiedEmailOnSuccess,
         };
@@ -418,9 +418,9 @@ export async function saveAlertPreferencesAction(
 
 
 const VerifyCodeSchema = z.object({
-  email: z.string().email(), 
+  email: z.string().email(),
   verificationCode: z.string().length(6, { message: "Verification code must be 6 digits." }),
-  expectedCode: z.string().length(6), 
+  expectedCode: z.string().length(6),
   // Include preference fields to pass them through for final save
   city: z.string(),
   alertsEnabled: z.preprocess(value => value === 'on' || value === true, z.boolean()),
@@ -442,12 +442,12 @@ const VerifyCodeSchema = z.object({
 });
 
 export async function verifyCodeAction(
-  prevState: SaveAlertsFormState, 
+  prevState: SaveAlertsFormState,
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   const rawData = {
     email: formData.get('email'),
-    verificationCode: formData.get('verificationCode'), 
+    verificationCode: formData.get('verificationCode'),
     expectedCode: formData.get('expectedCode'),
     // Pass through preferences
     city: formData.get('city'),
@@ -468,17 +468,17 @@ export async function verifyCodeAction(
       ...prevState,
       message: "Invalid verification data. Ensure code is 6 digits and all preference data is present.",
       error: true,
-      fieldErrors: fieldErrors, 
+      fieldErrors: fieldErrors,
       needsVerification: true,
     };
   }
 
   const { email, verificationCode, expectedCode, ...prefsData } = validationResult.data;
-  
+
   const preferences: AlertPreferences = {
       email: email,
       city: prefsData.city,
-      alertsEnabled: prefsData.alertsEnabled, 
+      alertsEnabled: prefsData.alertsEnabled,
       notifyExtremeTemp: prefsData.notifyExtremeTemp,
       highTempThreshold: prefsData.highTempThreshold,
       lowTempThreshold: prefsData.lowTempThreshold,
@@ -499,7 +499,7 @@ export async function verifyCodeAction(
     if (preferences.notifyStrongWind) {
       conditionsHtmlList.push(`<li>Strong Winds (> ${preferences.windSpeedThreshold ?? DEFAULT_WIND_SPEED_THRESHOLD} km/h)</li>`);
     }
-    
+
     const noConditionsSelected = conditionsHtmlList.length === 0;
     const conditionsHtml = conditionsHtmlList.length > 0 ? `<ul>${conditionsHtmlList.join('')}</ul>` : (noConditionsSelected ? '<p>You have not selected any specific conditions for notifications, but general alerts for your city are enabled.</p>' : '');
 
@@ -537,7 +537,7 @@ export async function verifyCodeAction(
       error: true,
       fieldErrors: { verificationCode: ["Incorrect code."] },
       needsVerification: true,
-      verificationSentTo: prevState.verificationSentTo || email, 
+      verificationSentTo: prevState.verificationSentTo || email,
       generatedCode: prevState.generatedCode || expectedCode,
     };
   }
@@ -550,10 +550,14 @@ export async function sendTestEmailAction(
 ): Promise<{ message: string | null, error: boolean }> {
   const email = formData.get('email') as string;
   const city = formData.get('city') as string | null;
-  // For test, use default thresholds or passed ones if available (though form doesn't pass them yet for test)
-  const highTempThreshold = formData.has('highTempThreshold') ? parseFloat(formData.get('highTempThreshold') as string) : DEFAULT_HIGH_TEMP_THRESHOLD;
-  const lowTempThreshold = formData.has('lowTempThreshold') ? parseFloat(formData.get('lowTempThreshold') as string) : DEFAULT_LOW_TEMP_THRESHOLD;
-  const windSpeedThreshold = formData.has('windSpeedThreshold') ? parseFloat(formData.get('windSpeedThreshold') as string) : DEFAULT_WIND_SPEED_THRESHOLD;
+
+  const highTempThresholdString = formData.get('highTempThreshold') as string | null;
+  const lowTempThresholdString = formData.get('lowTempThreshold') as string | null;
+  const windSpeedThresholdString = formData.get('windSpeedThreshold') as string | null;
+
+  const highTempThreshold = highTempThresholdString && highTempThresholdString !== '' ? parseFloat(highTempThresholdString) : DEFAULT_HIGH_TEMP_THRESHOLD;
+  const lowTempThreshold = lowTempThresholdString && lowTempThresholdString !== '' ? parseFloat(lowTempThresholdString) : DEFAULT_LOW_TEMP_THRESHOLD;
+  const windSpeedThreshold = windSpeedThresholdString && windSpeedThresholdString !== '' ? parseFloat(windSpeedThresholdString) : DEFAULT_WIND_SPEED_THRESHOLD;
 
 
   const emailValidation = z.string().email({ message: "Invalid email address provided for test." }).safeParse(email);
@@ -575,8 +579,7 @@ export async function sendTestEmailAction(
       const weatherData = await fetchCurrentWeatherForAlert(city, apiKey);
       if (weatherData) {
         emailTitle = `${APP_NAME} Test Weather Report for ${city}`;
-        // Using the animated GIF placeholder logic
-        const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); 
+        const iconUrl = getWeatherIconUrl(weatherData.iconCode, true); // Request animated GIF placeholder
         preheader = `Test weather report for ${city}: ${weatherData.temperature}°C, ${weatherData.description}.`;
 
         testContent = `
@@ -608,7 +611,7 @@ export async function sendTestEmailAction(
                   <div class="button-container">
                     <a href="${process.env.NEXT_PUBLIC_APP_URL || '#'}" class="button">Visit Weatherwise</a>
                   </div>`;
-  
+
   const emailHtml = getBaseEmailHtml(emailTitle, testContent, preheader);
 
   try {
@@ -635,4 +638,5 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
+
     
