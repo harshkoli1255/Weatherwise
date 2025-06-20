@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const CorrectCitySearchQueryInputSchema = z.object({
-  query: z.string().describe('The user-entered city search query, which may contain typos.'),
+  query: z.string().describe('The user-entered city search query, which may contain typos or spacing issues.'),
 });
 export type CorrectCitySearchQueryInput = z.infer<typeof CorrectCitySearchQueryInputSchema>;
 
@@ -34,8 +34,9 @@ const prompt = ai.definePrompt({
   input: {schema: CorrectCitySearchQueryInputSchema},
   output: {schema: CorrectCitySearchQueryOutputSchema},
   prompt: `You are an expert geographer and typist. A user has entered a city name: "{{query}}".
-This query might contain spelling mistakes or typos.
+This query might contain spelling mistakes, typos, or incorrect spacing for multi-word city names.
 Your task is to correct it to the most likely valid city name.
+Pay special attention to multi-word city names that might be concatenated without spaces (e.g., "NewYork" should become "New York").
 If the query is already a common and correctly spelled city name, or if you are not highly confident in a correction, return the original query and set 'wasCorrected' to false.
 Otherwise, return the corrected city name and set 'wasCorrected' to true.
 Only return the city name. Do not add any other explanations.
@@ -43,6 +44,8 @@ Only return the city name. Do not add any other explanations.
 Examples:
 Query: "Londno" -> Corrected: "London", wasCorrected: true
 Query: "New Yrok" -> Corrected: "New York", wasCorrected: true
+Query: "NewYork" -> Corrected: "New York", wasCorrected: true
+Query: "losangeles" -> Corrected: "Los Angeles", wasCorrected: true
 Query: "Paris" -> Corrected: "Paris", wasCorrected: false
 Query: "Calofornia" -> Corrected: "California", wasCorrected: true (even if it's a state, it's a common geographic term)
 Query: "asdfgh" -> Corrected: "asdfgh", wasCorrected: false
@@ -68,17 +71,21 @@ const correctCitySearchQueryFlow = ai.defineFlow(
   },
   async (flowInput: CorrectCitySearchQueryInput) => {
     try {
-      const plainInput = { ...flowInput }; // Clone input to ensure it's a plain object
-      const {output} = await prompt(plainInput);
+      const plainInput = { ...flowInput }; // Clone input
+      const result = await prompt(plainInput); // Get the full result
+      const output = result.output;
+      // console.log('[AI DEBUG - correctCitySearchQueryFlow] Raw AI output:', output); // For debugging
+
       if (output) {
-        // Basic validation: if the corrected query is wildly different or very short, maybe revert.
-        // For simplicity, we'll trust the LLM for now, but this could be a point of refinement.
+        // Basic validation: if the corrected query is empty, revert.
         if (output.correctedQuery.trim().length === 0) {
+            console.log('[AI INFO - correctCitySearchQueryFlow] AI returned empty correctedQuery, reverting to original.');
             return { correctedQuery: flowInput.query, wasCorrected: false };
         }
         return output;
       }
       // If prompt output is null, fallback to original query
+      console.log('[AI WARN - correctCitySearchQueryFlow] AI prompt output was null, reverting to original query.');
       return { correctedQuery: flowInput.query, wasCorrected: false };
     } catch (error) {
       console.error('Error in correctCitySearchQueryFlow:', error);
@@ -87,3 +94,4 @@ const correctCitySearchQueryFlow = ai.defineFlow(
     }
   }
 );
+
