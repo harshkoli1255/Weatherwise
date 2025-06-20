@@ -10,9 +10,10 @@ let geminiKeysAvailable = 0;
 if (geminiApiKeysString) {
   const geminiApiKeys = geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key);
   geminiKeysAvailable = geminiApiKeys.length;
-  if (geminiApiKeys.length > 0) {
+  if (geminiKeysAvailable > 0) {
+    console.log(`Found ${geminiKeysAvailable} Gemini API key(s) in GEMINI_API_KEYS environment variable.`);
     activeGeminiApiKey = geminiApiKeys[0]; // Use the first key in the list
-    console.log(`Genkit initialized with Gemini API Key (1 of ${geminiApiKeys.length}): ...${activeGeminiApiKey.slice(-4)}`);
+    console.log(`Initializing Genkit with the first Gemini API Key (1 of ${geminiKeysAvailable}): ...${activeGeminiApiKey.slice(-4)}`);
   } else {
     console.warn(
       'GEMINI_API_KEYS is set in .env but contains no valid keys after parsing. AI features requiring Gemini will not work.'
@@ -46,3 +47,4 @@ if (geminiKeysAvailable === 0 && !geminiApiKeysString) { // Check if GEMINI_API_
     console.warn("GEMINI_API_KEYS was set but is empty or contains only whitespace. AI features will be disabled.");
 }
 // The successful initialization message is now part of the initial block.
+
