@@ -104,3 +104,4 @@ function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
     </div>
   );
 }
+

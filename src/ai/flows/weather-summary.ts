@@ -33,36 +33,64 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
   return weatherSummaryFlow(input);
 }
 
-const shouldIncludeFeelsLikeTool = ai.defineTool({
-  name: 'shouldIncludeFeelsLike',
-  description: 'Determines whether to include the feels-like temperature in the weather summary based on the difference between the actual temperature and the feels-like temperature.',
-  inputSchema: z.object({
-    temperature: z.number().describe('The current temperature.'),
-    feelsLike: z.number().describe('The current feels like temperature.'),
-  }),
-  outputSchema: z.boolean().describe('Whether to include the feels-like temperature in the weather summary.'),
-  async fn(input) {
-    return Math.abs(input.temperature - input.feelsLike) > 5;
+const shouldIncludeFeelsLikeTool = ai.defineTool(
+  {
+    name: 'shouldIncludeFeelsLike',
+    description: "Determines if the 'feels like' temperature is significantly different from the actual temperature and thus should be mentioned in a weather summary. Call this tool to check if the difference warrants mentioning the 'feels like' value.",
+    inputSchema: z.object({
+      temperature: z.number().describe('The current actual temperature.'),
+      feelsLike: z.number().describe('The current feels like temperature.'),
+    }),
+    outputSchema: z.boolean().describe('Returns true if the difference between temperature and feelsLike is greater than 5 degrees, otherwise false.'),
   },
-});
+  async (input) => {
+    // Only mention "feels like" if it's significantly different (e.g., > 5 degrees)
+    return Math.abs(input.temperature - input.feelsLike) > 5;
+  }
+);
+
 
 const prompt = ai.definePrompt({
   name: 'weatherSummaryPrompt',
   input: {schema: WeatherSummaryInputSchema},
   output: {schema: WeatherSummaryOutputSchema},
   tools: [shouldIncludeFeelsLikeTool],
-  prompt: `You are a helpful weather assistant. Provide a concise summary of the weather conditions for {{city}}.\n\nCurrently, the temperature is {{temperature}}°C with {{condition}} conditions, {{humidity}}% humidity, and wind speeds of {{windSpeed}} km/h.\n\n{% tool_code shouldIncludeFeelsLikeTool with temperature={{temperature}} feelsLike={{feelsLike}} %} \n\n{% if shouldIncludeFeelsLikeTool.result %}The feels like temperature is {{feelsLike}}°C, which is significantly different from the actual temperature. {% endif %}\n\nBased on all these conditions, determine if the overall weather sentiment is 'good', 'bad', or 'neutral'. Extreme temperatures (e.g. below 5°C or above 30°C), significant precipitation (e.g. rain, snow, storm), and high winds (e.g. above 30 km/h) generally indicate 'bad' weather. Pleasant temperatures (e.g. 15°C-25°C), clear or partly cloudy skies, and light winds generally indicate 'good' weather. Otherwise, it's 'neutral'. Set the 'weatherSentiment' field in your output to one of 'good', 'bad', or 'neutral'.\n\nProvide a summary that is easy to understand. Focus on the most important and relevant aspects of the weather. The summary should not exceed 50 words.`,
+  prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{city}} and determine the overall weather sentiment.
+
+Current weather data for {{city}}:
+- Temperature: {{temperature}}°C
+- Feels Like: {{feelsLike}}°C
+- Condition: {{condition}}
+- Humidity: {{humidity}}%
+- Wind Speed: {{windSpeed}} km/h
+
+Instructions:
+1.  Analyze the difference between the actual temperature ({{temperature}}°C) and the 'feels like' temperature ({{feelsLike}}°C).
+2.  Use the 'shouldIncludeFeelsLike' tool to decide if the 'feels like' temperature is significant enough to be mentioned.
+3.  If the tool confirms its significance, incorporate the 'feels like' temperature into your summary. For example, "it feels like X°C".
+4.  Based on all conditions (temperature, feels like, condition, humidity, wind speed), determine if the overall weather sentiment is 'good', 'bad', or 'neutral'.
+    -   'Bad' weather: Extreme temperatures (e.g., below 5°C or above 30°C), significant precipitation (rain, snow, storm), high winds (above 30 km/h).
+    -   'Good' weather: Pleasant temperatures (e.g., 15°C-25°C), clear or partly cloudy skies, light winds.
+    -   'Neutral' weather: Conditions that don't strongly fit 'good' or 'bad'.
+5.  Set the 'weatherSentiment' field in your output schema to 'good', 'bad', or 'neutral'.
+6.  Craft a summary that is easy to understand, focuses on the most important aspects, and does not exceed 50 words.
+
+Begin your response with the summary.
+`,
 });
 
 const weatherSummaryFlow = ai.defineFlow(
   {
-    name: 'diagnosePlantFlow', // Note: Keeping original flow name to avoid breaking other parts if this name is used elsewhere, though it should be 'weatherSummaryFlow'
+    name: 'weatherSummaryFlow',
     inputSchema: WeatherSummaryInputSchema,
     outputSchema: WeatherSummaryOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('AI failed to generate weather summary output.');
+    }
+    return output;
   }
 );
 
