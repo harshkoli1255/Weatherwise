@@ -22,14 +22,9 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   const [hasFocus, setHasFocus] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // No pre-fill logic needed here now
-  }, [currentCityName, inputValue]);
-
-
   const debouncedFetchSuggestions = useCallback(
     (query: string) => {
-      if (query.length < 1) { // Changed from 2 to 1
+      if (query.length < 1) { 
         setSuggestions([]);
         setIsSuggestionsOpen(query.length > 0 && hasFocus);
         return;
@@ -112,8 +107,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
 
   return (
-    <form onSubmit={handleSubmit} className="relative flex w-full max-w-lg sm:max-w-xl md:max-w-2xl items-center space-x-2 sm:space-x-3">
-      <Command className="relative w-full overflow-visible rounded-xl shadow-lg focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
+    <form 
+      onSubmit={handleSubmit} 
+      className="relative flex w-11/12 md:w-5/6 lg:w-3/4 max-w-lg sm:max-w-xl md:max-w-2xl items-center space-x-2 sm:space-x-3"
+    >
+      <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
           ref={inputRef}
           value={inputValue}
@@ -121,13 +119,13 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           placeholder={currentCityName ? `Search (e.g., '${currentCityName}') or type any city...` : "E.g., London, New York, Tokyo..."}
-          className="flex-grow text-base md:text-lg h-12 md:h-14 px-4 sm:px-5 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
+          className="flex-grow text-sm md:text-base h-12 md:h-14 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
           aria-label="City name"
           disabled={isSearchingWeather}
           name="city"
         />
         {isSuggestionsOpen && (
-          <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border">
+          <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto">
             {isLoadingSuggestions && (
               <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
@@ -179,19 +177,20 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         type="submit"
         disabled={isSearchingWeather || !inputValue.trim()}
         aria-label="Search weather"
-        className="h-12 md:h-14 rounded-xl px-5 sm:px-7 shadow-lg hover:shadow-xl font-semibold transition-all duration-150 ease-in-out text-base md:text-lg"
+        className="h-12 md:h-14 rounded-lg sm:rounded-xl px-4 sm:px-6 shadow-md hover:shadow-lg font-semibold transition-all duration-150 ease-in-out text-sm md:text-base"
       >
         {isSearchingWeather ? (
           <>
-            <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
+            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
             Searching...
           </>
         ) : (
           <>
-            <Search className="mr-2 h-5 w-5 md:h-6 md:w-6" /> Search
+            <Search className="mr-2 h-4 w-4 md:h-5 md:w-5" /> Search
           </>
         )}
       </Button>
     </form>
   );
 }
+
