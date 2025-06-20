@@ -3,6 +3,7 @@
 
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
+import { correctCitySearchQuery, type CorrectCitySearchQueryInput } from '@/ai/flows/correct-search-query-flow';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -165,8 +166,8 @@ export async function fetchWeatherAndSummaryAction(
 
     if (currentWeatherResult.data && currentWeatherResult.rawResponse) {
       currentWeatherData = currentWeatherResult.data;
+      // Use coordinates from successful current weather fetch for forecast to ensure consistency
       const coord = currentWeatherResult.rawResponse.coord;
-
       const forecastLocationIdentifier: LocationIdentifier = { 
         type: 'coords', 
         lat: coord.lat,
@@ -182,8 +183,6 @@ export async function fetchWeatherAndSummaryAction(
         break; 
       } else {
         lastOpenWeatherError = `Forecast fetch failed: ${hourlyForecastResult.error} (Key ${currentKeyIndex})`;
-        // Only break if it's not a key-related error (401, 403, 429)
-        // If it IS a key-related error, we want to continue to the next key.
         if (![401, 403, 429].includes(hourlyForecastResult.status ?? 0)) {
            break; 
         }
@@ -194,8 +193,6 @@ export async function fetchWeatherAndSummaryAction(
         const cityNotFound = lastOpenWeatherError.toLowerCase().includes("not found") || lastOpenWeatherError.toLowerCase().includes("city name cannot be empty");
         return { data: null, error: lastOpenWeatherError, cityNotFound };
       }
-      // Only break if it's not a key-related error (401, 403, 429)
-      // If it IS a key-related error, we want to continue to the next key.
       if (![401, 403, 429].includes(currentWeatherResult.status ?? 0)) {
         break;
       }
@@ -215,7 +212,7 @@ export async function fetchWeatherAndSummaryAction(
     feelsLike: currentWeatherData.feelsLike,
     humidity: currentWeatherData.humidity,
     windSpeed: currentWeatherData.windSpeed,
-    condition: currentWeatherData.description,
+    condition: currentWeatherData.description, // Use detailed description for better AI context
   };
 
   let aiSummaryOutput: WeatherSummaryOutput | null = null;
@@ -223,19 +220,39 @@ export async function fetchWeatherAndSummaryAction(
 
   if (hasGeminiConfig) {
       try {
+          console.log("Attempting to generate AI weather summary for:", aiInput.city);
           aiSummaryOutput = await summarizeWeather(aiInput);
-      } catch (aiErr) {
-          console.error("Error generating AI weather summary:", aiErr);
-          aiError = aiErr instanceof Error ? aiErr.message : "An unexpected error occurred with the AI summary service.";
+          console.log("AI summary successfully generated.");
+      } catch (err) { // Changed aiErr to err to avoid typescript unused var if only using err.message
+          const strongError = err as Error & { status?: number; code?: number; details?: string; cause?: any };
+          console.error("Error generating AI weather summary. Raw Error:", strongError);
+          console.error("Error Name:", strongError.name);
+          console.error("Error Message:", strongError.message);
+          console.error("Error Cause:", strongError.cause);
+
+
+          aiError = strongError.message || "An unexpected error occurred with the AI summary service.";
           
-          if (aiError.toLowerCase().includes("api key not valid") || aiError.includes("429") || aiError.toLowerCase().includes("quota") || aiError.toLowerCase().includes("resource has been exhausted") || aiError.toLowerCase().includes("billing") || aiError.toLowerCase().includes("permission denied") ) {
-              aiError = "The AI weather summary service is temporarily unavailable due to API key or quota issues. Weather data is still available.";
+          const lowerAiError = aiError.toLowerCase();
+          if (lowerAiError.includes("api key not valid") || 
+              lowerAiError.includes("api_key_not_valid") ||
+              lowerAiError.includes("permission denied") ||
+              lowerAiError.includes("billing") ||
+              lowerAiError.includes("quota") ||
+              lowerAiError.includes("resource has been exhausted") ||
+              lowerAiError.includes("429") || // Too Many Requests
+              (strongError.status && [401, 403, 429].includes(strongError.status)) || // HTTP status codes
+              (strongError.code && [7, 8, 14].includes(strongError.code)) // Common gRPC codes for these issues
+            ) {
+              aiError = "The AI weather summary service is temporarily unavailable due to API key, quota, or billing issues. Weather data is still available.";
           } else {
               aiError = "Could not generate AI weather summary at this time.";
           }
+          console.log("Assigned AI Error message:", aiError);
       }
   } else {
       aiError = "AI summary service is not configured (Gemini API key missing).";
+      console.log(aiError);
   }
   
   return {
@@ -245,14 +262,13 @@ export async function fetchWeatherAndSummaryAction(
       weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
       hourlyForecast: hourlyForecastData || [], 
     },
-    error: null,
+    error: null, // No OpenWeather error if we reached here
     cityNotFound: false
   };
 }
 
 export async function fetchCityByIpAction(): Promise<{ city: string | null; country: string | null; lat: number | null; lon: number | null; error: string |null }> {
   try {
-    // Using a more robust service that doesn't require an API key for basic IP to city.
     const response = await fetch('https://ipapi.co/json/');
     if (!response.ok) {
         const errorText = await response.text();
@@ -270,7 +286,6 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
 
   } catch (error) {
     console.error("Error fetching city by IP (ipapi.co):", error);
-    // Fallback to ip-api.com if ipapi.co fails
     try {
         console.log("Falling back to ip-api.com for IP geolocation.");
         const fallbackResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,city,lat,lon');
@@ -292,9 +307,35 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
 }
 
 export async function fetchCitySuggestionsAction(query: string): Promise<{ suggestions: CitySuggestion[] | null; error: string | null }> {
-  if (!query || query.trim().length < 2) { // Minimum query length for useful suggestions
+  if (!query || query.trim().length === 0) { 
     return { suggestions: [], error: null };
   }
+
+  let processedQuery = query.trim();
+
+  // Attempt AI-powered query correction
+  const geminiApiKeysString = process.env.GEMINI_API_KEYS;
+  const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
+
+  if (hasGeminiConfig) {
+    try {
+      const correctionInput: CorrectCitySearchQueryInput = { query: processedQuery };
+      console.log("Attempting to correct search query:", processedQuery);
+      const correctionResult = await correctCitySearchQuery(correctionInput);
+      if (correctionResult.wasCorrected && correctionResult.correctedQuery) {
+        console.log(`Query corrected: "${processedQuery}" -> "${correctionResult.correctedQuery}"`);
+        processedQuery = correctionResult.correctedQuery;
+      } else {
+        console.log("Query not corrected or AI correction failed, using original:", processedQuery);
+      }
+    } catch (correctionError) {
+      console.error("Error during AI query correction:", correctionError);
+      // Proceed with original query if AI correction fails
+    }
+  } else {
+    console.log("AI query correction skipped: Gemini API key not configured.");
+  }
+
 
   const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
   if (!openWeatherApiKeysString) {
@@ -310,17 +351,16 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
   for (const apiKey of openWeatherApiKeys) {
     currentKeyIndex++;
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=8&appid=${apiKey}`;
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(processedQuery)}&limit=8&appid=${apiKey}`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
         lastError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
-        if (![401, 403, 429].includes(response.status)) { // Non-key related error
+        if (![401, 403, 429].includes(response.status)) { 
           console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastError, url });
           return { suggestions: null, error: lastError };
         }
-        // If key-related error, continue to next key
         console.warn(`OpenWeather Geocoding API key ${currentKeyIndex} failed or rate limited. Trying next key.`);
         continue;
       }
@@ -336,10 +376,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     } catch (e) {
       lastError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
       console.error("Error fetching city suggestions:", e);
-      // Continue to next key or report if it's the last one.
     }
   }
-  // If all keys failed
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
-

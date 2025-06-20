@@ -43,19 +43,19 @@ export interface SaveAlertsFormState {
 
 const APP_NAME = "Weatherwise";
 
-// Updated Email Theme Colors to align with new app theme
-const EMAIL_PRIMARY_COLOR_HSL = "170 65% 40%";   // Teal (matches app primary)
-const EMAIL_ACCENT_COLOR_HSL = "30 90% 60%";    // Warm Orange/Gold (matches app accent)
-const EMAIL_BODY_BACKGROUND_HSL = "210 15% 96%"; // Very Light Neutral Gray
+// Updated Email Theme Colors to align with new app theme (Blue)
+const EMAIL_PRIMARY_COLOR_HSL = "220 70% 50%";   // Primary Blue
+const EMAIL_ACCENT_COLOR_HSL = "200 80% 60%";    // Accent Blue
+const EMAIL_BODY_BACKGROUND_HSL = "220 15% 96%"; // Very Light Cool Gray
 const EMAIL_CARD_BACKGROUND_COLOR_HSL = "0 0% 100%"; // White for the content card
-const EMAIL_TEXT_COLOR_DARK_HSL = "210 25% 20%";   // Dark Cool Gray
-const EMAIL_TEXT_COLOR_LIGHT_HSL = "210 20% 45%";  // Medium Cool Gray
-const EMAIL_BORDER_COLOR_HSL = "210 20% 88%";    // Light Cool Gray Border
-const EMAIL_ICON_CELL_BACKGROUND_HSL = "170 40% 90%"; // Light version of Teal for icon cell
+const EMAIL_TEXT_COLOR_DARK_HSL = "220 25% 20%";   // Dark Cool Gray/Blue
+const EMAIL_TEXT_COLOR_LIGHT_HSL = "220 20% 45%";  // Medium Cool Gray/Blue
+const EMAIL_BORDER_COLOR_HSL = "220 20% 88%";    // Light Cool Gray Border
+const EMAIL_ICON_CELL_BACKGROUND_HSL = "220 40% 90%"; // Light version of Blue for icon cell
 
-// Sentiment Colors (kept universal for clarity)
-const GOOD_WEATHER_COLOR = "hsl(120, 60%, 45%)"; // Green
-const BAD_WEATHER_COLOR = "hsl(0, 70%, 50%)";   // Red
+// Sentiment Colors
+const GOOD_WEATHER_COLOR = "hsl(120, 60%, 45%)"; // Green (universal)
+const BAD_WEATHER_COLOR = "hsl(0, 70%, 50%)";   // Red (universal)
 const NEUTRAL_WEATHER_COLOR_TEXT = `hsl(${EMAIL_TEXT_COLOR_DARK_HSL})`;
 
 
@@ -666,5 +666,3 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
-
-    

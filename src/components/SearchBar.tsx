@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandLoading, CommandGroup } from '@/components/ui/command';
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2, MapPin } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
@@ -23,35 +23,29 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (currentCityName && inputValue === '') {
-      // Pre-fill with current city name if available and input is empty
-      // No, don't pre-fill to allow user to type freely.
-      // Instead, if currentCityName exists, it could be shown as a default/top suggestion
-      // when the list opens without any input.
-    }
+    // No pre-fill logic needed here now
   }, [currentCityName, inputValue]);
 
 
   const debouncedFetchSuggestions = useCallback(
     (query: string) => {
-      if (query.length < 2) {
+      if (query.length < 1) { // Changed from 2 to 1
         setSuggestions([]);
-        setIsSuggestionsOpen(query.length > 0 && hasFocus); // Keep open if focused and typed something
+        setIsSuggestionsOpen(query.length > 0 && hasFocus);
         return;
       }
       startSuggestionTransition(async () => {
         const result = await fetchCitySuggestionsAction(query);
         if (result.suggestions) {
-          setSuggestions(result.suggestions.slice(0, 8)); // Ensure max 8 suggestions
+          setSuggestions(result.suggestions.slice(0, 8)); 
         } else {
           setSuggestions([]);
           console.error("Suggestion fetch error:", result.error);
-          // Optionally, show a toast or inline error for suggestion fetching
         }
         setIsSuggestionsOpen(true);
       });
     },
-    [hasFocus]
+    [hasFocus] 
   );
 
   useEffect(() => {
@@ -59,12 +53,12 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       if (inputValue && hasFocus) {
         debouncedFetchSuggestions(inputValue);
       } else if (!inputValue && hasFocus && currentCityName) {
-        setSuggestions([]); // Clear if input is empty but focused with a current city (to avoid stale suggestions)
-        setIsSuggestionsOpen(false); // Optionally close, or keep open for "Use current location"
+        setSuggestions([]); 
+        setIsSuggestionsOpen(false); 
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
       }
-    }, 300); // 300ms debounce
+    }, 300); 
 
     return () => {
       clearTimeout(handler);
@@ -102,37 +96,32 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     setHasFocus(true);
     if (inputValue) {
         debouncedFetchSuggestions(inputValue);
-    } else if (currentCityName) {
-        // Could potentially show "Use current location: [currentCityName]" as the only item
-        // For now, let's just allow typing
-        setIsSuggestionsOpen(true); // Open to show empty/loading state or if user types
     } else {
-        setIsSuggestionsOpen(true); // Open to show empty/loading state
+        setIsSuggestionsOpen(true); 
     }
   };
 
   const handleInputBlur = () => {
-    // Delay blur to allow click on suggestion item
     setTimeout(() => {
         if (!document.activeElement || (inputRef.current && !inputRef.current.contains(document.activeElement))) {
             setHasFocus(false);
             setIsSuggestionsOpen(false);
         }
-    }, 150); // 150ms delay
+    }, 150);
   };
 
 
   return (
-    <form onSubmit={handleSubmit} className="relative flex w-full max-w-md sm:max-w-lg md:max-w-xl items-center space-x-2 sm:space-x-3">
-      <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
+    <form onSubmit={handleSubmit} className="relative flex w-full max-w-lg sm:max-w-xl md:max-w-2xl items-center space-x-2 sm:space-x-3">
+      <Command className="relative w-full overflow-visible rounded-xl shadow-lg focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
           ref={inputRef}
           value={inputValue}
           onValueChange={handleInputChange}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
-          placeholder={currentCityName ? `Search cities or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
-          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
+          placeholder={currentCityName ? `Search (e.g., '${currentCityName}') or type any city...` : "E.g., London, New York, Tokyo..."}
+          className="flex-grow text-base md:text-lg h-12 md:h-14 px-4 sm:px-5 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
           aria-label="City name"
           disabled={isSearchingWeather}
           name="city"
@@ -144,11 +133,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
               </div>
             )}
-            {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >=2 && (
+            {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >=1 && (
               <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
             )}
-             {!isLoadingSuggestions && inputValue.length < 2 && hasFocus && !currentCityName && (
-                <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
+             {!isLoadingSuggestions && inputValue.length < 1 && hasFocus && (
+                <CommandEmpty>Type 1+ characters to see suggestions.</CommandEmpty>
             )}
 
             {currentCityName && inputValue.length === 0 && !suggestions.length && hasFocus && (
@@ -157,12 +146,12 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     onSelect={() => {
                         setInputValue(currentCityName);
                         setIsSuggestionsOpen(false);
-                        onSearch(currentCityName); // Assuming onSearch can handle city name directly for current location
+                        onSearch(currentCityName); 
                         inputRef.current?.blur();
                     }}
                     className="cursor-pointer text-base py-2.5"
                 >
-                    <MapPin className="mr-2 h-4 w-4" />
+                    <MapPin className="mr-2 h-5 w-5" />
                     Use current location: {currentCityName}
                 </CommandItem>
             )}
@@ -175,8 +164,9 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                   onSelect={() => handleSelectSuggestion(suggestion)}
                   className="cursor-pointer text-base py-2.5"
                 >
+                  <MapPin className="mr-2.5 h-5 w-5 text-primary/80" />
                   {suggestion.name}
-                  <span className="ml-1 text-sm text-muted-foreground">
+                  <span className="ml-1.5 text-sm text-muted-foreground">
                     ({suggestion.state ? `${suggestion.state}, ` : ''}{suggestion.country})
                   </span>
                 </CommandItem>
@@ -189,20 +179,19 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         type="submit"
         disabled={isSearchingWeather || !inputValue.trim()}
         aria-label="Search weather"
-        className="h-11 md:h-12 rounded-lg sm:rounded-xl px-4 sm:px-6 shadow-md hover:shadow-lg font-semibold transition-all duration-150 ease-in-out text-sm md:text-base"
+        className="h-12 md:h-14 rounded-xl px-5 sm:px-7 shadow-lg hover:shadow-xl font-semibold transition-all duration-150 ease-in-out text-base md:text-lg"
       >
         {isSearchingWeather ? (
           <>
-            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
+            <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5 md:h-6 md:w-6 text-primary-foreground" />
             Searching...
           </>
         ) : (
           <>
-            <Search className="mr-1.5 h-4 w-4 md:h-5 md:w-5" /> Search
+            <Search className="mr-2 h-5 w-5 md:h-6 md:w-6" /> Search
           </>
         )}
       </Button>
     </form>
   );
 }
-
