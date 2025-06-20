@@ -43,22 +43,23 @@ export interface SaveAlertsFormState {
 // --- Enhanced Email HTML Generation ---
 
 const APP_NAME = "Weatherwise";
-const PRIMARY_COLOR = "#2563EB"; // Blue-600
-const ACCENT_COLOR = "#F97316"; // Orange-500
+const PRIMARY_COLOR = "#2563EB"; // Blue-600 From theme
+const ACCENT_COLOR = "#F97316"; // Orange-500 From theme
 const TEXT_COLOR_DARK = "#1F2937"; // Gray-800
 const TEXT_COLOR_LIGHT = "#4B5563"; // Gray-600
 const BACKGROUND_COLOR_LIGHT = "#F3F4F6"; // Gray-100
 const CARD_BACKGROUND_COLOR = "#FFFFFF"; // White
 
 // Function to get weather icon URL.
-// For animated:true, it returns a placeholder .gif URL.
+// For animated:true, it returns a placeholder for a .gif URL.
 // Users should replace this with their actual hosted animated GIF URLs.
 const getWeatherIconUrl = (iconCode: string, animated: boolean = false): string => {
   if (animated) {
     // IMPORTANT: Replace this logic with your actual animated GIF URLs based on iconCode.
     // This is a placeholder demonstrating the .gif extension.
     // For example: `https://your-cdn.com/animated-weather-icons/${iconCode}.gif`
-    return `https://placehold.co/80x80.gif?text=${iconCode}`;
+    // Using placehold.co to generate a generic GIF placeholder of appropriate size.
+    return `https://placehold.co/80x80.gif`; // Removed text to show a generic image
   }
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 };
@@ -86,7 +87,7 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
         .button:hover { background-color: #1D4ED8; } /* Darker primary */
         .footer { text-align: center; padding-top: 25px; border-top: 1px solid #E5E7EB; font-size: 13px; color: ${TEXT_COLOR_LIGHT}; margin-top: 30px; }
         .weather-icon-container { text-align: center; margin-bottom: 20px; }
-        .weather-icon { width: 80px; height: 80px; vertical-align: middle; }
+        .weather-icon { width: 80px; height: 80px; vertical-align: middle; border-radius: 8px; }
         .weather-details { margin-top: 20px; padding: 20px; background-color: ${BACKGROUND_COLOR_LIGHT}; border-radius: 8px; border: 1px solid #E0E7FF; }
         .weather-details p { margin: 8px 0; font-size: 15px; }
         .weather-details strong { font-weight: 600; }
@@ -126,7 +127,7 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherData, al
   const content = `
     <p>Hello,</p>
     <p>This is a weather alert from <strong>${APP_NAME}</strong> for <strong>${weatherData.city}</strong>.</p>
-    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.condition}" class="weather-icon"></div>
+    <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.condition}" class="weather-icon" data-ai-hint="weather condition animated"></div>
     <p class="alert-highlight"><strong>Alert: ${alertInfo.type}</strong></p>
     <p><strong>Details:</strong> ${alertInfo.details}</p>
     ${customThresholdsText}
@@ -585,7 +586,7 @@ export async function sendTestEmailAction(
         testContent = `
           <p>Hello,</p>
           <p>This is a <strong>test weather report</strong> from ${APP_NAME}, showing current conditions for <strong>${weatherData.city}, ${weatherData.country}</strong>.</p>
-          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.condition}" class="weather-icon"></div>
+          <div class="weather-icon-container"><img src="${iconUrl}" alt="${weatherData.condition}" class="weather-icon" data-ai-hint="weather condition animated"></div>
           <div class="weather-details">
             <p>Current conditions:</p>
             <p><strong>Temperature:</strong> ${weatherData.temperature}°C (Feels like: ${weatherData.feelsLike}°C)</p>
@@ -638,5 +639,7 @@ export async function sendTestEmailAction(
     return { message: `Failed to send test email: ${errorMessage}`, error: true };
   }
 }
+
+    
 
     
