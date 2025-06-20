@@ -60,7 +60,9 @@ const NEUTRAL_WEATHER_COLOR = `hsl(${EMAIL_TEXT_COLOR_DARK_HSL})`;
 
 
 const getWeatherIconUrl = (iconCode: string): string => {
-  return `https://openweathermap.org/img/wn/${iconCode}@4x.png`; // Using @4x for larger, clearer icons
+  // Using @4x for larger, clearer icons (200x200px source)
+  // Display size will be controlled by width/height attributes on <img> tag
+  return `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
 };
 
 
@@ -85,14 +87,14 @@ function getBaseEmailHtml(title: string, content: string, preheader?: string): s
         .content p { margin: 0 0 18px 0; }
         .content strong { color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); font-weight: 600; }
         .button-container { text-align: center; margin: 35px 0; }
-        .button { display: inline-block; background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; transition: background-color 0.2s ease-in-out; letter-spacing: 0.5px; }
-        .button:hover { background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}, 0.9); filter: brightness(110%); } /* Darken slightly on hover for primary */
+        .button { display: inline-block; background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 500; transition: background-color 0.2s ease-in-out; letter-spacing: 0.5px; font-family: 'Inter', sans-serif; }
+        .button:hover { background-color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); filter: brightness(110%); } /* Darken slightly on hover for primary */
         .footer { text-align: center; padding-top: 20px; border-top: 1px solid hsl(${EMAIL_BORDER_COLOR_HSL}); font-size: 13px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin-top: 30px; }
         
-        .weather-display-main { display: flex; align-items: center; justify-content: space-around; text-align: left; margin-bottom: 25px; padding: 20px; background-color: hsl(${EMAIL_BACKGROUND_COLOR_HSL}, 0.5); border-radius: 10px; }
-        .weather-icon-wrapper { background-color: hsl(${EMAIL_ICON_BACKGROUND_COLOR_HSL}); border-radius: 50%; padding: 15px; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-right: 20px; }
-        .weather-icon { width: 70px; height: 70px; max-width: 70px; max-height: 70px; }
-        .weather-temp-details .temperature { font-size: 48px; font-weight: 700; color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); margin:0; line-height: 1; }
+        .weather-display-main { display: flex; align-items: center; justify-content: space-around; text-align: left; margin-bottom: 25px; padding: 20px; background-color: hsl(${EMAIL_ICON_BACKGROUND_COLOR_HSL}, 0.5); border-radius: 10px; }
+        .weather-icon-wrapper { background-color: hsl(${EMAIL_ICON_BACKGROUND_COLOR_HSL}); border-radius: 50%; padding: 10px; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-right: 20px; }
+        .weather-icon { width: 80px; height: 80px; max-width: 80px; max-height: 80px; }
+        .weather-temp-details .temperature { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 700; color: hsl(${EMAIL_PRIMARY_COLOR_HSL}); margin:0; line-height: 1; }
         .weather-temp-details .description { font-size: 18px; color: hsl(${EMAIL_TEXT_COLOR_DARK_HSL}); margin: 5px 0 8px 0; text-transform: capitalize; font-weight: 500; }
         .weather-temp-details .feels-like { font-size: 15px; color: hsl(${EMAIL_TEXT_COLOR_LIGHT_HSL}); margin:0; }
 
@@ -154,7 +156,7 @@ const sendWeatherAlertEmail = async (email: string, weatherData: WeatherSummaryD
 
     <div class="weather-display-main">
       <div class="weather-icon-wrapper">
-        <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
+        <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" width="80" height="80" data-ai-hint="weather condition">
       </div>
       <div class="weather-temp-details">
         <p class="temperature">${weatherData.temperature}°C</p>
@@ -599,7 +601,7 @@ export async function sendTestEmailAction(
         
         <div class="weather-display-main">
           <div class="weather-icon-wrapper">
-            <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" data-ai-hint="weather condition">
+            <img src="${iconUrl}" alt="${weatherData.description} icon" class="weather-icon" width="80" height="80" data-ai-hint="weather condition">
           </div>
           <div class="weather-temp-details">
             <p class="temperature">${weatherData.temperature}°C</p>
@@ -667,3 +669,5 @@ export async function sendTestEmailAction(
 
 
       
+
+    
