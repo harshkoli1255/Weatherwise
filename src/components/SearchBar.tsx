@@ -109,8 +109,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   return (
     <form
       onSubmit={handleSubmit}
-      // w-full ensures it takes space in its centered container, max-w controls its size, ml-* pushes it right
-      className="relative flex w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl items-center space-x-2 sm:space-x-3 ml-0 sm:ml-4 md:ml-8 lg:ml-12"
+      className="relative flex w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl items-center space-x-2 sm:space-x-3"
     >
       <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
@@ -194,4 +193,3 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     </form>
   );
 }
-
