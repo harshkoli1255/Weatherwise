@@ -2,8 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
-import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
-import { CommandInput as CommandPrimitiveInput } from "cmdk";
+import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup, CommandInput as CommandPrimitiveInput } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, Loader2, MapPin } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
@@ -63,7 +62,8 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   }, [inputValue, debouncedFetchSuggestions, hasFocus, currentCityName]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    setInputValue(suggestion.name);
+    const displayName = `${suggestion.name}${suggestion.country ? `, ${suggestion.country}` : ''}`;
+    setInputValue(displayName);
     setIsSuggestionsOpen(false);
     setSuggestions([]);
     onSearch(suggestion.name, suggestion.lat, suggestion.lon);
@@ -94,7 +94,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     if (inputValue) {
         debouncedFetchSuggestions(inputValue);
     } else {
-        setIsSuggestionsOpen(true); 
+        setIsSuggestionsOpen(true);
     }
   };
 
@@ -117,7 +117,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none z-10">
           <SearchIcon className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
         </div>
-        <Command 
+        <Command
             className={cn(
                 "relative w-full overflow-visible rounded-lg border border-input bg-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-md group",
                 isSearchingWeather ? "opacity-70 cursor-not-allowed" : ""
@@ -159,10 +159,12 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                           onSearch(currentCityName);
                           inputRef.current?.blur();
                       }}
-                      className="cursor-pointer text-base py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground"
+                      className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                   >
-                      <MapPin className="mr-2 h-5 w-5" />
-                      Use current location: {currentCityName}
+                     <div className="flex items-center">
+                        <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium text-foreground">Use current location: {currentCityName}</span>
+                      </div>
                   </CommandItem>
               )}
               <CommandGroup>
@@ -171,13 +173,28 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     key={`${suggestion.name}-${suggestion.country}-${suggestion.state || 'nostate'}-${suggestion.lat.toFixed(2)}-${suggestion.lon.toFixed(2)}-${index}`}
                     value={`${suggestion.name}, ${suggestion.state ? suggestion.state + ', ' : ''}${suggestion.country}`}
                     onSelect={() => handleSelectSuggestion(suggestion)}
-                    className="cursor-pointer text-base py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground"
+                    className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                   >
-                    <MapPin className="mr-2.5 h-5 w-5 text-primary/80" />
-                    {suggestion.name}
-                    <span className="ml-1.5 text-sm text-muted-foreground">
-                      ({suggestion.state ? `${suggestion.state}, ` : ''}{suggestion.country})
-                    </span>
+                    <div className="flex items-center min-w-0"> {/* min-w-0 for truncation */}
+                      <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium text-foreground truncate">{suggestion.name}</span>
+                      {suggestion.country && (
+                        <span className="ml-1 text-muted-foreground flex-shrink-0">
+                          , {suggestion.country}
+                        </span>
+                      )}
+                      {suggestion.state && (
+                        <span className="ml-1 text-xs text-muted-foreground flex-shrink-0">
+                          ({suggestion.state})
+                        </span>
+                      )}
+                    </div>
+
+                    {(suggestion.lat !== undefined && suggestion.lon !== undefined) && (
+                      <span className="ml-2 pl-2 text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                        {suggestion.lat.toFixed(3)}, {suggestion.lon.toFixed(3)}
+                      </span>
+                    )}
                   </CommandItem>
                 ))}
               </CommandGroup>
