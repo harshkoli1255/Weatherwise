@@ -48,10 +48,10 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
           console.error("Suggestion fetch error:", result.error);
           // Optionally, show a toast or inline error for suggestion fetching
         }
-        setIsSuggestionsOpen(true); 
+        setIsSuggestionsOpen(true);
       });
     },
-    [hasFocus] 
+    [hasFocus]
   );
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       if (inputValue && hasFocus) {
         debouncedFetchSuggestions(inputValue);
       } else if (!inputValue && hasFocus && currentCityName) {
-        setSuggestions([]); 
+        setSuggestions([]);
         setIsSuggestionsOpen(false);
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
@@ -72,11 +72,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
   }, [inputValue, debouncedFetchSuggestions, hasFocus, currentCityName]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    setInputValue(suggestion.name); 
+    setInputValue(suggestion.name);
     setIsSuggestionsOpen(false);
-    setSuggestions([]); 
+    setSuggestions([]);
     onSearch(suggestion.name, suggestion.lat, suggestion.lon);
-    inputRef.current?.blur(); 
+    inputRef.current?.blur();
   };
 
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
@@ -85,27 +85,27 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
       setIsSuggestionsOpen(false);
       setSuggestions([]);
       onSearch(inputValue.trim());
-      inputRef.current?.blur(); 
+      inputRef.current?.blur();
     }
   };
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
     if (value.length > 0) {
-      setIsSuggestionsOpen(true); 
+      setIsSuggestionsOpen(true);
     } else {
-      setIsSuggestionsOpen(false); 
+      setIsSuggestionsOpen(false);
     }
   };
-  
+
   const handleInputFocus = () => {
     setHasFocus(true);
-    if (inputValue) { 
+    if (inputValue) {
         debouncedFetchSuggestions(inputValue);
     } else if (currentCityName) {
-        setIsSuggestionsOpen(true); 
+        setIsSuggestionsOpen(true);
     } else {
-        setIsSuggestionsOpen(true); 
+        setIsSuggestionsOpen(true);
     }
   };
 
@@ -120,7 +120,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
 
   return (
-    <form onSubmit={handleSubmit} className="relative flex w-full items-center space-x-2 sm:space-x-3">
+    <form onSubmit={handleSubmit} className="relative flex w-11/12 sm:w-10/12 md:w-4/5 lg:w-3/4 items-center space-x-2 sm:space-x-3">
       <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
           ref={inputRef}
@@ -128,11 +128,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
           onValueChange={handleInputChange}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
-          placeholder={currentCityName ? `Search cities (e.g., London) or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
+          placeholder={currentCityName ? `Search cities or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
           className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0 font-headline"
           aria-label="City name"
           disabled={isSearchingWeather}
-          name="city" 
+          name="city"
         />
         {isSuggestionsOpen && (
           <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border">
@@ -152,7 +152,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                 <CommandItem
                     key="current-location-suggestion"
                     onSelect={() => {
-                        setInputValue(currentCityName); 
+                        setInputValue(currentCityName);
                         setIsSuggestionsOpen(false);
                         onSearch(currentCityName);
                         inputRef.current?.blur();

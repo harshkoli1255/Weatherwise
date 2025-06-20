@@ -18,7 +18,7 @@ interface WeatherPageState {
   isLoading: boolean;
   loadingMessage: string | null;
   cityNotFound: boolean;
-  currentFetchedCityName?: string; 
+  currentFetchedCityName?: string;
 }
 
 interface ApiLocationParams {
@@ -61,21 +61,21 @@ export default function WeatherPage() {
       ...prev,
       isLoading: true,
       loadingMessage: params.city ? `Searching for ${params.city}...` : "Fetching weather for your location...",
-      data: null, 
+      data: null,
       error: null,
       cityNotFound: false,
     }));
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
-      
-      setWeatherState(prev => ({ // Use prev in setWeatherState to avoid stale closure for currentFetchedCityName
+
+      setWeatherState(prev => ({
         data: result.data,
         error: result.error,
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
-        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : prev.currentFetchedCityName,
+        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : (result.data ? result.data.city : prev.currentFetchedCityName),
       }));
     });
   }, [startTransition]);
@@ -92,7 +92,7 @@ export default function WeatherPage() {
           console.warn(`Geolocation error: ${geoError.message}. Falling back to IP lookup.`);
           const ipResult = await fetchCityByIpAction();
           if (ipResult.error || !ipResult.city) {
-            setWeatherState({ 
+            setWeatherState({
               data: null,
               error: ipResult.error || "Could not determine your location. Please use the search bar.",
               isLoading: false,
@@ -105,12 +105,12 @@ export default function WeatherPage() {
           }
         }
       );
-    } else { 
+    } else {
       (async () => {
         console.warn('Geolocation not supported. Falling back to IP lookup.');
         const ipResult = await fetchCityByIpAction();
         if (ipResult.error || !ipResult.city) {
-           setWeatherState({ 
+           setWeatherState({
               data: null,
               error: ipResult.error || "Could not determine your location. Please use the search bar.",
               isLoading: false,
@@ -124,7 +124,7 @@ export default function WeatherPage() {
       })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
 
   const handleSearch = (city: string, lat?: number, lon?: number) => {
@@ -153,21 +153,21 @@ export default function WeatherPage() {
           <p className="text-xl sm:text-2xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 md:mb-10 px-2">
             Your smart companion for real-time weather updates and AI-powered insights. Search any city or use your current location.
           </p>
-          {(!isLoadingDisplay || weatherState.data) && ( 
-            <div className="mt-1"> 
-              <SearchBar 
-                onSearch={handleSearch} 
+          {(!isLoadingDisplay || weatherState.data) && (
+            <div className="mt-1 w-full flex justify-end">
+              <SearchBar
+                onSearch={handleSearch}
                 isSearchingWeather={isLoadingDisplay && !weatherState.data}
-                currentCityName={weatherState.currentFetchedCityName} 
+                currentCityName={weatherState.currentFetchedCityName}
               />
             </div>
           )}
         </section>
 
-        {isLoadingDisplay && !weatherState.data && ( 
+        {isLoadingDisplay && !weatherState.data && (
           <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
             <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
-              <svg className="animate-spin h-16 w-16 sm:h-20 md:h-24 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-20 w-20 sm:h-24 md:h-28 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -179,13 +179,13 @@ export default function WeatherPage() {
         {!isLoadingDisplay && weatherState.data && (
           <WeatherDisplay weatherData={weatherState.data} />
         )}
-        
+
         {!isLoadingDisplay && !weatherState.data && weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
                     {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
-                      <MapPin className="h-16 w-16 sm:h-20 md:h-24 text-destructive mb-4 sm:mb-5 drop-shadow-lg" /> :
-                      <AlertCircle className="h-16 w-16 sm:h-20 md:h-24 text-destructive mb-4 sm:mb-5 drop-shadow-lg" />
+                      <MapPin className="h-20 w-20 sm:h-24 md:h-28 text-destructive mb-4 sm:mb-5 drop-shadow-lg" /> :
+                      <AlertCircle className="h-20 w-20 sm:h-24 md:h-28 text-destructive mb-4 sm:mb-5 drop-shadow-lg" />
                     }
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-destructive">
                         {weatherState.error.toLowerCase().includes("location") ? "Location Error" :
@@ -197,7 +197,7 @@ export default function WeatherPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
-                     <Image src="https://placehold.co/400x200.png" alt="Error illustration" width={400} height={200} className="rounded-lg mt-3 sm:mt-4 opacity-90 shadow-lg border border-border/30" data-ai-hint="map network error"/>
+                     <Image src="https://placehold.co/400x250.png" alt="Error illustration" width={400} height={250} className="rounded-lg mt-3 sm:mt-4 opacity-90 shadow-lg border border-border/30" data-ai-hint="map network error"/>
                 </CardContent>
             </Card>
         )}
@@ -205,14 +205,14 @@ export default function WeatherPage() {
         {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
              <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10">
                 <CardHeader className="items-center text-center pt-4 pb-4 sm:pb-5">
-                    <Compass className="h-16 w-16 sm:h-20 md:h-24 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
+                    <Compass className="h-20 w-20 sm:h-24 md:h-28 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
                         Please use the search bar above to find weather information for any city, or allow location access for automatic detection.
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
-                    <Image src="https://placehold.co/420x210.png" alt="Weather exploration illustration" width={420} height={210} className="rounded-lg mt-3 sm:mt-4 shadow-lg border border-border/30" data-ai-hint="world map journey"/>
+                    <Image src="https://placehold.co/420x260.png" alt="Weather exploration illustration" width={420} height={260} className="rounded-lg mt-3 sm:mt-4 shadow-lg border border-border/30" data-ai-hint="world map journey"/>
                 </CardContent>
             </Card>
         )}
@@ -223,4 +223,3 @@ export default function WeatherPage() {
     </div>
   );
 }
-    
