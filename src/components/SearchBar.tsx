@@ -128,7 +128,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
   return (
     <form onSubmit={handleSubmit} className="relative flex w-full items-center space-x-2 sm:space-x-3">
-      <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150">
+      <Command className="relative w-full overflow-visible rounded-lg sm:rounded-xl shadow-md focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all duration-150 bg-popover">
         <CommandInput
           ref={inputRef}
           value={inputValue}
@@ -136,7 +136,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           placeholder={currentCityName ? `Search cities (e.g., London) or use '${currentCityName}'` : "E.g., London, Tokyo, New York"}
-          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-none focus:ring-0"
+          className="flex-grow text-sm md:text-base h-11 md:h-12 px-3 sm:px-4 placeholder:text-muted-foreground/70 border-input bg-background focus:ring-0"
           aria-label="City name"
           disabled={isSearchingWeather}
           name="city" 
@@ -164,7 +164,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                         onSearch(currentCityName);
                         inputRef.current?.blur();
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer text-base py-2.5"
                 >
                     <MapPin className="mr-2 h-4 w-4" />
                     Use current location: {currentCityName}
@@ -177,10 +177,10 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                   key={`${suggestion.name}-${suggestion.country}-${suggestion.lat}-${index}`}
                   value={`${suggestion.name}, ${suggestion.state ? suggestion.state + ', ' : ''}${suggestion.country}`}
                   onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-base py-2.5"
                 >
                   {suggestion.name}
-                  <span className="ml-1 text-xs text-muted-foreground">
+                  <span className="ml-1 text-sm text-muted-foreground">
                     ({suggestion.state ? `${suggestion.state}, ` : ''}{suggestion.country})
                   </span>
                 </CommandItem>
