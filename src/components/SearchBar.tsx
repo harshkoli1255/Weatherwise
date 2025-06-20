@@ -202,4 +202,3 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     </form>
   );
 }
-
