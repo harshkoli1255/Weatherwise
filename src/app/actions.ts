@@ -224,23 +224,7 @@ export async function fetchWeatherAndSummaryAction(
           console.log("AI summary successfully generated.");
       } catch (err) {
           console.error("Error generating AI weather summary:", err);
-          if (err instanceof Error) {
-              aiError = err.message;
-          } else {
-              aiError = "An unexpected error occurred with the AI summary service.";
-          }
-
-          const lowerCaseError = (aiError || "").toLowerCase();
-          if (
-              lowerCaseError.includes("api key not valid") ||
-              lowerCaseError.includes("api_key_not_valid") ||
-              lowerCaseError.includes("permission denied") ||
-              lowerCaseError.includes("billing") ||
-              lowerCaseError.includes("quota") ||
-              lowerCaseError.includes("resource has been exhausted")
-          ) {
-              aiError = "AI summary service unavailable. The configured Gemini API key may be invalid, disabled, or have billing/quota issues. Please check your .env file and server logs.";
-          }
+          aiError = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
           console.log("Assigned AI Error message:", aiError);
       }
   } else {
@@ -359,6 +343,3 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   }
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
-    
-
-    
