@@ -81,7 +81,6 @@ const weatherSummaryFlow = ai.defineFlow(
     const output = result.output;
 
     if (!output) {
-      // Deeper inspection for debugging
       const finishReason = result.candidates[0]?.finishReason;
       const safetyRatings = result.candidates[0]?.safetyRatings;
       console.error('AI summary generation failed. Finish Reason:', finishReason);

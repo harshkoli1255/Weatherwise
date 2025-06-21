@@ -3,7 +3,6 @@
 
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
-import { correctCitySearchQuery, type CorrectCitySearchQueryInput } from '@/ai/flows/correct-search-query-flow';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -149,7 +148,7 @@ export async function fetchWeatherAndSummaryAction(
   const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
 
   if (!hasGeminiConfig) {
-    console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries may not be available.");
+    console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries will not be available.");
   }
 
   let currentWeatherData: WeatherData | null = null;
@@ -225,14 +224,12 @@ export async function fetchWeatherAndSummaryAction(
           console.log("AI summary successfully generated.");
       } catch (err) {
           console.error("Error generating AI weather summary:", err);
-          // Use the specific error message from the flow if it's an Error instance
           if (err instanceof Error) {
               aiError = err.message;
           } else {
               aiError = "An unexpected error occurred with the AI summary service.";
           }
 
-          // You can still check for common API key/billing issues here if you want a more user-friendly message for those specific cases
           const lowerCaseError = (aiError || "").toLowerCase();
           if (
               lowerCaseError.includes("api key not valid") ||
@@ -242,7 +239,7 @@ export async function fetchWeatherAndSummaryAction(
               lowerCaseError.includes("quota") ||
               lowerCaseError.includes("resource has been exhausted")
           ) {
-              aiError = "AI summary service unavailable: API key, quota, or billing issue. Please check your .env file and server logs.";
+              aiError = "AI summary service unavailable. The configured Gemini API key may be invalid, disabled, or have billing/quota issues. Please check your .env file and server logs.";
           }
           console.log("Assigned AI Error message:", aiError);
       }
@@ -307,29 +304,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     return { suggestions: [], error: null };
   }
 
-  let processedQuery = query.trim();
-
-  const geminiApiKeysString = process.env.GEMINI_API_KEYS;
-  const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
-
-  if (hasGeminiConfig) {
-    try {
-      const correctionInput: CorrectCitySearchQueryInput = { query: processedQuery };
-      console.log("Attempting to correct search query:", processedQuery);
-      const correctionResult = await correctCitySearchQuery(correctionInput);
-      if (correctionResult.wasCorrected && correctionResult.correctedQuery) {
-        console.log(`Query corrected: "${processedQuery}" -> "${correctionResult.correctedQuery}"`);
-        processedQuery = correctionResult.correctedQuery;
-      } else {
-        console.log("Query not corrected or AI correction failed, using original:", processedQuery);
-      }
-    } catch (correctionError) {
-      console.error("Error during AI query correction:", correctionError);
-    }
-  } else {
-    console.log("AI query correction skipped: Gemini API key not configured.");
-  }
-
+  const processedQuery = query.trim();
 
   const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
   if (!openWeatherApiKeysString) {
@@ -364,8 +339,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       const seenKeys = new Set<string>();
 
       for (const item of data) {
-        // Create a key that identifies a unique place, allowing for minor lat/lon differences.
-        // Grouping by name, country, state (if present), and lat/lon rounded to 2 decimal places (approx accuracy of 1km).
         const key = `${item.name}|${item.country}|${item.state || 'NO_STATE'}|${(item.lat || 0).toFixed(2)}|${(item.lon || 0).toFixed(2)}`;
         if (!seenKeys.has(key)) {
           seenKeys.add(key);
