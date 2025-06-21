@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { CloudSun, Bell } from 'lucide-react';
+import { SignedIn, SignedOut, UserButton, SignUpButton, SignInButton } from '@clerk/nextjs';
+import { Button } from './ui/button';
 
 export function Navbar() {
   return (
@@ -16,14 +18,30 @@ export function Navbar() {
             <Link href="/" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
               Home
             </Link>
-            <Link href="/alerts" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors flex items-center">
-              <Bell className="h-4 w-4 sm:h-4 md:h-5 mr-1.5 sm:mr-2 md:mr-2" /> Alerts
-            </Link>
+            <SignedIn>
+              <Link href="/alerts" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors flex items-center">
+                <Bell className="h-4 w-4 sm:h-4 md:h-5 mr-1.5 sm:mr-2 md:mr-2" /> Alerts
+              </Link>
+            </SignedIn>
           </div>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal">
+               <Button variant="ghost" className="text-sm sm:text-base font-medium text-muted-foreground hover:text-primary">
+                  Sign In
+               </Button>
+            </SignInButton>
+             <SignUpButton mode="modal">
+               <Button className="text-sm sm:text-base font-medium">
+                  Sign Up
+               </Button>
+             </SignUpButton>
+          </SignedOut>
           <ThemeToggle />
         </div>
       </div>
     </nav>
   );
 }
-
