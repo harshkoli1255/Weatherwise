@@ -2,8 +2,8 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
 
 // This is the most basic Clerk middleware configuration.
-// It will initialize Clerk on all routes but does not protect any of them by default.
-// We are using this simplified version to ensure the application starts without crashing.
+// It initializes Clerk on all routes but does not protect any of them by default.
+// This simplified version is being used to ensure the application can start without crashing.
 export default clerkMiddleware();
 
 export const config = {
