@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
-import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup, CommandInput as CommandPrimitiveInput } from '@/components/ui/command';
+import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
+import { Command as CommandPrimitive } from 'cmdk';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIcon, Loader2, MapPin } from 'lucide-react';
+import { Search as SearchIconLucide, Loader2, MapPin } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -115,7 +116,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     >
       <div className="relative">
         <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none z-10">
-          <SearchIcon className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+          <SearchIconLucide className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
         </div>
         <Command
             className={cn(
@@ -124,7 +125,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
             )}
             shouldFilter={false}
         >
-          <CommandPrimitiveInput
+          <CommandPrimitive.Input
             ref={inputRef}
             value={inputValue}
             onValueChange={handleInputChange}
@@ -175,7 +176,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     onSelect={() => handleSelectSuggestion(suggestion)}
                     className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                   >
-                    <div className="flex items-center min-w-0"> {/* min-w-0 for truncation */}
+                    <div className="flex items-center min-w-0">
                       <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span className="font-medium text-foreground truncate">{suggestion.name}</span>
                       {suggestion.country && (
