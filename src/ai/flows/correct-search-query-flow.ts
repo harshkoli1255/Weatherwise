@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const CorrectCitySearchQueryInputSchema = z.object({
   query: z.string().describe('The user-entered city search query, which may contain typos or spacing issues.'),

@@ -10,7 +10,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const WeatherSummaryInputSchema = z.object({
   city: z.string().describe('The city to get the weather summary for.'),
