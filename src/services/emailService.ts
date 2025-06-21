@@ -34,7 +34,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<{s
     to,
     subject,
     html,
-  };z
+  };
 
   try {
     const info = await transporter.sendMail(mailOptions);
