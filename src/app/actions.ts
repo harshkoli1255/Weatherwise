@@ -223,29 +223,26 @@ export async function fetchWeatherAndSummaryAction(
           console.log("Attempting to generate AI weather summary for:", aiInput.city);
           aiSummaryOutput = await summarizeWeather(aiInput);
           console.log("AI summary successfully generated.");
-      } catch (err) { 
-          const strongError = err as Error & { status?: number; code?: number; details?: string; cause?: any };
-          console.error("Error generating AI weather summary. Raw Error:", strongError);
-          console.error("Error Name:", strongError.name);
-          console.error("Error Message:", strongError.message);
-          console.error("Error Cause:", strongError.cause);
-
-          aiError = strongError.message || "An unexpected error occurred with the AI summary service.";
-          
-          const lowerAiError = aiError.toLowerCase();
-          if (lowerAiError.includes("api key not valid") || 
-              lowerAiError.includes("api_key_not_valid") ||
-              lowerAiError.includes("permission denied") ||
-              lowerAiError.includes("billing") ||
-              lowerAiError.includes("quota") ||
-              lowerAiError.includes("resource has been exhausted") ||
-              lowerAiError.includes("429") || 
-              (strongError.status && [401, 403, 429].includes(strongError.status)) || 
-              (strongError.code && [7, 8, 14].includes(strongError.code)) 
-            ) {
-              aiError = "The AI weather summary service is temporarily unavailable due to API key, quota, or billing issues. Please check your GEMINI_API_KEYS in the .env file and ensure the first key is valid and has quota. Weather data is still available. Review server logs for more details.";
+      } catch (err) {
+          console.error("Error generating AI weather summary:", err);
+          // Use the specific error message from the flow if it's an Error instance
+          if (err instanceof Error) {
+              aiError = err.message;
           } else {
-              aiError = "Could not generate AI weather summary at this time. This might be due to a model issue or a problem with the AI service configuration. Please review server logs for specific error messages.";
+              aiError = "An unexpected error occurred with the AI summary service.";
+          }
+
+          // You can still check for common API key/billing issues here if you want a more user-friendly message for those specific cases
+          const lowerCaseError = (aiError || "").toLowerCase();
+          if (
+              lowerCaseError.includes("api key not valid") ||
+              lowerCaseError.includes("api_key_not_valid") ||
+              lowerCaseError.includes("permission denied") ||
+              lowerCaseError.includes("billing") ||
+              lowerCaseError.includes("quota") ||
+              lowerCaseError.includes("resource has been exhausted")
+          ) {
+              aiError = "AI summary service unavailable: API key, quota, or billing issue. Please check your .env file and server logs.";
           }
           console.log("Assigned AI Error message:", aiError);
       }
