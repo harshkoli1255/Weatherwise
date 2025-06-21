@@ -1,10 +1,11 @@
 
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-// This is the most basic Clerk middleware configuration.
-// It initializes Clerk on all routes but does not protect any of them by default.
-// This simplified version is being used to ensure the application can start without crashing.
-export default clerkMiddleware();
+// This is a placeholder middleware to ensure the server starts.
+// Clerk functionality is temporarily disabled.
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
   // The following matcher runs middleware on all routes
