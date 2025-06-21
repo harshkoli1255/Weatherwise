@@ -56,7 +56,7 @@ Instructions:
 4.  Set the 'weatherSentiment' field in your output schema to 'good', 'bad', or 'neutral'.
 5.  Craft a summary that is easy to understand, focuses on the most important aspects, and does not exceed 50 words.
 
-Begin your response with the summary.
+Your response MUST be a valid JSON object that strictly conforms to the output schema. Do not add any explanatory text or markdown formatting before or after the JSON object.
 `,
   config: {
     model: 'googleai/gemini-1.5-flash-latest',
