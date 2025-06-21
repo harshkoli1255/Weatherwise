@@ -2,7 +2,6 @@
 'use client';
 
 import { useActionState, useEffect, useState, useCallback } from 'react';
-import { useFormStatus } from 'react-dom';
 import { useUser } from '@clerk/nextjs';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -44,8 +43,7 @@ const DEFAULT_DISPLAY_LOW_TEMP = 5;
 const DEFAULT_DISPLAY_WIND_SPEED = 35;
 
 
-function SavePreferencesButton() {
-  const { pending } = useFormStatus();
+function SavePreferencesButton({ pending }: { pending: boolean }) {
   return (
     <Button
       type="submit"
@@ -66,31 +64,6 @@ function SavePreferencesButton() {
     </Button>
   );
 }
-
-function SendTestEmailButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button
-      type="submit"
-      variant="outline"
-      className="w-full h-11 px-4 text-base sm:h-12 sm:px-6 sm:text-lg shadow-md hover:shadow-lg transition-shadow font-medium"
-      disabled={pending}
-    >
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
-          Sending Test...
-        </>
-      ) : (
-        <>
-          <Send className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-          Send Test Alert
-        </>
-      )}
-    </Button>
-  );
-}
-
 
 export default function AlertsPage() {
   const { user, isLoaded } = useUser();
@@ -222,7 +195,7 @@ export default function AlertsPage() {
               You are signed in. Your preferences are saved to your account and device.
             </CardDescription>
           </CardHeader>
-            <form id="mainAlertForm" action={savePrefsFormAction}>
+            <form action={savePrefsFormAction}>
               <CardContent className="space-y-6 sm:space-y-7 px-5 sm:px-7 md:px-10 pt-5 sm:pt-6 pb-3 sm:pb-4">
                 <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-lg bg-muted/60 border border-border/40 shadow-sm">
                   <div className="flex items-center space-x-3 sm:space-x-3.5">
@@ -369,28 +342,30 @@ export default function AlertsPage() {
                     )}
                   </AlertOptionWithThresholds>
                 </div>
-                {/* Hidden inputs to ensure values are sent even when toggles are off */}
-                {!formState.notifyExtremeTemp && (
-                    <>
-                        <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : String(formState.highTempThreshold)} />
-                        <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : String(formState.lowTempThreshold)} />
-                    </>
-                )}
-                {!formState.notifyStrongWind && (
-                    <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
-                )}
               </CardContent>
               <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 p-5 sm:p-6 md:p-7 border-t border-border/50 mt-3 sm:mt-4">
                   {email && formState.city && formState.alertsEnabled && (
-                    <form action={testEmailFormAction} className="w-full sm:flex-1">
-                        <input type="hidden" name="city" value={formState.city} />
-                        <input type="hidden" name="highTempThreshold" value={formState.highTempThreshold === undefined ? '' : String(formState.highTempThreshold)} />
-                        <input type="hidden" name="lowTempThreshold" value={formState.lowTempThreshold === undefined ? '' : String(formState.lowTempThreshold)} />
-                        <input type="hidden" name="windSpeedThreshold" value={formState.windSpeedThreshold === undefined ? '' : String(formState.windSpeedThreshold)} />
-                        <SendTestEmailButton />
-                    </form>
+                    <Button
+                        type="submit"
+                        formAction={testEmailFormAction}
+                        variant="outline"
+                        className="w-full sm:flex-1 h-11 px-4 text-base sm:h-12 sm:px-6 sm:text-lg shadow-md hover:shadow-lg transition-shadow font-medium"
+                        disabled={isTestEmailPending || isSavePrefsPending}
+                    >
+                        {isTestEmailPending ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                                Sending Test...
+                            </>
+                        ) : (
+                            <>
+                                <Send className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                                Send Test Alert
+                            </>
+                        )}
+                    </Button>
                   )}
-                  <SavePreferencesButton/>
+                  <SavePreferencesButton pending={isSavePrefsPending || isTestEmailPending} />
               </CardFooter>
             </form>
         </Card>
