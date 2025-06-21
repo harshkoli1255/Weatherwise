@@ -58,7 +58,6 @@ Instructions:
 Your response MUST be a valid JSON object that strictly conforms to the output schema. Do not add any explanatory text or markdown formatting before or after the JSON object.
 `,
   config: {
-    model: 'googleai/gemini-1.5-flash-latest',
     temperature: 0.5,
     safetySettings: [
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -77,7 +76,10 @@ const weatherSummaryFlow = ai.defineFlow(
   },
   async (flowInput: WeatherSummaryInput) => {
     const plainInput = { ...flowInput };
-    const result = await prompt(plainInput);
+    // Explicitly pass the model in the call options to ensure it's used.
+    const result = await prompt(plainInput, {
+        model: 'googleai/gemini-1.5-flash-latest'
+    });
     const output = result.output;
 
     if (!output) {
