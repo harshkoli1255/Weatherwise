@@ -100,8 +100,8 @@ export async function sendTestEmailAction(
     }
     const weatherData = weatherResult.data;
 
-    const subject = `SAMPLE: ${weatherData.aiSubject}`;
-    const html = generateWeatherAlertEmailHtml({ weatherData, isTest: true });
+    const subject = weatherData.aiSubject;
+    const html = generateWeatherAlertEmailHtml({ weatherData });
 
     const result = await sendEmail({
       to: emailAddress,
@@ -110,7 +110,7 @@ export async function sendTestEmailAction(
     });
 
     if (result.success) {
-      return { message: `Sample weather alert for ${weatherData.city} sent successfully to ${emailAddress}!`, error: false };
+      return { message: `Sample alert for ${weatherData.city} sent to ${emailAddress}. This is identical to a real hourly alert.`, error: false };
     } else {
       return { message: `Failed to send sample email: ${result.error}`, error: true };
     }

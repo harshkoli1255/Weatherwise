@@ -216,3 +216,8 @@ export const WeatherSummaryOutputSchema = z.object({
   activitySuggestion: z.string().describe('A friendly and professional suggestion for activities based on the weather (e.g., "A beautiful day for outdoor activities," "Ideal weather for travel," "A good day to focus on indoor tasks."). Keep it to a single, concise sentence.')
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
+
+export interface EmailTemplatePayload {
+  weatherData: WeatherSummaryData;
+  alertTriggers?: string[];
+}

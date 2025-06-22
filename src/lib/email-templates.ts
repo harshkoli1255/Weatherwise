@@ -1,16 +1,9 @@
 
-import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
-
-interface EmailTemplatePayload {
-  weatherData: WeatherSummaryData;
-  alertTriggers?: string[];
-  isTest?: boolean;
-}
+import type { WeatherSummaryData, HourlyForecastData, EmailTemplatePayload } from '@/lib/types';
 
 export function generateWeatherAlertEmailHtml({
   weatherData,
   alertTriggers,
-  isTest = false,
 }: EmailTemplatePayload): string {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   const alertsUrl = new URL('/alerts', baseUrl).toString();
@@ -188,5 +181,5 @@ export function generateWeatherAlertEmailHtml({
     </center>
 </body>
 </html>
-`;
+`
 }
