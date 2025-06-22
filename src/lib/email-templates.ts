@@ -18,7 +18,8 @@ export function generateWeatherAlertEmailHtml({
 
   // --- Color Palette ---
   const colors = {
-    bg: '#030712',      // gray-950
+    bgGradient: 'linear-gradient(to bottom, #1e3a8a, #4c1d95)', // dark-blue to dark-purple
+    bgFallback: '#1e3a8a', // dark-blue as fallback
     cardBg: '#111827',  // gray-900
     text: '#d1d5db',      // gray-300
     textLight: '#9ca3af',// gray-400
@@ -26,6 +27,7 @@ export function generateWeatherAlertEmailHtml({
     heading: '#f9fafb',  // gray-50
     border: '#374151',  // gray-700
     accentRed: '#f87171', // red-400
+    accentYellow: '#fde047', // A bright, vibrant yellow
   };
 
   const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
@@ -103,7 +105,7 @@ export function generateWeatherAlertEmailHtml({
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <title>${subjectLine}</title>
 </head>
-<body style="background-color: ${colors.bg}; color: ${colors.text}; font-family: 'Inter', ${fontFamily}; padding: 24px; margin: 0;">
+<body style="background-image: ${colors.bgGradient}; background-color: ${colors.bgFallback}; color: ${colors.text}; font-family: 'Inter', ${fontFamily}; padding: 24px; margin: 0;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
         <tr>
             <td align="center">
@@ -130,8 +132,8 @@ export function generateWeatherAlertEmailHtml({
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                     <td width="55%" align="left" valign="middle">
-                                        <p style="margin: 0; font-size: 84px; font-weight: 700; color: ${colors.heading}; line-height: 1; background-image: linear-gradient(to top, #60a5fa, #a5b4fc); color: transparent; -webkit-background-clip: text; background-clip: text;">
-                                            ${weatherData.temperature}°<span style="font-size: 40px; vertical-align: 25px; margin-left: 4px; background-image: linear-gradient(to top, #9ca3af, #d1d5db); color: transparent; -webkit-background-clip: text; background-clip: text;">C</span>
+                                        <p style="margin: 0; font-size: 84px; font-weight: 700; color: ${colors.accentYellow}; line-height: 1; text-shadow: 0 0 10px rgba(253, 224, 71, 0.5);">
+                                            ${weatherData.temperature}°<span style="font-size: 40px; vertical-align: 25px; margin-left: 4px; color: ${colors.textLight}; text-shadow: none;">C</span>
                                         </p>
                                     </td>
                                     <td width="45%" align="right" valign="middle">
