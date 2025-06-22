@@ -55,6 +55,7 @@ export async function fetchCurrentWeather(location: LocationIdentifier, apiKey: 
         condition: data.weather[0].main,
         description: data.weather[0].description,
         iconCode: data.weather[0].icon,
+        timezone: data.timezone,
       },
       error: null,
       status: 200,

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -14,23 +15,57 @@ export async function saveAlertPreferencesAction(
     return { message: 'You must be signed in to save preferences.', error: true };
   }
   
+  // Zod schema is for validation after we process the FormData,
+  // as FormData doesn't directly map to complex objects/arrays.
   const AlertPreferencesSchema = z.object({
     city: z.string().min(1, 'City is required for alerts.'),
-    alertsEnabled: z.preprocess((val) => val === 'on', z.boolean()),
-    notifyExtremeTemp: z.preprocess((val) => val === 'on', z.boolean()),
+    alertsEnabled: z.boolean(),
+    notifyExtremeTemp: z.boolean(),
     highTempThreshold: z.coerce.number().optional(),
     lowTempThreshold: z.coerce.number().optional(),
-    notifyHeavyRain: z.preprocess((val) => val === 'on', z.boolean()),
-    notifyStrongWind: z.preprocess((val) => val === 'on', z.boolean()),
+    notifyHeavyRain: z.boolean(),
+    notifyStrongWind: z.boolean(),
     windSpeedThreshold: z.coerce.number().optional(),
+    schedule: z.object({
+      enabled: z.boolean(),
+      days: z.array(z.number().min(0).max(6)),
+      startHour: z.coerce.number().min(0).max(23),
+      endHour: z.coerce.number().min(0).max(23),
+    }),
   });
+  
+  // Manually construct the object from FormData
+  const scheduleDays = [0, 1, 2, 3, 4, 5, 6]
+    .filter(day => formData.get(`scheduleDay${day}`) === 'on')
+    .map(Number);
+    
+  const dataToValidate = {
+    city: formData.get('city'),
+    alertsEnabled: formData.get('alertsEnabled') === 'on',
+    notifyExtremeTemp: formData.get('notifyExtremeTemp') === 'on',
+    highTempThreshold: formData.get('highTempThreshold'),
+    lowTempThreshold: formData.get('lowTempThreshold'),
+    notifyHeavyRain: formData.get('notifyHeavyRain') === 'on',
+    notifyStrongWind: formData.get('notifyStrongWind') === 'on',
+    windSpeedThreshold: formData.get('windSpeedThreshold'),
+    schedule: {
+      enabled: formData.get('scheduleEnabled') === 'on',
+      days: scheduleDays,
+      startHour: formData.get('scheduleStartHour'),
+      endHour: formData.get('scheduleEndHour'),
+    },
+  };
 
-  const validatedFields = AlertPreferencesSchema.safeParse(Object.fromEntries(formData.entries()));
+  const validatedFields = AlertPreferencesSchema.safeParse(dataToValidate);
 
   if (!validatedFields.success) {
+    // A more specific error message if possible
     const firstError = Object.values(validatedFields.error.flatten().fieldErrors)[0]?.[0];
+    const path = validatedFields.error.errors[0]?.path.join('.');
+    const message = path ? `Error in ${path}: ${firstError}` : firstError;
+    
     return {
-      message: firstError || 'Invalid data provided. Please check the form and try again.',
+      message: message || 'Invalid data provided. Please check the form and try again.',
       error: true,
     };
   }

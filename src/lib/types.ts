@@ -19,6 +19,7 @@ export interface WeatherData {
   condition: string; // e.g., "Clouds"
   description: string; // e.g., "scattered clouds"
   iconCode: string; // e.g., "03d"
+  timezone: number; // Timezone shift in seconds from UTC
 }
 
 export interface WeatherSummaryData extends WeatherData {
@@ -131,6 +132,13 @@ export interface OpenWeatherForecastAPIResponse {
   };
 }
 
+export interface AlertSchedule {
+  enabled: boolean;
+  days: number[]; // 0 for Sunday, 6 for Saturday
+  startHour: number; // 0-23
+  endHour: number; // 0-23
+}
+
 export interface AlertPreferences {
   email: string;
   city: string;
@@ -142,6 +150,7 @@ export interface AlertPreferences {
   // rainThreshold?: number; // Rain threshold customization deferred due to API complexity
   notifyStrongWind: boolean;
   windSpeedThreshold?: number;
+  schedule?: AlertSchedule;
 }
 
 export interface IpApiLocationResponse {

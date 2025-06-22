@@ -50,6 +50,12 @@ export default async function AlertsPage() {
     notifyHeavyRain: false,
     notifyStrongWind: false,
     windSpeedThreshold: 40,
+    schedule: {
+      enabled: false,
+      days: [0, 1, 2, 3, 4, 5, 6], // All days by default
+      startHour: 0, // 12 AM
+      endHour: 23,  // 11 PM
+    },
   };
   
   const savedPreferencesRaw = user.privateMetadata?.alertPreferences;
@@ -62,6 +68,10 @@ export default async function AlertsPage() {
     ...defaultPreferences,
     ...savedPreferences,
     email: primaryEmail, // Always use the current primary email
+    schedule: {
+      ...defaultPreferences.schedule,
+      ...(savedPreferences?.schedule || {}),
+    },
   };
 
   return (
