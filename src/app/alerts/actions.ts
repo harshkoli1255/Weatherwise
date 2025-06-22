@@ -7,6 +7,7 @@ import type { AlertPreferences } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { sendEmail } from '@/services/emailService';
 import { fetchWeatherAndSummaryAction } from '@/app/actions';
+import { useFormState } from 'react-dom';
 
 export type SaveAlertsFormState = {
   message: string | null;
@@ -127,6 +128,21 @@ export async function sendTestEmailAction(
                 <![endif]-->
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation" style="background-color: #111827; border-radius: 16px; border: 1px solid #374151; padding: 24px 32px; max-width: 600px;">
                     
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding-bottom: 24px;">
+                            <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">Hi there,</p>
+                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">Here is your requested test weather alert. This is a preview of the notifications you can receive based on your custom alert settings.</p>
+                        </td>
+                    </tr>
+
+                    <!-- Separator -->
+                    <tr>
+                        <td style="padding-bottom: 24px;">
+                            <div style="height: 1px; background-color: #374151;"></div>
+                        </td>
+                    </tr>
+
                     <!-- Header: City & Description -->
                     <tr>
                         <td align="center" style="padding-bottom: 24px; text-align: center;">
@@ -215,11 +231,11 @@ export async function sendTestEmailAction(
                     <!-- Footer -->
                     <tr>
                         <td align="center" style="padding-top: 32px; text-align: center; font-size: 13px; color: #9CA3AF;">
-                             <p style="margin: 0 0 16px 0;">To manage your alert preferences, please visit your settings.</p>
+                             <p style="margin: 0 0 16px 0;">This is an automated alert from Weatherwise. You can customize your notification settings at any time by visiting the alerts page on our website.</p>
                              <a href="${alertsUrl}" style="background-color: #3B82F6; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500;">
-                                 Manage Alerts
+                                 Manage Your Alerts
                              </a>
-                             <p style="margin-top: 24px; font-size: 12px;">© ${new Date().getFullYear()} Weatherwise</p>
+                             <p style="margin-top: 24px; font-size: 12px;">You received this email because alerts are enabled for your account. <br> © ${new Date().getFullYear()} Weatherwise. All Rights Reserved.</p>
                         </td>
                     </tr>
                 </table>
