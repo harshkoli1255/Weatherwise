@@ -4,6 +4,7 @@
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
 import { correctCitySpelling } from '@/ai/flows/city-correction';
+import { hasGeminiConfig } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -145,9 +146,6 @@ export async function fetchWeatherAndSummaryAction(
       return { data: null, error: "Server configuration error: No valid OpenWeather API keys. Please contact support.", cityNotFound: false };
     }
     
-    const geminiApiKeysString = process.env.GEMINI_API_KEYS;
-    const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
-
     if (!hasGeminiConfig) {
       console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries will not be available.");
     }
@@ -309,9 +307,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: null, error: "Server configuration error: No valid OpenWeather API keys for suggestions." };
     }
     
-    const geminiApiKeysString = process.env.GEMINI_API_KEYS;
-    const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
-
     // Helper function to perform the fetch and parse logic
     const getSuggestionsFromApi = async (searchQuery: string): Promise<{ suggestions: CitySuggestion[] | null, error: string | null, shouldRetry: boolean }> => {
       let lastError: string | null = null;

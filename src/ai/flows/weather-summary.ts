@@ -9,9 +9,8 @@
  * - WeatherSummaryOutput - The return type for the summarizeWeather function.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, hasGeminiConfig } from '@/ai/genkit';
 import { z } from 'zod';
-import { geminiApiKeys } from '@/ai/genkit';
 
 const WeatherSummaryInputSchema = z.object({
   city: z.string().describe('The city to get the weather summary for.'),
@@ -29,8 +28,6 @@ const WeatherSummaryOutputSchema = z.object({
   weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'.")
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
-
-const hasGeminiConfig = geminiApiKeys && geminiApiKeys.length > 0;
 
 let weatherSummaryFlow: ((input: WeatherSummaryInput) => Promise<WeatherSummaryOutput>) | undefined;
 

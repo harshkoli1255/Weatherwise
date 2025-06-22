@@ -9,9 +9,8 @@
  * - CityCorrectionOutput - The return type for the correctCitySpelling function.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, hasGeminiConfig } from '@/ai/genkit';
 import { z } from 'zod';
-import { geminiApiKeys } from '@/ai/genkit';
 
 const CityCorrectionInputSchema = z.object({
   query: z.string().describe('A potentially misspelled city name.'),
@@ -26,8 +25,6 @@ const CityCorrectionOutputSchema = z.object({
     ),
 });
 export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
-
-const hasGeminiConfig = geminiApiKeys && geminiApiKeys.length > 0;
 
 let cityCorrectionFlow: ((input: CityCorrectionInput) => Promise<CityCorrectionOutput>) | undefined;
 
