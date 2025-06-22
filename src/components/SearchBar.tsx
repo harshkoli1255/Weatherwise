@@ -60,7 +60,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
 
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    const displayName = `${suggestion.name}${suggestion.country ? `, ${suggestion.country}` : ''}`;
+    const displayName = `${suggestion.name}${suggestion.state ? ` (${suggestion.state})` : ''}${suggestion.country ? `, ${suggestion.country}` : ''}`;
     setInputValue(displayName);
     setIsSuggestionsOpen(false);
     onSearch(suggestion.name, suggestion.lat, suggestion.lon);
@@ -142,7 +142,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
             </Button>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-auto">
+        <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-a_uto">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
@@ -152,10 +152,12 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
             <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
             )}
             <CommandGroup>
-            {suggestions.map((suggestion, index) => (
+            {suggestions.map((suggestion) => {
+              const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat}|${suggestion.lon}`;
+              return (
                 <CommandItem
-                key={`${suggestion.name}-${suggestion.country}-${index}`}
-                value={`${suggestion.name}, ${suggestion.country}`}
+                key={uniqueKey}
+                value={uniqueKey}
                 onSelect={() => handleSelectSuggestion(suggestion)}
                 className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                 >
@@ -174,7 +176,8 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                     )}
                 </div>
                 </CommandItem>
-            ))}
+              )
+            })}
             </CommandGroup>
         </CommandList>
         )}

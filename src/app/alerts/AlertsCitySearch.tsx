@@ -102,7 +102,8 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
   }, [inputValue, hasFocus, defaultValue, debouncedFetchSuggestions]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    setInputValue(suggestion.name);
+    const displayName = `${suggestion.name}${suggestion.state ? ` (${suggestion.state})` : ''}${suggestion.country ? `, ${suggestion.country}` : ''}`;
+    setInputValue(displayName);
     setIsSuggestionsOpen(false);
     setSuggestions([]);
     inputRef.current?.blur();
@@ -188,27 +189,30 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
                 <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
                 )}
                 <CommandGroup>
-                {suggestions.map((suggestion, index) => (
-                    <CommandItem
-                    key={`${suggestion.name}-${suggestion.country}-${suggestion.state || 'nostate'}-${index}`}
-                    value={suggestion.name}
-                    onSelect={() => handleSelectSuggestion(suggestion)}
-                    className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center"
-                    >
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium text-foreground truncate">{suggestion.name}</span>
-                    {suggestion.country && (
-                        <span className="ml-1 text-muted-foreground flex-shrink-0">
-                            , {suggestion.country}
-                        </span>
-                        )}
-                        {suggestion.state && (
-                        <span className="ml-1 text-xs text-muted-foreground flex-shrink-0">
-                            ({suggestion.state})
-                        </span>
-                        )}
-                    </CommandItem>
-                ))}
+                {suggestions.map((suggestion) => {
+                    const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat}|${suggestion.lon}`;
+                    return (
+                        <CommandItem
+                        key={uniqueKey}
+                        value={uniqueKey}
+                        onSelect={() => handleSelectSuggestion(suggestion)}
+                        className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center"
+                        >
+                        <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium text-foreground truncate">{suggestion.name}</span>
+                        {suggestion.country && (
+                            <span className="ml-1 text-muted-foreground flex-shrink-0">
+                                , {suggestion.country}
+                            </span>
+                            )}
+                            {suggestion.state && (
+                            <span className="ml-1 text-xs text-muted-foreground flex-shrink-0">
+                                ({suggestion.state})
+                            </span>
+                            )}
+                        </CommandItem>
+                    );
+                })}
                 </CommandGroup>
             </CommandList>
           </div>
