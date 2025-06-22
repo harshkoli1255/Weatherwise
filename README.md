@@ -16,6 +16,7 @@ Before running the application, you must configure your API keys in the `.env` f
 
 ### Optional (for enhanced features):
 *   `GEMINI_API_KEYS`: Required for AI-powered summaries. Get one or more keys from [Google AI Studio](https://aistudio.google.com/).
+*   `CRON_SECRET`: Required for sending automated weather alerts. This should be a long, random, secure string that you generate.
 *   **Email Alerts (`EMAIL_*` variables)**: Required for sending email alerts.
     *   The application is pre-configured to use **Gmail's SMTP servers**.
     *   To use your Gmail account, you must generate a 16-digit **App Password**. Simply using your regular Google password will not work.
@@ -46,6 +47,24 @@ Before running the application, you must configure your API keys in the `.env` f
 *   **Hourly Forecasts:** View a 24-hour weather forecast with temperature and conditions.
 *   **Configurable Email Alerts:** Set up email notifications for specific weather conditions (extreme temperatures, heavy rain, strong winds) for your chosen city.
 *   **Theme Customization:** Switch between light and dark modes for comfortable viewing.
+
+## Automated Weather Alerts
+
+This application includes a service to automatically send weather alerts to users based on their saved preferences. This service is triggered by an API endpoint that must be called periodically by an external scheduler (a "cron job").
+
+**Endpoint:** `GET /api/cron`
+
+To run the alert service, you need to set up a cron job from a service like [cron-job.org](https://cron-job.org/), [EasyCron](https://www.easycron.com/), or a GitHub Action schedule. Configure it to send a `GET` request to your application's `/api/cron` endpoint. The request must include the `CRON_SECRET` as a bearer token in the `Authorization` header.
+
+You should schedule the job to run at an interval that makes sense for weather alerts, for example, every hour.
+
+**Example using `curl`:**
+```bash
+curl -X GET "https://<your-app-url>/api/cron" \
+-H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+---
 
 ## Tech Stack:
 
