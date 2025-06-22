@@ -15,78 +15,83 @@ import {
 export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-16 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
+      <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo */}
-        <Link href="/" className="mr-auto flex items-center space-x-2.5 group">
-          <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
-          <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
-            Weatherwise
-          </span>
-        </Link>
-        
-        {/* Desktop Links & User Actions */}
-        <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-            <Link href="/">Home</Link>
-            </Button>
-            <Button variant="ghost" asChild>
-            <Link href="/alerts">Alerts</Link>
-            </Button>
-            <SignedOut>
-            <SignInButton mode="modal">
-                <Button variant="outline">Sign In</Button>
-            </SignInButton>
-            </SignedOut>
-            <SignedIn>
-            <UserButton />
-            </SignedIn>
-            <ThemeToggle />
+        <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2.5 group">
+                <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
+                <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
+                    Weatherwise
+                </span>
+            </Link>
         </div>
 
-        {/* Mobile navigation menu */}
-        <div className="md:hidden">
-            <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+        {/* Right Side: Links & Actions */}
+        <div className="flex items-center space-x-2">
+            {/* Desktop Links & User Actions */}
+            <div className="hidden md:flex items-center space-x-4">
+                <Button variant="ghost" asChild>
+                    <Link href="/">Home</Link>
                 </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-                <nav className="flex flex-col space-y-6 pt-8">
-                <SheetClose asChild>
-                    <Link href="/" className="text-lg font-medium text-foreground">
-                    Home
-                    </Link>
-                </SheetClose>
-                <SheetClose asChild>
-                    <Link href="/alerts" className="text-lg font-medium text-foreground">
-                    Alerts
-                    </Link>
-                </SheetClose>
-                </nav>
-                <div className="mt-8 pt-6 border-t">
+                <Button variant="ghost" asChild>
+                    <Link href="/alerts">Alerts</Link>
+                </Button>
                 <SignedOut>
-                    <SheetClose asChild>
-                        <SignInButton mode="modal">
-                            <Button variant="outline" className="w-full">Sign In</Button>
-                        </SignInButton>
-                    </SheetClose>
+                    <SignInButton mode="modal">
+                        <Button variant="outline">Sign In</Button>
+                    </SignInButton>
                 </SignedOut>
                 <SignedIn>
-                    <div className="flex items-center justify-between">
-                        <p className="text-lg font-medium text-foreground">Profile</p>
-                        <UserButton />
-                    </div>
+                    <UserButton />
                 </SignedIn>
-                    <div className="flex items-center justify-between mt-6">
-                    <p className="text-lg font-medium text-foreground">Theme</p>
-                    <ThemeToggle />
-                </div>
-                </div>
-            </SheetContent>
-            </Sheet>
+                <ThemeToggle />
+            </div>
+
+            {/* Mobile navigation menu */}
+            <div className="md:hidden">
+                <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                    <nav className="flex flex-col space-y-6 pt-8">
+                    <SheetClose asChild>
+                        <Link href="/" className="text-lg font-medium text-foreground">
+                        Home
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/alerts" className="text-lg font-medium text-foreground">
+                        Alerts
+                        </Link>
+                    </SheetClose>
+                    </nav>
+                    <div className="mt-8 pt-6 border-t">
+                    <SignedOut>
+                        <SheetClose asChild>
+                            <SignInButton mode="modal">
+                                <Button variant="outline" className="w-full">Sign In</Button>
+                            </SignInButton>
+                        </SheetClose>
+                    </SignedOut>
+                    <SignedIn>
+                        <div className="flex items-center justify-between">
+                            <p className="text-lg font-medium text-foreground">Profile</p>
+                            <UserButton />
+                        </div>
+                    </SignedIn>
+                        <div className="flex items-center justify-between mt-6">
+                        <p className="text-lg font-medium text-foreground">Theme</p>
+                        <ThemeToggle />
+                    </div>
+                    </div>
+                </SheetContent>
+                </Sheet>
+            </div>
         </div>
       </div>
     </nav>
