@@ -24,6 +24,16 @@ export async function checkAndSendAlerts(): Promise<{
 
   try {
     const users = await clerkClient.users.getUserList({ limit: 500 }); // Adjust limit as needed
+    
+    // Defensive check: ensure users is an array before processing
+    if (!Array.isArray(users)) {
+      const errorMsg = 'Failed to fetch a valid user list from the authentication provider.';
+      console.error(errorMsg, 'Received:', users);
+      errors.push(errorMsg);
+      // Return early with the error, ensuring all return properties are defined.
+      return { processedUsers: 0, eligibleUsers: 0, alertsSent: 0, errors };
+    }
+        
     processedUsers = users.length;
 
     for (const user of users) {
@@ -81,7 +91,7 @@ export async function checkAndSendAlerts(): Promise<{
     const errorMsg = `Failed to fetch user list from Clerk: ${error instanceof Error ? error.message : 'Unknown error'}`;
     console.error(errorMsg);
     errors.push(errorMsg);
-    return { processedUsers, eligibleUsers, alertsSent, errors };
+    return { processedUsers: 0, eligibleUsers: 0, alertsSent: 0, errors };
   }
 }
 
