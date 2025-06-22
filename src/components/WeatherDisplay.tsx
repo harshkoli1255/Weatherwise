@@ -19,7 +19,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
   }
 
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transform hover:scale-[1.01] transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4 animate-in fade-in-50 zoom-in-95">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
         <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
         <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
@@ -101,7 +101,7 @@ interface WeatherDetailItemProps {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor }: WeatherDetailItemProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-200 shadow-lg border border-border/30">
+    <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105">
       <Icon className={cn("h-7 w-7 mb-2", iconColor || 'text-primary')} />
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>
@@ -143,7 +143,7 @@ function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
   const iconColor = getIconColor(forecast.iconCode);
 
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-colors duration-200 shadow-lg border border-border/30 w-[85px] flex-shrink-0">
+    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-all duration-300 shadow-lg border border-border/30 w-[85px] flex-shrink-0 hover:shadow-xl hover:scale-105">
       <p className="text-sm font-medium text-muted-foreground mb-1.5">{forecast.time}</p>
       <WeatherIcon iconCode={forecast.iconCode} className={cn("h-9 w-9 drop-shadow-lg mb-1", iconColor)} />
       <p className="text-lg font-bold text-primary mt-1.5">{forecast.temp}°</p>
