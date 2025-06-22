@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useTransition, useRef } from '
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Loader2, MapPin, LocateFixed } from 'lucide-react';
-import { getCityFromCoordsAction } from '@/app/actions';
+import { getCityFromCoordsAction, fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
