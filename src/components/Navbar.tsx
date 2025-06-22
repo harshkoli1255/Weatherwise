@@ -21,12 +21,6 @@ export function Navbar() {
               Alerts
             </Link>
           </div>
-          <Button variant="ghost" asChild>
-            <Link href="/sign-in">Sign In</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/sign-up">Sign Up</Link>
-          </Button>
           <ThemeToggle />
         </div>
       </div>
