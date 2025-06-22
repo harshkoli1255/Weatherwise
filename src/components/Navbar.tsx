@@ -15,7 +15,7 @@ import {
 export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="container flex h-16 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo */}
         <Link href="/" className="flex items-center space-x-2.5 group">
@@ -25,8 +25,8 @@ export function Navbar() {
           </span>
         </Link>
         
-        {/* Right Side: Links, User Actions and Mobile Menu */}
-        <div className="flex items-center space-x-4">
+        {/* Right Side Wrapper: Made flexible to push content to the right */}
+        <div className="flex flex-1 items-center justify-end space-x-4">
           {/* Desktop Links & User Actions */}
           <div className="hidden md:flex items-center space-x-4">
              <Button variant="ghost" asChild>
