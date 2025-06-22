@@ -1,4 +1,3 @@
-
 'use client'; // Required for Sheet state management
 
 import Link from 'next/link';
@@ -19,78 +18,75 @@ export function Navbar() {
       <div className="container flex h-16 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo */}
-        <Link href="/" className="flex items-center space-x-2.5 group">
+        <Link href="/" className="mr-auto flex items-center space-x-2.5 group">
           <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
           <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
             Weatherwise
           </span>
         </Link>
         
-        {/* Right Side Wrapper: Made flexible to push content to the right */}
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          {/* Desktop Links & User Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-             <Button variant="ghost" asChild>
-              <Link href="/">Home</Link>
+        {/* Desktop Links & User Actions */}
+        <div className="hidden md:flex items-center space-x-4">
+            <Button variant="ghost" asChild>
+            <Link href="/">Home</Link>
             </Button>
             <Button variant="ghost" asChild>
-              <Link href="/alerts">Alerts</Link>
+            <Link href="/alerts">Alerts</Link>
             </Button>
             <SignedOut>
-              <SignInButton mode="modal">
+            <SignInButton mode="modal">
                 <Button variant="outline">Sign In</Button>
-              </SignInButton>
+            </SignInButton>
             </SignedOut>
             <SignedIn>
-              <UserButton />
+            <UserButton />
             </SignedIn>
             <ThemeToggle />
-          </div>
+        </div>
 
-          {/* Mobile navigation menu */}
-          <div className="md:hidden">
+        {/* Mobile navigation menu */}
+        <div className="md:hidden">
             <Sheet>
-              <SheetTrigger asChild>
+            <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
                 </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
+            </SheetTrigger>
+            <SheetContent side="right">
                 <nav className="flex flex-col space-y-6 pt-8">
-                  <SheetClose asChild>
+                <SheetClose asChild>
                     <Link href="/" className="text-lg font-medium text-foreground">
-                      Home
+                    Home
                     </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
+                </SheetClose>
+                <SheetClose asChild>
                     <Link href="/alerts" className="text-lg font-medium text-foreground">
-                      Alerts
+                    Alerts
                     </Link>
-                  </SheetClose>
+                </SheetClose>
                 </nav>
                 <div className="mt-8 pt-6 border-t">
-                  <SignedOut>
-                     <SheetClose asChild>
-                          <SignInButton mode="modal">
-                              <Button variant="outline" className="w-full">Sign In</Button>
-                          </SignInButton>
-                      </SheetClose>
-                  </SignedOut>
-                  <SignedIn>
-                      <div className="flex items-center justify-between">
-                         <p className="text-lg font-medium text-foreground">Profile</p>
-                         <UserButton />
-                      </div>
-                  </SignedIn>
-                   <div className="flex items-center justify-between mt-6">
-                      <p className="text-lg font-medium text-foreground">Theme</p>
-                      <ThemeToggle />
-                  </div>
+                <SignedOut>
+                    <SheetClose asChild>
+                        <SignInButton mode="modal">
+                            <Button variant="outline" className="w-full">Sign In</Button>
+                        </SignInButton>
+                    </SheetClose>
+                </SignedOut>
+                <SignedIn>
+                    <div className="flex items-center justify-between">
+                        <p className="text-lg font-medium text-foreground">Profile</p>
+                        <UserButton />
+                    </div>
+                </SignedIn>
+                    <div className="flex items-center justify-between mt-6">
+                    <p className="text-lg font-medium text-foreground">Theme</p>
+                    <ThemeToggle />
                 </div>
-              </SheetContent>
+                </div>
+            </SheetContent>
             </Sheet>
-          </div>
         </div>
       </div>
     </nav>
