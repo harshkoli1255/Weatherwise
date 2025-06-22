@@ -104,7 +104,7 @@ export async function sendTestEmailAction(
     }
     const weatherData = weatherResult.data;
 
-    const subject = `Your Weatherwise Alert for ${weatherData.city}`;
+    const subject = `${weatherData.temperature}°C & ${weatherData.description} in ${weatherData.city} | Weatherwise Alert`;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const alertsUrl = new URL('/alerts', baseUrl).toString();
     const iconUrl = `https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png`;
@@ -116,27 +116,133 @@ export async function sendTestEmailAction(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${subject}</title>
     <style>
-        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f0f4f8; color: #1e293b;}
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
-        .header { background-color: #4A90E2; color: #ffffff; padding: 24px; text-align: center; border-bottom: 5px solid #357ABD; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
-        .content { padding: 32px; }
-        .weather-main { text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px; }
-        .weather-main h2 { margin: 0 0 8px 0; font-size: 24px; color: #1e293b; }
-        .weather-main .description { margin: 0 0 16px 0; font-size: 18px; color: #475569; text-transform: capitalize; }
-        .weather-main .temperature { font-size: 72px; font-weight: bold; color: #1e293b; margin: 0; line-height: 1; }
-        .weather-main img { margin: -10px 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
-        .weather-details { display: table; width: 100%; border-spacing: 10px; }
-        .detail-item { display: table-cell; width: 33.3%; background-color: #f8fafc; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0;}
-        .detail-item .label { font-size: 14px; color: #64748b; margin-bottom: 8px; display: block; }
-        .detail-item .value { font-size: 18px; font-weight: 600; color: #1e293b; }
-        .ai-summary { margin-top: 32px; background-color: #f8fafc; border-radius: 8px; padding: 20px; border: 1px solid #e2e8f0; }
-        .ai-summary h3 { margin: 0 0 10px 0; font-size: 16px; color: #334155; }
-        .ai-summary p { margin: 0; font-size: 15px; color: #475569; line-height: 1.6; }
-        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
-        .footer a.button { color: #4A90E2; text-decoration: none; }
-        .footer .button-cta { background-color: #4A90E2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; font-weight: bold; }
-
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            color: #1f2937; /* gray-800 */
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
+            overflow: hidden;
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .header {
+            background-color: #3b82f6; /* blue-500 */
+            color: #ffffff;
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600; /* semibold */
+        }
+        .content {
+            padding: 32px;
+        }
+        .weather-main {
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+        .weather-main h2 {
+            margin: 0 0 4px 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #111827; /* gray-900 */
+        }
+        .weather-main .description {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #6b7280; /* gray-500 */
+            text-transform: capitalize;
+        }
+        .weather-main .temperature {
+            font-size: 60px;
+            font-weight: 700; /* bold */
+            color: #1f2937; /* gray-800 */
+            margin: 0;
+            line-height: 1;
+        }
+        .weather-main img {
+            margin: -10px auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        .weather-details {
+            display: table;
+            width: 100%;
+            border-spacing: 12px 0;
+            margin-left: -6px;
+            border-collapse: separate;
+        }
+        .detail-item {
+            display: table-cell;
+            width: 33.33%;
+            background-color: #f9fafb; /* gray-50 */
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .detail-item .label {
+            font-size: 13px;
+            color: #6b7280; /* gray-500 */
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 500;
+        }
+        .detail-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937; /* gray-800 */
+        }
+        .ai-summary {
+            margin-top: 32px;
+            background-color: #f9fafb; /* gray-50 */
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #3b82f6; /* blue-500 accent */
+        }
+        .ai-summary h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #111827; /* gray-900 */
+            font-weight: 600;
+        }
+        .ai-summary p {
+            margin: 0;
+            font-size: 15px;
+            color: #4b5563; /* gray-600 */
+            line-height: 1.6;
+        }
+        .footer {
+            background-color: #f9fafb; /* gray-50 */
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280; /* gray-500 */
+            border-top: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .footer .button-cta {
+            background-color: #3b82f6; /* blue-500 */
+            color: #ffffff;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 12px;
+            margin-bottom: 12px;
+            font-weight: 500; /* medium */
+        }
     </style>
 </head>
 <body>
@@ -171,7 +277,7 @@ export async function sendTestEmailAction(
             </div>
         </div>
         <div class="footer">
-            <p>To manage your notification preferences or to unsubscribe, please visit your settings.</p>
+            <p>This is a test alert. To manage your notification preferences or to unsubscribe, please visit your settings.</p>
             <a href="${alertsUrl}" class="button-cta">
                 Manage Alerts
             </a>
