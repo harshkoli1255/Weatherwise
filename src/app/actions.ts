@@ -12,13 +12,13 @@ type LocationIdentifier =
   | { type: 'city', city: string }
   | { type: 'coords', lat: number, lon: number };
 
-const CoordinatesSchema = z.object({
-  lat: z.number(),
-  lon: z.number(),
-});
-const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
-
 async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
+  const CoordinatesSchema = z.object({
+    lat: z.number(),
+    lon: z.number(),
+  });
+  const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
+
   try {
     let url = '';
     if (location.type === 'city') {
@@ -77,6 +77,12 @@ async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string)
 }
 
 async function fetchHourlyForecast(location: LocationIdentifier, apiKey: string): Promise<{data: HourlyForecastData[] | null, error: string | null, status?: number}> {
+  const CoordinatesSchema = z.object({
+    lat: z.number(),
+    lon: z.number(),
+  });
+  const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
+
   try {
     let url = '';
     if (location.type === 'city') {

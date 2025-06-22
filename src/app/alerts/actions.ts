@@ -10,17 +10,6 @@ import { fetchWeatherAndSummaryAction } from '@/app/actions';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 import { checkAndSendAlerts } from '@/services/alertProcessing';
 
-const AlertPreferencesSchema = z.object({
-  city: z.string().min(1, 'City is required for alerts.'),
-  alertsEnabled: z.preprocess((val) => val === 'on', z.boolean()),
-  notifyExtremeTemp: z.preprocess((val) => val === 'on', z.boolean()),
-  highTempThreshold: z.coerce.number().optional(),
-  lowTempThreshold: z.coerce.number().optional(),
-  notifyHeavyRain: z.preprocess((val) => val === 'on', z.boolean()),
-  notifyStrongWind: z.preprocess((val) => val === 'on', z.boolean()),
-  windSpeedThreshold: z.coerce.number().optional(),
-});
-
 export async function saveAlertPreferencesAction(
   prevState: SaveAlertsFormState,
   formData: FormData
@@ -29,6 +18,17 @@ export async function saveAlertPreferencesAction(
   if (!userId) {
     return { message: 'You must be signed in to save preferences.', error: true };
   }
+  
+  const AlertPreferencesSchema = z.object({
+    city: z.string().min(1, 'City is required for alerts.'),
+    alertsEnabled: z.preprocess((val) => val === 'on', z.boolean()),
+    notifyExtremeTemp: z.preprocess((val) => val === 'on', z.boolean()),
+    highTempThreshold: z.coerce.number().optional(),
+    lowTempThreshold: z.coerce.number().optional(),
+    notifyHeavyRain: z.preprocess((val) => val === 'on', z.boolean()),
+    notifyStrongWind: z.preprocess((val) => val === 'on', z.boolean()),
+    windSpeedThreshold: z.coerce.number().optional(),
+  });
 
   const validatedFields = AlertPreferencesSchema.safeParse(Object.fromEntries(formData.entries()));
 
