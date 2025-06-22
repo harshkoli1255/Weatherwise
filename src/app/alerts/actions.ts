@@ -3,17 +3,12 @@
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import type { AlertPreferences } from '@/lib/types';
+import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { sendEmail } from '@/services/emailService';
 import { fetchWeatherAndSummaryAction } from '@/app/actions';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 import { checkAndSendAlerts } from '@/services/alertProcessing';
-
-export type SaveAlertsFormState = {
-  message: string | null;
-  error: boolean;
-};
 
 const AlertPreferencesSchema = z.object({
   city: z.string().min(1, 'City is required for alerts.'),
@@ -75,9 +70,9 @@ export async function saveAlertPreferencesAction(
 
 
 export async function sendTestEmailAction(
-  prevState: { message: string | null; error: boolean },
+  prevState: SaveAlertsFormState,
   formData: FormData
-): Promise<{ message: string | null; error: boolean }> {
+): Promise<SaveAlertsFormState> {
   const { userId } = auth();
   if (!userId) {
     return { message: 'You must be signed in to send a test email.', error: true };
@@ -128,9 +123,9 @@ export async function sendTestEmailAction(
 }
 
 export async function testAllAlertsAction(
-  prevState: { message: string | null; error: boolean },
+  prevState: SaveAlertsFormState,
   formData: FormData
-): Promise<{ message: string | null; error: boolean }> {
+): Promise<SaveAlertsFormState> {
   const { userId } = auth();
   if (!userId) {
     return { message: 'You must be signed in to perform this test.', error: true };

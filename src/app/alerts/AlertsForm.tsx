@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
-import type { AlertPreferences } from '@/lib/types';
+import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
 import { saveAlertPreferencesAction, sendTestEmailAction, testAllAlertsAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,9 +53,10 @@ function TestCronButton() {
 
 export function AlertsForm({ preferences }: AlertsFormProps) {
   const { toast } = useToast();
-  const [saveState, saveAction] = useFormState(saveAlertPreferencesAction, { message: null, error: false });
-  const [testEmailState, testEmailAction] = useFormState(sendTestEmailAction, { message: null, error: false });
-  const [testCronState, testCronAction] = useFormState(testAllAlertsAction, { message: null, error: false });
+  const initialState: SaveAlertsFormState = { message: null, error: false };
+  const [saveState, saveAction] = useFormState<SaveAlertsFormState, FormData>(saveAlertPreferencesAction, initialState);
+  const [testEmailState, testEmailAction] = useFormState<SaveAlertsFormState, FormData>(sendTestEmailAction, initialState);
+  const [testCronState, testCronAction] = useFormState<SaveAlertsFormState, FormData>(testAllAlertsAction, initialState);
 
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
   const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);

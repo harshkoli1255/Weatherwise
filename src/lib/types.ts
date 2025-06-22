@@ -1,4 +1,5 @@
 
+
 export interface HourlyForecastData {
   time: string; // Formatted time e.g., "3 PM" or "15:00"
   timestamp: number; // UNIX timestamp
@@ -169,3 +170,9 @@ export interface CitySuggestion {
   country: string;
   state?: string; // Optional: For states/provinces within countries like US, CA
 }
+
+// State type for form actions
+export type SaveAlertsFormState = {
+  message: string | null;
+  error: boolean;
+};
