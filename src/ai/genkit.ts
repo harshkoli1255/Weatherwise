@@ -5,7 +5,7 @@ import {googleAI} from '@genkit-ai/googleai';
 // Read the comma-separated list of Gemini API keys from .env
 const geminiApiKeysString = process.env.GEMINI_API_KEYS;
 export let geminiApiKeys: string[] = [];
-let activeGeminiApiKey = 'NO_GEMINI_KEY_CONFIGURED'; // Default if no keys are found
+let activeGeminiApiKey: string | undefined = undefined;
 
 if (geminiApiKeysString) {
   geminiApiKeys = geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key);
@@ -24,15 +24,17 @@ if (geminiApiKeysString) {
   );
 }
 
-// Default instance for simple flows or other parts of the app
-export const ai = genkit({
-  plugins: [
-    googleAI({
-      apiKey: activeGeminiApiKey,
-    }),
-  ],
-});
-
-if (geminiApiKeys.length === 0 && !geminiApiKeysString) { // Check if GEMINI_API_KEYS was not set at all
-    console.log("No Gemini API keys configured (GEMINI_API_KEYS environment variable not set). AI summarization will be disabled.");
+// Conditionally initialize the googleAI plugin
+const plugins = [];
+if (activeGeminiApiKey) {
+    plugins.push(googleAI({ apiKey: activeGeminiApiKey }));
 }
+
+if (plugins.length === 0) {
+    console.log("No Gemini API keys configured. AI features will be disabled.");
+}
+
+// Initialize Genkit with plugins that are properly configured
+export const ai = genkit({
+  plugins,
+});
