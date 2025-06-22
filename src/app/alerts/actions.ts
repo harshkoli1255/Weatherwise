@@ -4,9 +4,6 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { fetchWeatherAndSummaryAction } from '@/app/actions';
-import { sendEmail } from '@/services/emailService';
-import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 
 export async function saveAlertPreferencesAction(
   prevState: SaveAlertsFormState,
@@ -108,63 +105,5 @@ export async function saveAlertPreferencesAction(
   } catch (error) {
     console.error('Failed to save alert preferences:', error);
     return { message: 'An unexpected error occurred while saving your preferences. Please try again later.', error: true };
-  }
-}
-
-export async function sendSampleAlertAction(): Promise<{ message: string; error: boolean; }> {
-  const { userId } = auth();
-  if (!userId) {
-    return { message: 'You must be signed in to send a sample alert.', error: true };
-  }
-
-  try {
-    const user = await clerkClient.users.getUser(userId);
-    const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
-
-    if (!email) {
-      return { message: 'Could not find your email address.', error: true };
-    }
-
-    const prefsRaw = user.privateMetadata?.alertPreferences;
-    const preferences = prefsRaw ? JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences> : {};
-    
-    const city = preferences.city;
-    if (!city) {
-      return { message: 'Please save a city in your preferences before sending a sample alert.', error: true };
-    }
-
-    const weatherResult = await fetchWeatherAndSummaryAction({ city });
-    if (weatherResult.error || !weatherResult.data) {
-        return { message: `Could not fetch weather for "${city}". Error: ${weatherResult.error || 'Unknown weather API error.'}`, error: true };
-    }
-
-    const weatherData = weatherResult.data;
-
-    // Create sample triggers to demonstrate how they look in the email.
-    const sampleTriggers = [
-        `High temperature of <strong>${Math.round(weatherData.temperature + 5)}°C</strong> (your current setting: >${preferences.highTempThreshold || 30}°C)`,
-        `Strong wind of <strong>${Math.round(weatherData.windSpeed + 15)} km/h</strong> (your current setting: >${preferences.windSpeedThreshold || 40} km/h)`,
-        `<strong>Rain is forecasted</strong> based on current conditions (${weatherData.description}).`,
-    ];
-
-    const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers: sampleTriggers });
-    const emailSubject = `[SAMPLE] ${weatherData.aiSubject}`;
-
-    const emailResult = await sendEmail({
-      to: email,
-      subject: emailSubject,
-      html: emailHtml,
-    });
-
-    if (emailResult.success) {
-      return { message: `Sample alert has been sent to ${email}. Please check your inbox.`, error: false };
-    } else {
-      return { message: `Failed to send sample alert. Reason: ${emailResult.error || 'Unknown email service error.'}`, error: true };
-    }
-
-  } catch (error) {
-    console.error('Failed to send sample alert:', error);
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { message, error: true };
   }
 }
