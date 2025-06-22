@@ -1,3 +1,4 @@
+
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -15,8 +16,9 @@ export async function saveAlertPreferencesAction(
   }
   
   const BaseAlertPreferencesSchema = z.object({
-    city: z.string().optional(), // City is optional at the base level
+    city: z.string().optional(),
     alertsEnabled: z.boolean(),
+    notificationFrequency: z.enum(['everyHour', 'balanced', 'oncePerDay']).default('balanced'),
     schedule: z.object({
       enabled: z.boolean(),
       days: z.array(z.number().min(0).max(6)),
@@ -25,7 +27,6 @@ export async function saveAlertPreferencesAction(
     }),
   });
 
-  // Refine the schema to make `city` required only if `alertsEnabled` is true
   const AlertPreferencesSchema = BaseAlertPreferencesSchema.refine(
     (data) => {
       if (data.alertsEnabled && (!data.city || data.city.trim() === '')) {
@@ -35,7 +36,7 @@ export async function saveAlertPreferencesAction(
     },
     {
       message: 'City is required when alerts are enabled.',
-      path: ['city'], // specify the path of the error
+      path: ['city'],
     }
   );
   
@@ -46,6 +47,7 @@ export async function saveAlertPreferencesAction(
   const dataToValidate = {
     city: formData.get('city') as string,
     alertsEnabled: formData.get('alertsEnabled') === 'on',
+    notificationFrequency: formData.get('notificationFrequency'),
     schedule: {
       enabled: formData.get('scheduleEnabled') === 'on',
       days: scheduleDays,
@@ -75,27 +77,21 @@ export async function saveAlertPreferencesAction(
       return { message: 'Could not find your email address. Please ensure you have a primary email set on your account.', error: true };
     }
 
-    // Get existing preferences to merge, so we don't overwrite unrelated settings
     const existingPrefs = user.privateMetadata?.alertPreferences 
-        ? JSON.parse(JSON.stringify(user.privateMetadata.alertPreferences)) 
+        ? (JSON.parse(JSON.stringify(user.privateMetadata.alertPreferences)) as Partial<AlertPreferences>)
         : {};
 
     const newPreferences: AlertPreferences = {
       ...existingPrefs,
       ...validatedFields.data,
-      city: validatedFields.data.city || '', // Ensure city is a string
+      city: validatedFields.data.city || '',
       email,
+      // Reset timestamp if frequency changes, to allow immediate alerts on the new setting
+      lastAlertSentTimestamp: existingPrefs.notificationFrequency !== validatedFields.data.notificationFrequency 
+        ? 0 
+        : existingPrefs.lastAlertSentTimestamp || 0,
     };
     
-    // Clean up old, unused properties to keep metadata tidy
-    delete (newPreferences as any).notifyExtremeTemp;
-    delete (newPreferences as any).highTempThreshold;
-    delete (newPreferences as any).lowTempThreshold;
-    delete (newPreferences as any).notifyHeavyRain;
-    delete (newPreferences as any).notifyStrongWind;
-    delete (newPreferences as any).windSpeedThreshold;
-
-
     await clerkClient.users.updateUserMetadata(userId, {
       privateMetadata: {
         ...user.privateMetadata,

@@ -144,6 +144,8 @@ export interface AlertPreferences {
   city: string;
   alertsEnabled: boolean;
   schedule?: AlertSchedule;
+  notificationFrequency?: 'everyHour' | 'balanced' | 'oncePerDay';
+  lastAlertSentTimestamp?: number;
 }
 
 export interface IpApiLocationResponse {
@@ -212,7 +214,7 @@ export const WeatherSummaryInputSchema = z.object({
 export type WeatherSummaryInput = z.infer<typeof WeatherSummaryInputSchema>;
 
 export const WeatherSummaryOutputSchema = z.object({
-  summary: z.string().describe('An enhanced, conversational, and helpful summary of the weather. It should be a friendly, easy-to-read paragraph that highlights the most impactful piece of weather information, including any significant "feels like" temperature difference.'),
+  summary: z.string().describe('An enhanced, conversational, and helpful summary of the weather. It should be a friendly, easy-to-read paragraph that highlights the most impactful piece of weather information using <strong> tags. For example: "While it\'s 10°C, a strong breeze makes it <strong>feel more like 6°C</strong>, so a good jacket is recommended."'),
   subjectLine: z.string().describe('A detailed and engaging email subject line, starting with one or more relevant weather emojis (e.g., ☀️, 🌧️, 💨).'),
   weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'."),
   activitySuggestion: z.string().describe('A creative, specific, and friendly suggestion for an activity that suits the weather. Go beyond generic advice and offer a concrete idea (e.g., "perfect for a bike ride," "a great day to visit the library"). Should be a single, encouraging sentence.')

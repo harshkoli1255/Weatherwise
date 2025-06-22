@@ -44,18 +44,14 @@ export default async function AlertsPage() {
     email: primaryEmail,
     city: '',
     alertsEnabled: false,
-    notifyExtremeTemp: false,
-    highTempThreshold: 30,
-    lowTempThreshold: 5,
-    notifyHeavyRain: false,
-    notifyStrongWind: false,
-    windSpeedThreshold: 40,
+    notificationFrequency: 'balanced', // Default to balanced
     schedule: {
       enabled: false,
       days: [0, 1, 2, 3, 4, 5, 6], // All days by default
-      startHour: 0, // 12 AM
-      endHour: 23,  // 11 PM
+      startHour: 8, // 8 AM
+      endHour: 22,  // 10 PM
     },
+    lastAlertSentTimestamp: 0,
   };
   
   const savedPreferencesRaw = user.privateMetadata?.alertPreferences;
@@ -83,7 +79,7 @@ export default async function AlertsPage() {
            </div>
           <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-2 px-4">
-            Enable hourly email notifications and set your preferences for temperature, rain, and wind.
+            Enable hourly email notifications and customize when and how often you receive them.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">

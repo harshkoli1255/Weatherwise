@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -12,7 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Clock } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2, Clock, Zap, Waves, Wind } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -102,6 +104,33 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           />
           <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
         </div>
+        
+        <Separator />
+        <h3 className="text-lg font-medium border-b pb-2 pt-2">Notification Frequency</h3>
+        <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="space-y-3 rounded-lg border p-4 shadow-sm bg-background/50">
+          <Label className="text-base font-bold">Alert Sensitivity</Label>
+          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <RadioGroupItem value="everyHour" id="freq-max" />
+            <div className="grid gap-1.5 leading-normal">
+              <Label htmlFor="freq-max" className="font-semibold cursor-pointer">Maximum</Label>
+              <p className="text-sm text-muted-foreground">Get an alert every hour that significant weather conditions are detected.</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <RadioGroupItem value="balanced" id="freq-bal" />
+            <div className="grid gap-1.5 leading-normal">
+              <Label htmlFor="freq-bal" className="font-semibold cursor-pointer">Balanced (Recommended)</Label>
+              <p className="text-sm text-muted-foreground">Get one alert when significant weather starts, then stay quiet for 4 hours to prevent noise.</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <RadioGroupItem value="oncePerDay" id="freq-min" />
+            <div className="grid gap-1.5 leading-normal">
+              <Label htmlFor="freq-min" className="font-semibold cursor-pointer">Minimal</Label>
+              <p className="text-sm text-muted-foreground">Get a maximum of one alert per day for the first significant weather event.</p>
+            </div>
+          </div>
+        </RadioGroup>
 
         <Separator />
         <h3 className="text-lg font-medium border-b pb-2 pt-2">Alert Schedule</h3>
