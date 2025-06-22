@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { AlertPreferences } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { sendEmail } from '@/services/emailService';
+import { fetchWeatherAndSummaryAction } from '@/app/actions';
 
 export type SaveAlertsFormState = {
   message: string | null;
@@ -80,6 +81,14 @@ export async function sendTestEmailAction(
     return { message: 'You must be signed in to send a test email.', error: true };
   }
 
+  const schema = z.object({ city: z.string().min(1, 'No city provided for the test alert.') });
+  const validation = schema.safeParse({ city: formData.get('city') });
+  
+  if (!validation.success) {
+      return { message: "Please save a city in your preferences before sending a test alert.", error: true };
+  }
+  const city = validation.data.city;
+
   try {
     const user = await clerkClient.users.getUser(userId);
     const emailAddress = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
@@ -88,30 +97,89 @@ export async function sendTestEmailAction(
       return { message: 'Primary email address not found on your profile.', error: true };
     }
 
-    const subject = 'Weatherwise: Test Email';
+    // Fetch weather for the city
+    const weatherResult = await fetchWeatherAndSummaryAction({ city });
+    if (weatherResult.error || !weatherResult.data) {
+        return { message: `Could not fetch weather for ${city}. Error: ${weatherResult.error}`, error: true };
+    }
+    const weatherData = weatherResult.data;
+
+    const subject = `Your Weatherwise Alert for ${weatherData.city}`;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const alertsUrl = new URL('/alerts', baseUrl).toString();
+    const iconUrl = `https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png`;
 
-    const html = `
-      <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2 style="color: #0056b3;">Hello from Weatherwise!</h2>
-          <p>This is a test email to confirm your alert settings are working correctly.</p>
-          <p>If you received this, it means Weatherwise can successfully send emails to <strong>${emailAddress}</strong>.</p>
-          <p>You can now save your alert preferences and be notified about important weather conditions.</p>
-          <br/>
-          <a href="${alertsUrl}" style="background-color: #007bff; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Go to Your Alert Settings
-          </a>
-          <br/><br/>
-          <hr style="border: none; border-top: 1px solid #eee;"/>
-          <p style="font-size: 0.8em; color: #666;">
-            To stop receiving weather alerts, you can disable them at any time in your Weatherwise account settings.
-            This is a one-time test email and you will not be subscribed to any list.
-          </p>
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${subject}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f0f4f8; color: #1e293b;}
+        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
+        .header { background-color: #4A90E2; color: #ffffff; padding: 24px; text-align: center; border-bottom: 5px solid #357ABD; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+        .content { padding: 32px; }
+        .weather-main { text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px; }
+        .weather-main h2 { margin: 0 0 8px 0; font-size: 24px; color: #1e293b; }
+        .weather-main .description { margin: 0 0 16px 0; font-size: 18px; color: #475569; text-transform: capitalize; }
+        .weather-main .temperature { font-size: 72px; font-weight: bold; color: #1e293b; margin: 0; line-height: 1; }
+        .weather-main img { margin: -10px 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+        .weather-details { display: table; width: 100%; border-spacing: 10px; }
+        .detail-item { display: table-cell; width: 33.3%; background-color: #f8fafc; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0;}
+        .detail-item .label { font-size: 14px; color: #64748b; margin-bottom: 8px; display: block; }
+        .detail-item .value { font-size: 18px; font-weight: 600; color: #1e293b; }
+        .ai-summary { margin-top: 32px; background-color: #f8fafc; border-radius: 8px; padding: 20px; border: 1px solid #e2e8f0; }
+        .ai-summary h3 { margin: 0 0 10px 0; font-size: 16px; color: #334155; }
+        .ai-summary p { margin: 0; font-size: 15px; color: #475569; line-height: 1.6; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
+        .footer a.button { color: #4A90E2; text-decoration: none; }
+        .footer .button-cta { background-color: #4A90E2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Weatherwise Alert</h1>
         </div>
-      </div>
-    `;
+        <div class="content">
+            <div class="weather-main">
+                <h2>${weatherData.city}, ${weatherData.country}</h2>
+                <p class="description">${weatherData.description}</p>
+                <img src="${iconUrl}" alt="${weatherData.description}" width="150" height="150">
+                <p class="temperature">${weatherData.temperature}°C</p>
+            </div>
+            <div class="weather-details">
+                <div class="detail-item">
+                    <span class="label">Feels Like</span>
+                    <span class="value">${weatherData.feelsLike}°C</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Humidity</span>
+                    <span class="value">${weatherData.humidity}%</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Wind</span>
+                    <span class="value">${weatherData.windSpeed} km/h</span>
+                </div>
+            </div>
+            <div class="ai-summary">
+                <h3>AI Summary</h3>
+                <p>${weatherData.aiSummary}</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>To manage your notification preferences or to unsubscribe, please visit your settings.</p>
+            <a href="${alertsUrl}" class="button-cta">
+                Manage Alerts
+            </a>
+            <p style="margin-top: 16px;">© ${new Date().getFullYear()} Weatherwise</p>
+        </div>
+    </div>
+</body>
+</html>`;
 
     const result = await sendEmail({
       to: emailAddress,
@@ -120,7 +188,7 @@ export async function sendTestEmailAction(
     });
 
     if (result.success) {
-      return { message: `Test email sent successfully to ${emailAddress}! Please check your inbox.`, error: false };
+      return { message: `Test weather alert for ${weatherData.city} sent successfully to ${emailAddress}!`, error: false };
     } else {
       return { message: `Failed to send test email: ${result.error}`, error: true };
     }

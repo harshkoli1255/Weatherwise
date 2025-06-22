@@ -28,12 +28,12 @@ function SubmitButton() {
   );
 }
 
-function TestEmailButton() {
+function TestEmailButton({ city }: { city: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={pending}>
+    <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={pending || !city}>
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-      {pending ? 'Sending...' : 'Send Test Email'}
+      {pending ? 'Sending...' : 'Send Test Alert'}
     </Button>
   )
 }
@@ -149,9 +149,12 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       <Separator />
 
       <form action={testEmailAction}>
-          <h3 className="text-lg font-medium">Test Email Configuration</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">Click to send a test email to your primary address and confirm the service is working.</p>
-          <TestEmailButton />
+          <input type="hidden" name="city" value={preferences.city} />
+          <h3 className="text-lg font-medium">Test Your Alerts</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            Send a sample weather alert for your saved city (<strong>{preferences.city || 'not set'}</strong>) to your primary email address.
+          </p>
+          <TestEmailButton city={preferences.city} />
       </form>
     </div>
   );
