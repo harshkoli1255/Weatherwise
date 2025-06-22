@@ -1,11 +1,15 @@
 
 'use server';
 
+import { clerkClient } from '@clerk/nextjs/server';
 import type { AlertPreferences, WeatherSummaryData } from '@/lib/types';
+import { fetchWeatherAndSummaryAction } from '@/app/actions';
+import { sendEmail } from '@/services/emailService';
+import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 
 /**
- * This service is disabled as per user request to remove cron-based scheduling.
- * The functions here are no longer used for automatic alert processing.
+ * Checks weather conditions against user preferences and sends alerts if conditions are met.
+ * This function is intended to be called by a secure CRON job.
  */
 export async function checkAndSendAlerts(): Promise<{
   processedUsers: number;
@@ -13,17 +17,77 @@ export async function checkAndSendAlerts(): Promise<{
   alertsSent: number;
   errors: string[];
 }> {
-  console.warn("checkAndSendAlerts was called, but automatic alert processing is disabled.");
-  return {
-    processedUsers: 0,
-    eligibleUsers: 0,
-    alertsSent: 0,
-    errors: ["Automatic alert processing has been disabled."],
-  };
+  let processedUsers = 0;
+  let eligibleUsers = 0;
+  let alertsSent = 0;
+  const errors: string[] = [];
+
+  try {
+    const users = await clerkClient.users.getUserList({ limit: 500 }); // Adjust limit as needed
+    processedUsers = users.length;
+
+    for (const user of users) {
+      const prefsRaw = user.privateMetadata?.alertPreferences;
+      if (!prefsRaw) continue;
+
+      const preferences = JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences>;
+      
+      if (!preferences.alertsEnabled || !preferences.city) {
+        continue;
+      }
+      
+      eligibleUsers++;
+
+      try {
+        const weatherResult = await fetchWeatherAndSummaryAction({ city: preferences.city });
+        if (weatherResult.error || !weatherResult.data) {
+          console.warn(`Could not fetch weather for ${preferences.city} (user: ${user.id}). Skipping. Error: ${weatherResult.error}`);
+          continue;
+        }
+
+        const weatherData = weatherResult.data;
+        const alertTriggers = checkAlertConditions(preferences as AlertPreferences, weatherData);
+
+        if (alertTriggers.length > 0) {
+          console.log(`Sending alert to ${user.id} for city ${preferences.city}. Triggers:`, alertTriggers);
+          
+          const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers, isTest: false });
+          const emailSubject = weatherData.aiSubject;
+
+          const emailResult = await sendEmail({
+            to: preferences.email!,
+            subject: emailSubject,
+            html: emailHtml,
+          });
+
+          if (emailResult.success) {
+            alertsSent++;
+          } else {
+            const errorMsg = `Failed to send email to ${preferences.email}: ${emailResult.error}`;
+            console.error(errorMsg);
+            errors.push(errorMsg);
+          }
+        }
+      } catch (error) {
+        const errorMsg = `Error processing user ${user.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        console.error(errorMsg);
+        errors.push(errorMsg);
+      }
+    }
+
+    return { processedUsers, eligibleUsers, alertsSent, errors };
+
+  } catch (error) {
+    const errorMsg = `Failed to fetch user list from Clerk: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    console.error(errorMsg);
+    errors.push(errorMsg);
+    return { processedUsers, eligibleUsers, alertsSent, errors };
+  }
 }
 
 /**
- * This function is kept for logic reference but is not actively used by the disabled cron service.
+ * Checks the current weather against a user's alert preferences.
+ * @returns An array of strings describing which alerts were triggered.
  */
 function checkAlertConditions(
   preferences: AlertPreferences,
@@ -55,9 +119,11 @@ function checkAlertConditions(
   }
 
   // Check for heavy rain
+  // This is a simple check. A more advanced implementation could check rain volume if the API provides it.
   if (preferences.notifyHeavyRain) {
-    if (weatherData.condition.toLowerCase().includes('rain')) {
-      triggered.push(`Rain is currently forecasted.`);
+    const condition = weatherData.condition.toLowerCase();
+    if (condition.includes('rain') || condition.includes('thunderstorm') || condition.includes('drizzle')) {
+      triggered.push(`Rain is currently forecasted (${weatherData.description}).`);
     }
   }
 

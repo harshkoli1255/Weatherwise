@@ -75,14 +75,6 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
   return (
     <div className="space-y-8">
-       <Alert variant="default" className="bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-300">
-        <Info className="h-4 w-4 !text-blue-500" />
-        <AlertTitle className="font-bold">Automatic Alerts Are Disabled</AlertTitle>
-        <AlertDescription>
-          The automated hourly email alert system is currently inactive. You can still save your preferences and use the 'Send Sample Alert' feature below to preview the email design.
-        </AlertDescription>
-      </Alert>
-
       <form action={saveAction} className="space-y-8">
         <h3 className="text-lg font-medium border-b pb-2">Alert Condition Preferences</h3>
         <div>
@@ -95,7 +87,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
         <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50">
           <div className="space-y-0.5">
             <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable Alerts</Label>
-            <p className="text-sm text-muted-foreground">Master switch for weather notifications (currently inactive).</p>
+            <p className="text-sm text-muted-foreground">Master switch for all weather notifications.</p>
           </div>
           <Switch id="alertsEnabled" name="alertsEnabled" checked={alertsEnabled} onCheckedChange={setAlertsEnabled} aria-label="Enable all alerts" />
         </div>

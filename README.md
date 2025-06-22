@@ -16,6 +16,7 @@ Before running the application, you must configure your API keys in the `.env` f
 
 ### Required for AI & Email Features:
 *   `GEMINI_API_KEYS`: Required for AI-powered summaries. Get one or more keys from [Google AI Studio](https://aistudio.google.com/).
+*   `CRON_SECRET`: **Required for automatic alerts.** This is a secret password of your choice that secures the cron endpoint. It should be a long, random string.
 *   **Email Sending (`EMAIL_*` variables)**: Required for sending email alerts.
     *   The application is pre-configured to use **Gmail's SMTP servers**.
     *   To use your Gmail account, you must generate a 16-digit **App Password**. Simply using your regular Google password will not work.
@@ -43,8 +44,27 @@ Before running the application, you must configure your API keys in the `.env` f
 *   **Detailed Weather Data:** Displays temperature, "feels like" temperature, humidity, wind speed, and a visual weather icon.
 *   **AI-Generated Summaries:** Leverages Genkit to provide concise, AI-driven summaries of the current weather.
 *   **Hourly Forecasts:** View a 24-hour weather forecast with temperature and conditions.
-*   **Email Alert Previews:** Send a sample email alert to yourself to preview the modern, dark-themed notification design.
+*   **Automatic Hourly Email Alerts:** Users can opt-in to receive hourly email alerts if specific weather conditions (e.g., high temperature, strong winds) are met in their chosen city.
+*   **Modern Email Templates:** Beautiful, dark-themed email notifications with AI-generated subject lines and activity suggestions.
 *   **Theme Customization:** Switch between light and dark modes for comfortable viewing.
+
+---
+
+### Setting up Automatic Hourly Alerts (Cron Job)
+
+To enable automatic hourly alerts, you need to set up a "cron job" that calls a secure API endpoint in the application.
+
+1.  **Set `CRON_SECRET` in `.env`:** Make sure you have added a secure, random `CRON_SECRET` to your `.env` file.
+
+2.  **Use a Scheduling Service:** Use an external service like `cron-job.org`, `EasyCron`, or a similar scheduler.
+
+3.  **Configure the Job:** Create a new cron job with the following settings:
+    *   **URL / Endpoint:** `https://<YOUR_APP_URL>/api/cron` (Replace `<YOUR_APP_URL>` with your application's public URL).
+    *   **Schedule:** Set it to run once every hour.
+    *   **HTTP Method:** `GET`
+    *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>` (Replace `<YOUR_CRON_SECRET>` with the secret from your `.env` file).
+
+This will trigger the app to check for alerts every hour and send emails to users whose preferences match the current weather conditions.
 
 ---
 
