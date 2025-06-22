@@ -117,7 +117,7 @@ export async function sendTestEmailAction(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${subject}</title>
 </head>
-<body style="background-color: #0A0F1E; background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 16px 16px; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 24px; margin: 0;">
+<body style="background-color: #0f172a; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 24px; margin: 0;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
         <tr>
             <td align="center">
@@ -126,20 +126,20 @@ export async function sendTestEmailAction(
                 <tr>
                 <td>
                 <![endif]-->
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation" style="background-color: #111827; border-radius: 16px; border: 1px solid #374151; padding: 24px 32px; max-width: 600px;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation" style="background-color: #1e293b; border-radius: 16px; border: 1px solid #334155; padding: 24px 32px; max-width: 600px;">
                     
                     <!-- Greeting -->
                     <tr>
                         <td style="padding-bottom: 24px;">
-                            <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">Hello,</p>
-                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">Here is your requested test weather report for <strong>${weatherData.city}</strong>. This is a sample of the automated alerts you can receive based on your preferences.</p>
+                            <p style="font-size: 16px; color: #cbd5e1; margin: 0; line-height: 1.6;">Hello,</p>
+                            <p style="font-size: 16px; color: #cbd5e1; margin: 12px 0 0 0; line-height: 1.6;">Here is your requested test weather report for <strong>${weatherData.city}</strong>. This is a sample of the automated alerts you can receive based on your preferences.</p>
                         </td>
                     </tr>
 
                     <!-- Separator -->
                     <tr>
                         <td style="padding-bottom: 24px;">
-                            <div style="height: 1px; background-color: #374151;"></div>
+                            <div style="height: 1px; background-color: #334155;"></div>
                         </td>
                     </tr>
 
@@ -147,7 +147,7 @@ export async function sendTestEmailAction(
                     <tr>
                         <td align="center" style="padding-bottom: 24px; text-align: center;">
                             <p style="font-size: 28px; font-weight: bold; color: #60A5FA; margin: 0;">${weatherData.city}, ${weatherData.country}</p>
-                            <p style="font-size: 16px; color: #9CA3AF; margin: 4px 0 0 0; text-transform: capitalize;">${weatherData.description}</p>
+                            <p style="font-size: 16px; color: #94a3b8; margin: 4px 0 0 0; text-transform: capitalize;">${weatherData.description}</p>
                         </td>
                     </tr>
 
@@ -158,7 +158,7 @@ export async function sendTestEmailAction(
                                 <tr>
                                     <td width="55%" align="left" valign="middle">
                                         <p style="margin: 0; font-size: 80px; font-weight: bold; color: #60A5FA; line-height: 1;">
-                                            ${weatherData.temperature}<span style="font-size: 40px; color: #9CA3AF; vertical-align: 30px; margin-left: 4px;">°C</span>
+                                            ${weatherData.temperature}<span style="font-size: 40px; color: #94a3b8; vertical-align: 30px; margin-left: 4px;">°C</span>
                                         </p>
                                     </td>
                                     <td width="45%" align="right" valign="middle">
@@ -175,20 +175,29 @@ export async function sendTestEmailAction(
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                     <td width="33.33%" style="padding-right: 6px;">
-                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">🌡️ Feels Like</p>
+                                        <div style="background-color: #334155; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #94a3b8; margin: 0 0 8px 0;">
+                                                <img src="https://img.icons8.com/ios-glyphs/20/94a3b8/thermometer.png" alt="Feels Like" width="20" height="20" style="display: inline-block; vertical-align: middle;">
+                                                <span style="vertical-align: middle; margin-left: 6px;">Feels Like</span>
+                                            </p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.feelsLike}°C</p>
                                         </div>
                                     </td>
                                     <td width="33.33%" style="padding-left: 3px; padding-right: 3px;">
-                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">💧 Humidity</p>
+                                        <div style="background-color: #334155; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #94a3b8; margin: 0 0 8px 0;">
+                                                <img src="https://img.icons8.com/ios-glyphs/20/94a3b8/humidity.png" alt="Humidity" width="20" height="20" style="display: inline-block; vertical-align: middle;">
+                                                <span style="vertical-align: middle; margin-left: 6px;">Humidity</span>
+                                            </p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.humidity}%</p>
                                         </div>
                                     </td>
                                     <td width="33.33%" style="padding-left: 6px;">
-                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">💨 Wind</p>
+                                        <div style="background-color: #334155; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #94a3b8; margin: 0 0 8px 0;">
+                                                <img src="https://img.icons8.com/ios-glyphs/20/94a3b8/wind.png" alt="Wind" width="20" height="20" style="display: inline-block; vertical-align: middle;">
+                                                <span style="vertical-align: middle; margin-left: 6px;">Wind</span>
+                                            </p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.windSpeed} km/h</p>
                                         </div>
                                     </td>
@@ -201,13 +210,13 @@ export async function sendTestEmailAction(
                     ${weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? `
                     <tr>
                         <td style="padding-top: 16px; padding-bottom: 16px;">
-                            <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">Hourly Forecast</p>
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 16px;"><tr><td width="28" valign="middle"><img src="https://img.icons8.com/ios-filled/28/60A5FA/clock.png" alt="Forecast" width="28" height="28"></td><td valign="middle" style="padding-left: 12px;"><p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0;">Hourly Forecast</p></td></tr></table>
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                     ${weatherData.hourlyForecast.slice(0, 5).map(forecast => `
                                         <td align="center" style="padding: 0 4px;">
-                                            <div style="background-color: #1F2937; border-radius: 12px; padding: 12px 8px; text-align: center; width: 85px;">
-                                                <p style="font-size: 14px; color: #9CA3AF; margin: 0; white-space: nowrap;">${forecast.time}</p>
+                                            <div style="background-color: #334155; border-radius: 12px; padding: 12px 8px; text-align: center; width: 85px;">
+                                                <p style="font-size: 14px; color: #94a3b8; margin: 0; white-space: nowrap;">${forecast.time}</p>
                                                 <img src="https://openweathermap.org/img/wn/${forecast.iconCode}@2x.png" width="40" height="40" alt="${forecast.condition}" style="margin: 4px auto; display: block; border: 0;" />
                                                 <p style="font-size: 18px; font-weight: bold; color: #ffffff; margin: 0;">${forecast.temp}°</p>
                                             </div>
@@ -221,9 +230,9 @@ export async function sendTestEmailAction(
                     <!-- AI Summary -->
                     <tr>
                         <td style="padding-top: 16px; padding-bottom: 16px;">
-                             <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">🤖 AI Weather Summary</p>
-                            <div style="background-color: #1F2937; border-radius: 12px; padding: 16px;">
-                                <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">${weatherData.aiSummary}</p>
+                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 16px;"><tr><td width="28" valign="middle"><img src="https://img.icons8.com/ios-filled/28/60A5FA/robot-2.png" alt="AI" width="28" height="28"></td><td valign="middle" style="padding-left: 12px;"><p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0;">AI Weather Summary</p></td></tr></table>
+                            <div style="background-color: #334155; border-radius: 12px; padding: 16px;">
+                                <p style="font-size: 16px; color: #cbd5e1; margin: 0; line-height: 1.6;">${weatherData.aiSummary}</p>
                             </div>
                         </td>
                     </tr>
@@ -232,9 +241,9 @@ export async function sendTestEmailAction(
                     ${weatherData.activitySuggestion ? `
                     <tr>
                         <td style="padding-top: 8px; padding-bottom: 24px;">
-                            <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">💡 Activity Suggestion</p>
-                            <div style="background-color: #1F2937; border-radius: 12px; padding: 16px;">
-                                <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">${weatherData.activitySuggestion}</p>
+                             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 16px;"><tr><td width="28" valign="middle"><img src="https://img.icons8.com/ios-filled/28/60A5FA/light-on.png" alt="Suggestion" width="28" height="28"></td><td valign="middle" style="padding-left: 12px;"><p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0;">Activity Suggestion</p></td></tr></table>
+                            <div style="background-color: #334155; border-radius: 12px; padding: 16px;">
+                                <p style="font-size: 16px; color: #cbd5e1; margin: 0; line-height: 1.6;">${weatherData.activitySuggestion}</p>
                             </div>
                         </td>
                     </tr>` : ''}
@@ -242,12 +251,12 @@ export async function sendTestEmailAction(
 
                     <!-- Footer -->
                     <tr>
-                        <td align="center" style="padding-top: 32px; text-align: center; font-size: 13px; color: #9CA3AF;">
+                        <td align="center" style="padding-top: 32px; text-align: center; font-size: 13px; color: #94a3b8;">
                              <p style="margin: 0 0 16px 0;">This is an automated alert from Weatherwise. You can customize your notification settings at any time by visiting the alerts page on our website.</p>
                              <a href="${alertsUrl}" style="background-color: #3B82F6; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500;">
                                  Manage Your Alerts
                              </a>
-                             <p style="margin-top: 24px; font-size: 12px;">You received this email because alerts are enabled for your account. <br> © ${new Date().getFullYear()} Weatherwise. All Rights Reserved.</p>
+                             <p style="margin-top: 24px; font-size: 12px;">You received this email because alerts are enabled for your account. <br> © ${new Date().getFullYear()} Weatherwise. All Rights Reserved. <br> Icons by <a href="https://icons8.com" style="color: #94a3b8; text-decoration: underline;">Icons8</a>.</p>
                         </td>
                     </tr>
                 </table>
