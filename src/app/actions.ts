@@ -3,6 +3,7 @@
 
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
+import { correctCitySpelling } from '@/ai/flows/city-correction';
 import { z } from 'zod';
 import { format } from 'date-fns';
 
@@ -287,7 +288,7 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
 }
 
 export async function fetchCitySuggestionsAction(query: string): Promise<{ suggestions: CitySuggestion[] | null; error: string | null }> {
-  if (!query || query.trim().length === 0) { 
+  if (!query || query.trim().length < 2) {
     return { suggestions: [], error: null };
   }
 
@@ -301,50 +302,98 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   if (openWeatherApiKeys.length === 0) {
     return { suggestions: null, error: "Server configuration error: No valid OpenWeather API keys for suggestions." };
   }
+  
+  const geminiApiKeysString = process.env.GEMINI_API_KEYS;
+  const hasGeminiConfig = geminiApiKeysString && geminiApiKeysString.split(',').map(key => key.trim()).filter(key => key).length > 0;
 
-  let lastError: string | null = null;
-  let currentKeyIndex = 0;
+  // Helper function to perform the fetch and parse logic
+  const getSuggestionsFromApi = async (searchQuery: string): Promise<{ suggestions: CitySuggestion[] | null, error: string | null, shouldRetry: boolean }> => {
+    let lastError: string | null = null;
+    let currentKeyIndex = 0;
 
-  for (const apiKey of openWeatherApiKeys) {
-    currentKeyIndex++;
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(processedQuery)}&limit=8&appid=${apiKey}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-        lastError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
-        if (![401, 403, 429].includes(response.status)) { 
-          console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastError, url });
-          return { suggestions: null, error: lastError };
+    for (const apiKey of openWeatherApiKeys) {
+        currentKeyIndex++;
+        const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchQuery)}&limit=8&appid=${apiKey}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
+                lastError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
+                if ([401, 403, 429].includes(response.status)) { 
+                    console.warn(`OpenWeather Geocoding API key ${currentKeyIndex} failed or rate limited. Trying next key.`);
+                    continue; 
+                }
+                console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastError, url });
+                return { suggestions: null, error: lastError, shouldRetry: false };
+            }
+
+            const data: any[] = await response.json();
+            
+            const uniqueSuggestions: CitySuggestion[] = [];
+            const seenKeys = new Set<string>();
+
+            for (const item of data) {
+                const key = `${item.name}|${item.country}|${item.state || 'NO_STATE'}|${(item.lat || 0).toFixed(2)}|${(item.lon || 0).toFixed(2)}`;
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    uniqueSuggestions.push({
+                        name: item.name,
+                        lat: item.lat,
+                        lon: item.lon,
+                        country: item.country,
+                        state: item.state,
+                    });
+                }
+            }
+            return { suggestions: uniqueSuggestions, error: null, shouldRetry: false };
+        } catch (e) {
+            lastError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
+            console.error("Error fetching city suggestions:", e);
+            // Don't retry on network errors for this step
+            return { suggestions: null, error: lastError, shouldRetry: false };
         }
-        console.warn(`OpenWeather Geocoding API key ${currentKeyIndex} failed or rate limited. Trying next key.`);
-        continue;
-      }
-      const data: any[] = await response.json();
-      
-      const uniqueSuggestions: CitySuggestion[] = [];
-      const seenKeys = new Set<string>();
-
-      for (const item of data) {
-        const key = `${item.name}|${item.country}|${item.state || 'NO_STATE'}|${(item.lat || 0).toFixed(2)}|${(item.lon || 0).toFixed(2)}`;
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          uniqueSuggestions.push({
-            name: item.name,
-            lat: item.lat,
-            lon: item.lon,
-            country: item.country,
-            state: item.state,
-          });
-        }
-      }
-      return { suggestions: uniqueSuggestions, error: null };
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
-      console.error("Error fetching city suggestions:", e);
     }
+    // If all keys fail
+    return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys.", shouldRetry: true };
   }
-  return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
+
+  // --- Main Logic ---
+
+  // Step 1: Try fetching with the original query
+  const initialResult = await getSuggestionsFromApi(processedQuery);
+
+  if (initialResult.suggestions && initialResult.suggestions.length > 0) {
+      return { suggestions: initialResult.suggestions, error: null };
+  }
+  
+  if (initialResult.error && !initialResult.shouldRetry) {
+      return { suggestions: null, error: initialResult.error };
+  }
+  
+  // Step 2: If no suggestions, try AI correction as a fallback
+  if (hasGeminiConfig) {
+      console.log(`No suggestions for "${processedQuery}". Attempting AI spelling correction.`);
+      const correctionResult = await correctCitySpelling({ query: processedQuery });
+      const correctedQuery = correctionResult.correctedQuery;
+      
+      if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
+          console.log(`AI corrected "${processedQuery}" to "${correctedQuery}". Fetching again.`);
+          
+          // Step 3: Fetch again with the corrected query
+          const correctedResult = await getSuggestionsFromApi(correctedQuery);
+          
+          if (correctedResult.suggestions && correctedResult.suggestions.length > 0) {
+              return { suggestions: correctedResult.suggestions, error: null };
+          } else {
+              return { suggestions: [], error: correctedResult.error };
+          }
+      } else {
+          console.log(`AI did not provide a different correction for "${processedQuery}".`);
+      }
+  }
+
+  // Fallback: return the empty result from the initial fetch.
+  return { suggestions: [], error: initialResult.error };
 }
 
 
