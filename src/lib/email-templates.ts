@@ -184,9 +184,9 @@ export function generateWeatherAlertEmailHtml({
                             `)}
                             ` : ''}
                             <!-- AI Summary -->
-                            ${renderSection('💡', 'AI Weather Summary', weatherData.aiSummary)}
+                            ${renderSection('💡', 'AI Weather Summary', weatherData.aiSummary.replace(/<strong>/g, '<strong style="color: #0f172a; background-color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">').replace(/<\/strong>/g, '</strong>'))}
                             <!-- Activity Suggestion -->
-                            ${weatherData.activitySuggestion ? renderSection('🏃', 'Activity Suggestion', weatherData.activitySuggestion) : ''}
+                            ${weatherData.activitySuggestion ? renderSection('🏃', 'Activity Suggestion', weatherData.activitySuggestion.replace(/<strong>/g, '<strong style="color: #0f172a; background-color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">').replace(/<\/strong>/g, '</strong>')) : ''}
                             
                              <!-- Footer -->
                              <tr>
