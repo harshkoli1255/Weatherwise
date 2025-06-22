@@ -29,7 +29,7 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: false, 
+isLoading: false,
   loadingMessage: null,
   cityNotFound: false,
   currentFetchedCityName: undefined,
@@ -51,24 +51,23 @@ export default function WeatherPage() {
     }
   }, [weatherState.error, weatherState.isLoading, toast]);
 
+  // This function is dedicated to handling searches from the search bar.
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
       ? `Searching for ${params.city}...` 
       : 'Fetching weather for your location...';
       
     setWeatherState(prev => ({
-      ...prev,
+      ...initialState, // Reset state for a new search
       isLoading: true,
       loadingMessage,
-      data: null,
-      error: null,
-      cityNotFound: false,
+      currentFetchedCityName: prev.currentFetchedCityName, // Keep previous city name during load
     }));
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
 
-      setWeatherState(prev => ({
+      setWeatherState(prev => ({ // Set final state
         data: result.data,
         error: result.error,
         isLoading: false,
@@ -79,84 +78,85 @@ export default function WeatherPage() {
     });
   }, []);
 
-  const fetchWeatherByIp = useCallback(async () => {
-    setWeatherState(prev => ({
-      ...prev,
-      isLoading: true,
-      loadingMessage: "Detecting location via IP...",
-      error: null,
-      data: null,
-    }));
-
-    startTransition(async () => {
-      const ipLocationResult = await fetchCityByIpAction();
-      if (ipLocationResult.error) {
-        setWeatherState(prev => ({
-          ...prev,
-          isLoading: false,
-          loadingMessage: null,
-          error: `IP-based location failed: ${ipLocationResult.error}`,
-          data: null,
-        }));
-      } else if (ipLocationResult.lat && ipLocationResult.lon) {
-        performWeatherFetch({ lat: ipLocationResult.lat, lon: ipLocationResult.lon });
-      } else if (ipLocationResult.city) {
-        performWeatherFetch({ city: ipLocationResult.city });
-      } else {
-        setWeatherState(prev => ({
-            ...prev,
-            isLoading: false,
-            loadingMessage: null,
-            error: "Could not determine location from IP.",
-            data: null,
-        }));
-      }
-    });
-  }, [performWeatherFetch]);
-
-
+  // This useEffect handles the entire initial data loading sequence ONCE on page load.
   useEffect(() => {
     if (typeof window === 'undefined' || initialFetchAttempted.current) {
         return;
     }
     initialFetchAttempted.current = true;
 
-    setWeatherState(prev => ({
-      ...prev,
-      isLoading: true,
-      loadingMessage: 'Requesting location permission...',
-      error: null,
-      data: null,
-    }));
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setWeatherState(prev => ({ ...prev, loadingMessage: 'Location found. Fetching weather...' }));
-          performWeatherFetch({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.warn(`Geolocation error (${error.code}): ${error.message}`);
-          toast({
-            title: "Location Access Denied",
-            description: "Falling back to IP-based location.",
-          });
-          fetchWeatherByIp();
-        },
-        { timeout: 10000 }
-      );
-    } else {
-      console.warn("Geolocation is not supported by this browser.");
-      toast({
-        title: "Geolocation Not Supported",
-        description: "Falling back to IP-based location.",
+    const getInitialWeather = async () => {
+      setWeatherState({
+        ...initialState,
+        isLoading: true,
+        loadingMessage: 'Detecting your location...',
       });
-      fetchWeatherByIp();
-    }
-  }, [performWeatherFetch, fetchWeatherByIp, toast]);
+
+      const getPosition = (): Promise<GeolocationPosition> => {
+        return new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            return reject(new Error('Geolocation is not supported.'));
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
+        });
+      };
+
+      let weatherParams: ApiLocationParams | null = null;
+      let locationSource = '';
+
+      try {
+        setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
+        const position = await getPosition();
+        weatherParams = { lat: position.coords.latitude, lon: position.coords.longitude };
+        locationSource = 'geolocation';
+      } catch (geoError: any) {
+        console.warn(`Geolocation error: ${geoError.message}`);
+        toast({
+          title: "Location permission denied",
+          description: "Falling back to IP-based location.",
+          duration: 5000,
+        });
+        
+        try {
+          setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
+          const ipResult = await fetchCityByIpAction();
+          if (ipResult.error || (!ipResult.lat && !ipResult.lon)) {
+            throw new Error(ipResult.error || 'Could not determine location from IP.');
+          }
+          weatherParams = { lat: ipResult.lat, lon: ipResult.lon };
+          locationSource = 'IP lookup';
+        } catch (ipError: any) {
+          setWeatherState({
+            ...initialState,
+            isLoading: false,
+            error: `Location detection failed. ${ipError.message} Please use the search bar.`,
+          });
+          return;
+        }
+      }
+      
+      if (weatherParams) {
+        setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather using ${locationSource}...` }));
+        startTransition(async () => {
+          const result = await fetchWeatherAndSummaryAction(weatherParams!);
+          setWeatherState({
+            data: result.data,
+            error: result.error,
+            isLoading: false,
+            loadingMessage: null,
+            cityNotFound: result.cityNotFound,
+            currentFetchedCityName: result.data ? result.data.city : undefined,
+          });
+        });
+      } else {
+        // Fallback if no location could be determined.
+        setWeatherState({ ...initialState, isLoading: false });
+      }
+    };
+
+    getInitialWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const handleSearch = (city: string, lat?: number, lon?: number) => {
