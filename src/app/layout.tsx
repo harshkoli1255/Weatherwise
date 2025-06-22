@@ -16,7 +16,7 @@ const inter = Inter({
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
   variable: '--font-poppins',
 });
@@ -45,12 +45,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
+            <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
               <Navbar />
               <main className="flex-grow">
                 {children}
               </main>
-              <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md">
+              <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
                 © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
               </footer>
             </div>

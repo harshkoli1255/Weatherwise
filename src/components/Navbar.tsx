@@ -7,7 +7,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 
 export function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-lg shadow-sm">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
         <Link href="/" className="mr-6 flex items-center space-x-2.5 group">
           <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />

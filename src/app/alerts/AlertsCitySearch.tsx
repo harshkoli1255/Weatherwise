@@ -190,7 +190,7 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
                 )}
                 <CommandGroup>
                 {suggestions.map((suggestion) => {
-                    const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat}|${suggestion.lon}`;
+                    const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
                     return (
                         <CommandItem
                         key={uniqueKey}

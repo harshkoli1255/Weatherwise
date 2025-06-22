@@ -107,7 +107,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-lg border border-input bg-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-md group",
+            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all",
             isSearchingWeather ? "opacity-70 cursor-not-allowed" : ""
         )}
       >
@@ -142,7 +142,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
             </Button>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-a_uto">
+        <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-auto">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
@@ -153,7 +153,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
             )}
             <CommandGroup>
             {suggestions.map((suggestion) => {
-              const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat}|${suggestion.lon}`;
+              const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
               return (
                 <CommandItem
                 key={uniqueKey}

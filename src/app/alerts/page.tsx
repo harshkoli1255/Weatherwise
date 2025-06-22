@@ -13,9 +13,11 @@ export default async function AlertsPage() {
   if (!userId) {
     return (
       <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-        <Card className="w-full max-w-md text-center shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
+        <Card className="w-full max-w-md text-center bg-glass border-primary/20 shadow-2xl rounded-2xl">
           <CardHeader className="items-center pt-6 sm:pt-8 pb-4">
-            <BellOff className="h-16 w-16 text-primary mb-4 drop-shadow-lg" />
+            <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
+              <BellOff className="h-12 w-12 text-primary drop-shadow-lg" />
+            </div>
             <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Unlock Weather Alerts</CardTitle>
             <CardDescription className="text-base text-muted-foreground mt-2 px-4">
               To set up and receive personalized weather notifications, please sign in or create an account.
@@ -64,9 +66,11 @@ export default async function AlertsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 flex flex-col items-center">
-      <Card className="w-full max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
+      <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl">
         <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
-          <Bell className="h-16 w-16 text-primary mb-4 drop-shadow-lg" />
+           <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
+              <Bell className="h-12 w-12 text-primary drop-shadow-lg" />
+           </div>
           <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Weather Alert Settings</CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-2 px-4">
             Configure email notifications for specific weather conditions in your city.

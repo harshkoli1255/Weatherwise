@@ -46,8 +46,6 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [saveState, saveAction] = useFormState(saveAlertPreferencesAction, { message: null, error: false });
   const [testEmailState, testEmailAction] = useFormState(sendTestEmailAction, { message: null, error: false });
 
-
-  // Component state for immediate UI feedback on switch toggles
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
   const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);
   const [notifyRain, setNotifyRain] = useState(preferences.notifyHeavyRain);
@@ -78,8 +76,8 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       <form action={saveAction} className="space-y-8">
         <div>
           <Label htmlFor="email">Alerts Email</Label>
-          <Input id="email" name="email" value={preferences.email} readOnly className="mt-2 bg-muted cursor-not-allowed" />
-          <p className="text-sm text-muted-foreground mt-1">This is the primary email on your account. To change it, please update your profile.</p>
+          <Input id="email" name="email" value={preferences.email} readOnly className="mt-2 bg-muted/60 cursor-not-allowed" />
+          <p className="text-sm text-muted-foreground mt-1.5">This is the primary email on your account. To change it, please update your profile.</p>
         </div>
         <Separator />
 
@@ -95,7 +93,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <div>
             <Label htmlFor="city">City for Alerts</Label>
             <AlertsCitySearch id="city" name="city" defaultValue={preferences.city} required={alertsEnabled} />
-            <p className="text-sm text-muted-foreground mt-1">This city will be used for all alert checks.</p>
+            <p className="text-sm text-muted-foreground mt-1.5">This city will be used for all alert checks.</p>
           </div>
 
           <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">

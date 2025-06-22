@@ -4,74 +4,54 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%; /* Cooler Light Gray */
-    --foreground: 220 25% 15%; /* Very Dark Blue/Gray */
-    --card: 220 20% 100%; /* White with a hint of cool */
-    --card-foreground: 220 25% 15%;
+    --background: 220 20% 98%;
+    --foreground: 220 25% 10%;
+    --card: 220 20% 100%;
+    --card-foreground: 220 25% 10%;
     --popover: 220 20% 100%;
-    --popover-foreground: 220 25% 15%;
-    --primary: 220 70% 50%; /* Primary Blue - vibrant */
-    --primary-foreground: 220 20% 98%; /* Light color for text on primary */
-    --secondary: 220 50% 90%; /* Light Primary Blue */
-    --secondary-foreground: 220 30% 25%; /* Darker blue for text on light secondary */
-    --muted: 220 15% 94%; /* Cooler Muted Gray */
-    --muted-foreground: 220 15% 45%; /* Cooler Muted Text Gray */
-    --accent: 210 80% 70%; /* Lighter, distinct blue for hover/accent */
-    --accent-foreground: 210 25% 10%; /* Dark blue/black for text on accent */
+    --popover-foreground: 220 25% 10%;
+    --primary: 221 83% 53%; /* A more vibrant, saturated blue */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 15% 94%;
+    --secondary-foreground: 220 30% 25%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 220 50% 90%; /* Lighter blue for subtle accents */
+    --accent-foreground: 220 70% 30%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 20% 88%; /* Cooler Light Gray Border */
-    --input: 220 20% 92%; /* Slightly darker cool light gray for input */
-    --ring: 220 70% 55%; /* Ring color based on new primary */
+    --border: 220 20% 88%;
+    --input: 220 20% 92%;
+    --ring: 221 83% 53%;
 
-    --chart-1: 220 70% 50%;  /* Primary Blue */
-    --chart-2: 200 80% 60%;  /* Accent Blue */
-    --chart-3: 280 70% 60%;  /* Purple */
-    --chart-4: 30 90% 60%;   /* Warm Orange/Gold */
-    --chart-5: 0 75% 55%;    /* Red */
-    --radius: 0.5rem;
-
-    /* Sidebar variables */
-    --sidebar-background: 220 18% 96%; 
-    --sidebar-foreground: 220 25% 15%;
-    --sidebar-primary: 220 65% 55%; 
-    --sidebar-primary-foreground: 220 20% 98%;
-    --sidebar-accent: 200 75% 70%; 
-    --sidebar-accent-foreground: 200 15% 10%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 220 65% 60%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.75rem; /* Slightly larger radius for a softer look */
   }
 
   .dark {
-    --background: 220 20% 10%; /* Very Dark Cool Gray */
-    --foreground: 220 15% 92%; /* Light Gray */
-    --card: 220 20% 13%; /* Darker Cool Gray */
-    --card-foreground: 220 15% 92%;
-    --popover: 220 20% 13%;
-    --popover-foreground: 220 15% 92%;
-    --primary: 220 70% 60%; /* Brighter Primary Blue */
-    --primary-foreground: 220 15% 10%; 
-    --secondary: 220 25% 25%; /* Dark Muted Blue */
-    --secondary-foreground: 220 15% 92%; 
-    --muted: 220 20% 18%; /* Dark Gray */
-    --muted-foreground: 220 15% 65%; /* Medium-Light Gray */
-    --accent: 210 70% 50%; /* Darker Accent Blue */
-    --accent-foreground: 210 10% 90%; /* Light text for dark accent */
+    --background: 220 20% 8%;
+    --foreground: 210 20% 95%;
+    --card: 220 20% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 20% 8%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 217 91% 60%; /* Brighter blue for dark mode */
+    --primary-foreground: 210 20% 10%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 220 15% 25%;
+    --accent-foreground: 210 20% 95%;
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 15% 30%; 
-    --input: 220 15% 25%; 
-    --ring: 220 70% 65%; 
-    
-    /* Sidebar variables - dark */
-    --sidebar-background: 220 18% 12%; 
-    --sidebar-foreground: 220 15% 90%;
-    --sidebar-primary: 220 65% 65%; 
-    --sidebar-primary-foreground: 220 15% 10%;
-    --sidebar-accent: 200 70% 60%; 
-    --sidebar-accent-foreground: 200 10% 90%;
-    --sidebar-border: 220 15% 28%;
-    --sidebar-ring: 220 65% 60%;
+    --border: 220 15% 20%;
+    --input: 220 15% 22%;
+    --ring: 217 91% 60%;
   }
 }
 
@@ -82,5 +62,21 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .bg-glass {
+    @apply bg-card/60 backdrop-blur-xl;
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  
+  .bg-dot-pattern-dark {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px);
+    background-size: 16px 16px;
   }
 }

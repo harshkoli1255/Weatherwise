@@ -10,45 +10,48 @@ interface WeatherDisplayProps {
 }
 
 export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
-  let iconColorClass = 'text-primary'; // Default for neutral
+  let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
-    iconColorClass = 'text-green-500';
+    sentimentColorClass = 'text-green-500';
   } else if (weatherData.weatherSentiment === 'bad') {
-    iconColorClass = 'text-destructive';
+    sentimentColorClass = 'text-destructive';
   }
 
   return (
-    <Card className="w-full max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20 transform hover:scale-[1.005] transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transform hover:scale-[1.01] transition-transform duration-300 mt-4">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
         <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
         <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-center justify-around text-center gap-4">
-          <div className="flex-shrink-0">
-            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 md:h-32 ${iconColorClass} drop-shadow-xl mx-auto`} />
+      <CardContent className="space-y-8 p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
+          <div className="flex-shrink-0 order-2 sm:order-1">
+            <div className="text-7xl sm:text-8xl font-bold text-primary drop-shadow-lg">
+              {weatherData.temperature}°
+              <span className="text-5xl sm:text-6xl text-primary/80">C</span>
+            </div>
           </div>
-          <div className="text-6xl sm:text-7xl font-bold text-primary drop-shadow-lg">
-            {weatherData.temperature}°C
+          <div className="flex justify-center items-center order-1 sm:order-2">
+            <WeatherIcon iconCode={weatherData.iconCode} className={`h-28 w-28 sm:h-36 sm:w-36 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center pt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
           <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} />
           <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} />
           <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} />
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center mb-3">
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-2.5 text-primary flex-shrink-0" />
+          <div className="pt-6 border-t border-border/50">
+            <div className="flex items-center mb-4">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
               <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
                 Hourly Forecast
               </h3>
             </div>
-            <ScrollArea className="w-full whitespace-nowrap rounded-lg bg-muted/50 shadow-inner border border-border/40">
-              <div className="flex space-x-3 p-3">
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+              <div className="flex space-x-3 pb-3">
                 {weatherData.hourlyForecast.map((forecastItem) => (
                   <HourlyForecastItem key={forecastItem.timestamp} forecast={forecastItem} />
                 ))}
@@ -58,14 +61,14 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
           </div>
         )}
 
-        <div className="pt-4 border-t border-border/50">
-          <div className="flex items-center mb-3">
-            <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-2.5 text-primary flex-shrink-0" />
+        <div className="pt-6 border-t border-border/50">
+          <div className="flex items-center mb-4">
+            <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
             <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
               AI Weather Summary
             </h3>
           </div>
-          <p className="text-base text-foreground/90 leading-relaxed bg-muted/50 p-4 rounded-lg shadow-inner border border-border/40">
+          <p className="text-base text-foreground/90 leading-relaxed bg-muted/40 p-4 rounded-lg shadow-inner border border-border/30">
             {weatherData.aiSummary}
           </p>
         </div>
@@ -82,8 +85,8 @@ interface WeatherDetailItemProps {
 
 function WeatherDetailItem({ icon: Icon, label, value }: WeatherDetailItemProps) {
   return (
-    <div className="flex flex-col items-center p-3 rounded-lg bg-background/70 hover:bg-muted/90 transition-colors duration-200 shadow-lg border border-border/40">
-      <Icon className="h-7 w-7 text-primary mb-1.5" />
+    <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-200 shadow-lg border border-border/30">
+      <Icon className="h-7 w-7 text-primary mb-2" />
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>
     </div>
@@ -96,10 +99,10 @@ interface HourlyForecastItemProps {
 
 function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/80 hover:bg-primary/15 transition-colors duration-200 shadow-lg border border-border/40 w-[80px] flex-shrink-0">
+    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-colors duration-200 shadow-lg border border-border/30 w-[85px] flex-shrink-0">
       <p className="text-sm font-medium text-muted-foreground mb-1.5">{forecast.time}</p>
-      <WeatherIcon iconCode={forecast.iconCode} className="h-8 w-8 text-accent drop-shadow-lg mb-1" />
-      <p className="text-lg font-bold text-primary mt-1.5">{forecast.temp}°C</p>
+      <WeatherIcon iconCode={forecast.iconCode} className="h-9 w-9 text-accent-foreground drop-shadow-lg mb-1" />
+      <p className="text-lg font-bold text-primary mt-1.5">{forecast.temp}°</p>
     </div>
   );
 }
