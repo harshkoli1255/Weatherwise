@@ -255,8 +255,8 @@ export default function WeatherPage() {
                       Use the search bar above to find weather information for any city.
                   </CardDescription>
               </CardHeader>
-               <CardContent className="flex justify-center pb-2 px-4">
-                  <Image src="https://placehold.co/420x260.png" alt="Weather exploration illustration" width={420} height={260} className="rounded-lg mt-2 shadow-lg" data-ai-hint="world map journey"/>
+               <CardContent className="flex justify-center pb-4 pt-8 px-4">
+                  <WeatherLoadingAnimation className="h-32 w-32 text-primary" />
               </CardContent>
           </Card>
       )}
