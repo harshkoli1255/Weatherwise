@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -11,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Thermometer, Wind, Umbrella, Loader2, Send } from 'lucide-react';
+import { Thermometer, Wind, Umbrella, Loader2, Send, TestTube2 } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -43,9 +42,10 @@ function TestEmailButton({ city }: { city: string }) {
 function TestCronButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="destructive" className="w-full sm:w-auto" disabled={pending}>
+    <Button type="submit" variant="outline" className="w-full sm:w-auto" disabled={pending}>
       <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !pending })} />
-      {pending ? 'Running...' : 'Run Hourly Check Now'}
+      <TestTube2 className={cn("mr-2 h-4 w-4", { "hidden": pending })} />
+      {pending ? 'Running System Test...' : 'Test Hourly Alert System'}
     </Button>
   );
 }
@@ -87,7 +87,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   useEffect(() => {
     if (testCronState.message) {
       toast({
-        title: testCronState.error ? 'Test Finished with Errors' : 'Test Finished Successfully',
+        title: testCronState.error ? 'System Test Finished with Errors' : 'System Test Finished',
         description: testCronState.message,
         variant: testCronState.error ? 'destructive' : 'default',
         duration: 15000 // Give more time to read the result
@@ -179,28 +179,29 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
       <Separator />
 
-      <form action={testEmailAction}>
-          <input type="hidden" name="city" value={city} />
-          <h3 className="text-lg font-medium">Demo: Send a Sample Alert</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            This will send a sample weather alert for <strong>{city || 'the city you have saved'}</strong> to your primary email address. This demonstrates how the email notifications will look.
-            <br/>
-            <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
-          </p>
-          <TestEmailButton city={city} />
-      </form>
+      <h3 className="text-lg font-medium">System Testing Tools</h3>
+      <div className="space-y-6">
+        <form action={testEmailAction}>
+            <input type="hidden" name="city" value={city} />
+            <Label className="font-medium">Test 1: Send a Sample Email</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              This will send a sample weather alert for <strong>{city || 'the city you have saved'}</strong> to your email to check the template. It does not check your alert rules.
+              <br/>
+              <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
+            </p>
+            <TestEmailButton city={city} />
+        </form>
 
-      <Separator />
-
-      <form action={testCronAction}>
-          <h3 className="text-lg font-medium">Test: Manually Trigger Hourly Alert Check</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            This simulates the hourly cron job. It will immediately check weather conditions for all users with enabled alerts and send notifications if their criteria are met. This is a powerful tool for testing the entire alert system.
-            <br/>
-            <span className="text-xs text-muted-foreground/80">Note: This action may take some time to complete depending on the number of users.</span>
-          </p>
-          <TestCronButton />
-      </form>
+        <form action={testCronAction}>
+            <Label className="font-medium">Test 2: Manually Trigger Hourly Alert Check</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              This simulates the real hourly alert job. It will immediately check weather conditions for all users with enabled alerts and send real notifications if their criteria are met. This is a powerful tool for testing the entire alert system.
+              <br/>
+              <span className="text-xs text-muted-foreground/80">Note: This action may take some time depending on the number of users.</span>
+            </p>
+            <TestCronButton />
+        </form>
+      </div>
     </div>
   );
 }

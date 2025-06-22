@@ -8,8 +8,9 @@ import { sendEmail } from '@/services/emailService';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 
 /**
- * Checks weather conditions against user preferences and sends alerts if conditions are met.
- * This function is intended to be called by a secure CRON job.
+ * The core logic for the hourly weather alert system.
+ * It fetches all users, checks their preferences, gets the latest weather,
+ * and sends email alerts if the defined conditions are met.
  */
 export async function checkAndSendAlerts(): Promise<{
   processedUsers: number;
@@ -17,85 +18,18 @@ export async function checkAndSendAlerts(): Promise<{
   alertsSent: number;
   errors: string[];
 }> {
-  let userList: any[] = [];
-  let processedUsers = 0;
-  let eligibleUsers = 0;
-  let alertsSent = 0;
+  let userList;
   const errors: string[] = [];
 
+  // Step 1: Fetch all users from the authentication service (Clerk)
   try {
-    const response = await clerkClient.users.getUserList({ limit: 500 });
+    // Note: clerkClient.users.getUserList() returns a paginated response object, not a direct array.
+    const response = await clerkClient.users.getUserList({ limit: 500 }); // Fetch up to 500 users
+    userList = response.data; // The user list is in the 'data' property
     
-    // Defensively handle the response from the user service.
-    // It could be a direct array or an object with a `data` property.
-    if (Array.isArray(response)) {
-      userList = response;
-    } else if (response && Array.isArray((response as any).data)) {
-      userList = (response as any).data;
-    } else {
-      const errorMsg = 'Failed to fetch a valid user list. The response was not in the expected format.';
-      console.error(errorMsg, 'Received:', response);
-      errors.push(errorMsg);
-      return { processedUsers: 0, eligibleUsers: 0, alertsSent: 0, errors };
+    if (!Array.isArray(userList)) {
+        throw new Error("User list from Clerk was not in the expected format (response.data is not an array).");
     }
-        
-    processedUsers = userList.length;
-
-    for (const user of userList) {
-      const prefsRaw = user.privateMetadata?.alertPreferences;
-      if (!prefsRaw) continue;
-
-      const preferences = JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences>;
-      
-      if (!preferences.alertsEnabled || !preferences.city) {
-        continue;
-      }
-      
-      eligibleUsers++;
-
-      try {
-        const weatherResult = await fetchWeatherAndSummaryAction({ city: preferences.city });
-        if (weatherResult.error || !weatherResult.data) {
-          console.warn(`Could not fetch weather for ${preferences.city} (user: ${user.id}). Skipping. Error: ${weatherResult.error}`);
-          continue;
-        }
-
-        const weatherData = weatherResult.data;
-        const alertTriggers = checkAlertConditions(preferences as AlertPreferences, weatherData);
-
-        if (alertTriggers.length > 0) {
-          console.log(`Sending alert to ${user.id} for city ${preferences.city}. Triggers:`, alertTriggers);
-          
-          if (!preferences.email) {
-            errors.push(`User ${user.id} has alerts enabled but no email address in preferences.`);
-            continue;
-          }
-          
-          const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers, isTest: false });
-          const emailSubject = weatherData.aiSubject;
-
-          const emailResult = await sendEmail({
-            to: preferences.email,
-            subject: emailSubject,
-            html: emailHtml,
-          });
-
-          if (emailResult.success) {
-            alertsSent++;
-          } else {
-            const errorMsg = `Failed to send email to ${preferences.email}: ${emailResult.error}`;
-            console.error(errorMsg);
-            errors.push(errorMsg);
-          }
-        }
-      } catch (error) {
-        const errorMsg = `Error processing user ${user.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        console.error(errorMsg);
-        errors.push(errorMsg);
-      }
-    }
-
-    return { processedUsers, eligibleUsers, alertsSent, errors };
 
   } catch (error) {
     const errorMsg = `Failed to fetch user list from Clerk: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -103,11 +37,73 @@ export async function checkAndSendAlerts(): Promise<{
     errors.push(errorMsg);
     return { processedUsers: 0, eligibleUsers: 0, alertsSent: 0, errors };
   }
+
+  const processedUsers = userList.length;
+  let eligibleUsers = 0;
+  let alertsSent = 0;
+
+  // Step 2: Iterate through each user to check their alert preferences
+  for (const user of userList) {
+    try {
+      const prefsRaw = user.privateMetadata?.alertPreferences;
+      if (!prefsRaw) {
+        continue; // User has no preferences set, skip.
+      }
+
+      const preferences = JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences>;
+
+      // Check if user is eligible for alerts
+      if (!preferences.alertsEnabled || !preferences.city || !preferences.email) {
+        continue; // Skip if alerts are off, or no city/email is set.
+      }
+      
+      eligibleUsers++;
+
+      // Step 3: Fetch weather for the user's chosen city
+      const weatherResult = await fetchWeatherAndSummaryAction({ city: preferences.city });
+      if (weatherResult.error || !weatherResult.data) {
+        console.warn(`Could not fetch weather for ${preferences.city} (user: ${user.id}). Skipping. Error: ${weatherResult.error}`);
+        continue;
+      }
+      const weatherData = weatherResult.data;
+
+      // Step 4: Check if current weather triggers any of the user's alerts
+      const alertTriggers = checkAlertConditions(preferences as AlertPreferences, weatherData);
+
+      if (alertTriggers.length > 0) {
+        console.log(`Sending alert to ${preferences.email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
+        
+        // Step 5: If triggered, generate and send the alert email
+        const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers });
+        const emailSubject = `Weather Alert: ${weatherData.aiSubject}`;
+
+        const emailResult = await sendEmail({
+          to: preferences.email,
+          subject: emailSubject,
+          html: emailHtml,
+        });
+
+        if (emailResult.success) {
+          alertsSent++;
+        } else {
+          const errorMsg = `Failed to send email to ${preferences.email}: ${emailResult.error}`;
+          console.error(errorMsg);
+          errors.push(errorMsg);
+        }
+      }
+    } catch (error) {
+      const errorMsg = `Error processing user ${user.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error(errorMsg);
+      errors.push(errorMsg);
+    }
+  }
+
+  return { processedUsers, eligibleUsers, alertsSent, errors };
 }
 
 /**
- * Checks the current weather against a user's alert preferences.
- * @returns An array of strings describing which alerts were triggered.
+ * A helper function that checks the current weather against a user's alert preferences.
+ * @returns An array of strings describing which alerts were triggered. An empty array means no alerts.
  */
 function checkAlertConditions(
   preferences: AlertPreferences,
@@ -119,31 +115,30 @@ function checkAlertConditions(
   if (preferences.notifyExtremeTemp) {
     if (preferences.highTempThreshold != null && weatherData.temperature > preferences.highTempThreshold) {
       triggered.push(
-        `High temperature of ${weatherData.temperature}°C detected (threshold: >${preferences.highTempThreshold}°C)`
+        `High temperature of ${weatherData.temperature}°C (threshold: >${preferences.highTempThreshold}°C)`
       );
     }
     if (preferences.lowTempThreshold != null && weatherData.temperature < preferences.lowTempThreshold) {
       triggered.push(
-        `Low temperature of ${weatherData.temperature}°C detected (threshold: <${preferences.lowTempThreshold}°C)`
+        `Low temperature of ${weatherData.temperature}°C (threshold: <${preferences.lowTempThreshold}°C)`
       );
     }
   }
 
   // Check for strong wind
-  if (preferences.notifyStrongWind) {
-    if (preferences.windSpeedThreshold != null && weatherData.windSpeed > preferences.windSpeedThreshold) {
+  if (preferences.notifyStrongWind && preferences.windSpeedThreshold != null) {
+    if (weatherData.windSpeed > preferences.windSpeedThreshold) {
       triggered.push(
-        `Strong wind of ${weatherData.windSpeed} km/h detected (threshold: >${preferences.windSpeedThreshold} km/h)`
+        `Strong wind of ${weatherData.windSpeed} km/h (threshold: >${preferences.windSpeedThreshold} km/h)`
       );
     }
   }
 
-  // Check for heavy rain
-  // This is a simple check. A more advanced implementation could check rain volume if the API provides it.
+  // Check for rain
   if (preferences.notifyHeavyRain) {
-    const condition = weatherData.condition.toLowerCase();
-    if (condition.includes('rain') || condition.includes('thunderstorm') || condition.includes('drizzle')) {
-      triggered.push(`Rain is currently forecasted (${weatherData.description}).`);
+    const condition = weatherData.condition?.toLowerCase();
+    if (condition && (condition.includes('rain') || condition.includes('thunderstorm') || condition.includes('drizzle'))) {
+      triggered.push(`Rain is forecasted (${weatherData.description}).`);
     }
   }
 

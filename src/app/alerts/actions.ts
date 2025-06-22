@@ -1,4 +1,3 @@
-
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -101,7 +100,7 @@ export async function sendTestEmailAction(
     }
     const weatherData = weatherResult.data;
 
-    const subject = `TEST: ${weatherData.aiSubject}`;
+    const subject = `SAMPLE: ${weatherData.aiSubject}`;
     const html = generateWeatherAlertEmailHtml({ weatherData, isTest: true });
 
     const result = await sendEmail({
@@ -111,14 +110,14 @@ export async function sendTestEmailAction(
     });
 
     if (result.success) {
-      return { message: `Test weather alert for ${weatherData.city} sent successfully to ${emailAddress}!`, error: false };
+      return { message: `Sample weather alert for ${weatherData.city} sent successfully to ${emailAddress}!`, error: false };
     } else {
-      return { message: `Failed to send test email: ${result.error}`, error: true };
+      return { message: `Failed to send sample email: ${result.error}`, error: true };
     }
   } catch (error: any) {
     console.error('Failed to send test email action:', error);
     const errorMessage = error.message || 'An unexpected error occurred.';
-    return { message: `Failed to send test email. ${errorMessage}`, error: true };
+    return { message: `Failed to send sample email. ${errorMessage}`, error: true };
   }
 }
 
@@ -131,16 +130,22 @@ export async function testAllAlertsAction(
     return { message: 'You must be signed in to perform this test.', error: true };
   }
 
-  console.log(`Manual CRON job test triggered by user: ${userId}`);
+  console.log(`Manual hourly alert system test triggered by user: ${userId}`);
 
   try {
     const result = await checkAndSendAlerts();
-    const successMessage = `Test finished. Processed ${result.processedUsers} users, found ${result.eligibleUsers} eligible for alerts, and sent ${result.alertsSent} alerts. Errors: ${result.errors.length}.`;
+    const successMessage = `Test finished. Processed ${result.processedUsers} users. Found ${result.eligibleUsers} with alerts enabled. Sent ${result.alertsSent} alerts. Errors: ${result.errors.length}.`;
     console.log(successMessage);
-    return { message: successMessage, error: result.errors.length > 0 };
+    
+    if (result.errors.length > 0) {
+        const fullMessage = `${successMessage} | Errors encountered: ${result.errors.join('; ')}`;
+        return { message: fullMessage, error: true };
+    }
+
+    return { message: successMessage, error: false };
   } catch (error) {
-    console.error("Manual CRON job test failed:", error);
+    console.error("Manual hourly alert system test failed:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-    return { message: `Test failed: ${errorMessage}`, error: true };
+    return { message: `Test failed catastrophically: ${errorMessage}`, error: true };
   }
 }

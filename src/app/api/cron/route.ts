@@ -2,43 +2,53 @@
 import { NextResponse } from 'next/server';
 import { checkAndSendAlerts } from '@/services/alertProcessing';
 
-export const dynamic = 'force-dynamic'; // Defaults to force-static in app router
+export const dynamic = 'force-dynamic';
 
 /**
- * This is the main CRON endpoint for the application.
- * When triggered by a scheduler, it initiates the process of checking and sending weather alerts.
+ * SECURE CRON JOB ENDPOINT
  * 
- * It is secured by a secret key that must be passed in the 'Authorization' header
- * as a Bearer token.
+ * This endpoint is designed to be called by an external scheduling service (like cron-job.org)
+ * to trigger the hourly weather alert check for all users.
  * 
- * Example:
- * curl -X GET "https://your-app-url/api/cron" -H "Authorization: Bearer YOUR_CRON_SECRET"
+ * SECURITY:
+ * It is protected by a secret key that must be passed in the 'Authorization' header
+ * as a Bearer token. This prevents unauthorized execution.
+ * 
+ * Example cURL:
+ * curl -X GET "https://<YOUR_APP_URL>/api/cron" -H "Authorization: Bearer <YOUR_CRON_SECRET>"
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
+  // 1. Check if the CRON_SECRET is configured on the server
   if (!cronSecret) {
-    console.error("CRON_SECRET is not set in the environment variables. Aborting cron job.");
+    console.error("CRON_SECRET is not set in environment variables. Cron job cannot run securely.");
     return NextResponse.json(
-      { success: false, message: "CRON secret not configured on server." }, 
+      { success: false, message: "CRON job is not configured on the server." }, 
       { status: 500 }
     );
   }
 
+  // 2. Check if the incoming request has the correct secret token
   if (authHeader !== `Bearer ${cronSecret}`) {
+    console.warn("Unauthorized attempt to access CRON endpoint.");
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
-  console.log("CRON job started: Checking and sending alerts.");
+  console.log(`Hourly alert check initiated by scheduler at: ${new Date().toISOString()}`);
 
+  // 3. Execute the alert processing logic
   try {
     const result = await checkAndSendAlerts();
-    console.log("CRON job finished successfully.", result);
+    console.log(`Hourly alert check finished successfully. Processed: ${result.processedUsers}, Eligible: ${result.eligibleUsers}, Sent: ${result.alertsSent}, Errors: ${result.errors.length}`);
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
-    console.error("CRON job failed:", error);
+    console.error("A critical error occurred during the CRON job execution:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-    return NextResponse.json({ success: false, message: "Cron job failed", error: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Cron job failed", error: errorMessage }, 
+      { status: 500 }
+    );
   }
 }
