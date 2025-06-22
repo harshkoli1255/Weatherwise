@@ -27,25 +27,21 @@ export function generateWeatherAlertEmailHtml({
   };
   const fontFamily = "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
-  // --- Icon SVGs ---
+  // --- Icon SVGs (Base64 encoded for compatibility) ---
   const icons = {
-    feelsLike: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>`,
-    humidity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>`,
-    wind: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`,
-    hourly: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-    summary: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.6.11.82-.26.82-.57 0-.28-.01-1.02-.01-2-2.78.6-3.37-1.34-3.37-1.34-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.72.08-.72 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.3 1.17-1.6-2.67-.3-5.46-1.33-5.46-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.8 5.62-5.48 5.92.43.37.82 1.1.82 2.22 0 1.6-.01 2.89-.01 3.29 0 .31.22.69.83.57A10 10 0 0 0 22 12 10 10 0 0 0 12 2z"/></svg>`,
-    activity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/><path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>`,
+    hourly: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwb2x5bGluZSBwb2ludHM9IjEyIDYgMTIgMTIgMTYgMTQiLz48L3N2Zz4=',
+    summary: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNOS41IDJBMi41IDIuNSAwIDAgMSAxMiA0LjV2MEEyLjUgMi41IDAgMCAxIDkuNSA3aDBBMi41IDIuNSAwIDAgMSA3IDQuNXYwQTIuNSAyLjUgMCAwIDEgOS41IDJaIi8+PHBhdGggZD0iTTE0LjUgMkEyLjUgMi41IDAgMCAxIDE3IDQuNXYwQTIuNSAyLjUgMCAwIDEgMTQuNSA3aDBhMi41IDIuNSAwIDAgMS0yLjUgMi41djBBMi41IDIuNSAwIDAgMSAxNC41IDJaIi8+PHBhdGggZD0iTTEyIDEyYTIuNSAyLjUgMCAwIDAtMi41IDIuNXYwQTIuNSAyLjUgMCAwIDAgMTIgMTdoMGEyLjUgMi41IDAgMCAwIDIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDEyIDEyWiIvPjxwYXRoIGQ9Ik00LjUgN0EyLjUgMi41IDAgMCAwIDcgOS41djBBMi41IDIuNSAwIDAgMCA0LjUgMTJoMGEyLjUgMi41IDAgMCAwLTIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDQuNSA3WiIvPjxwYXRoIGQ9Ik0xOS41IDdBMi41IDIuNSAwIDAgMCAyMiA5LjV2MEEyLjUgMi41IDAgMCAwIDE5LjUgMTJoMGEyLjUgMi41IDAgMCAwLTIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDE5LjUgN1oiLz48cGF0aCBkPSJNMTEgMTQuM2EuNS41IDAgMSAwIDEgMGwtMyAzaC0xLjVhMi41IDIuNSAwIDAgMS0yLjUtMi41VjEyIi8+PHBhdGggZD0iTTEzIDE0LjNhLjUuNSAwIDAgMS0xIDBsMyAzaDEuNWMyIDEuNSAyLjUgMi41IDIuNSA1djIuNSIvPjwvc3ZnPg==',
+    activity: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTEuNSAyYy0uNSAyLjMtMS41IDQuMy0zIDUuNSAwbDcgM2MgLjUtMS4yIDEuNS0yLjUgMy0zLjUiLz48cGF0aCBkPSJNMNSA4YzAgMS41IDAgMyAwIDQuNWwxMCA1Ii8+PHBhdGggZD0iTTE2IDRhNCA0IDAgMCAwLTIuNSAxQzEyIDYgNyA4IDcgOGw1LjUgMy41Ii8+PHBhdGggZD0ibTE2IDE5IDItMi41IDEtMi41LTIgMS0xIDItMSAxeiIvPjwvc3ZnPg=='
   };
 
   // --- Reusable Components ---
-  const renderDetailCard = (icon: string, label: string, value: string) => `
+  const renderDetailCard = (label: string, value: string) => `
     <td align="center" width="33.33%" style="padding: 0 4px;">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
         <tr>
-          <td style="background-color: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px 8px; text-align: center;">
-            ${icon}
-            <p style="color: ${colors.textMuted}; font-size: 14px; font-weight: 500; margin: 8px 0 0 0; line-height: 1;">${label}</p>
-            <p style="color: ${colors.textHeading}; font-size: 18px; font-weight: 700; margin: 4px 0 0 0; line-height: 1;">${value}</p>
+          <td style="background-color: rgba(30, 41, 59, 0.5); border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px 8px; text-align: center;">
+            <p style="color: ${colors.textMuted}; font-size: 14px; font-weight: 500; margin: 0 0 4px 0; line-height: 1;">${label}</p>
+            <p style="color: ${colors.textHeading}; font-size: 18px; font-weight: 700; margin: 0; line-height: 1;">${value}</p>
           </td>
         </tr>
       </table>
@@ -60,27 +56,28 @@ export function generateWeatherAlertEmailHtml({
     </td>
   `;
 
-  const renderSection = (icon: string, title: string, content: string) => `
-    <tr>
-      <td style="padding-top: 24px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-          <tr>
-            <td valign="middle" width="32">${icon}</td>
-            <td valign="middle" style="padding-left: 12px;">
-              <h3 style="color: ${colors.primary}; font-size: 20px; font-weight: 700; margin: 0;">${title}</h3>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" style="padding-top: 16px;">
-              <div style="background-color: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px;">
-                <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">${content}</p>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  `;
+  const renderSection = (iconBase64: string, title: string, content: string) => {
+    return `
+      <tr>
+        <td style="padding-top: 24px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td valign="middle" width="32"><img src="data:image/svg+xml;base64,${iconBase64}" width="24" height="24" alt=""/></td>
+              <td valign="middle" style="padding-left: 12px;">
+                <h3 style="color: ${colors.primary}; font-size: 20px; font-weight: 700; margin: 0;">${title}</h3>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 16px;">
+                <div style="background-color: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px;">
+                  <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">${content}</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+  `};
 
   return `
 <!DOCTYPE html>
@@ -156,38 +153,23 @@ export function generateWeatherAlertEmailHtml({
                                 <td style="padding-bottom: 16px;">
                                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                         <tr>
-                                            ${renderDetailCard(icons.feelsLike, 'Feels Like', `${weatherData.feelsLike}°C`)}
-                                            ${renderDetailCard(icons.humidity, 'Humidity', `${weatherData.humidity}%`)}
-                                            ${renderDetailCard(icons.wind, 'Wind', `${weatherData.windSpeed} km/h`)}
+                                            ${renderDetailCard('Feels Like', `${weatherData.feelsLike}°C`)}
+                                            ${renderDetailCard('Humidity', `${weatherData.humidity}%`)}
+                                            ${renderDetailCard('Wind', `${weatherData.windSpeed} km/h`)}
                                         </tr>
                                     </table>
                                 </td>
                             </tr>
                             <!-- Hourly Forecast -->
                             ${weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? `
-                            <tr>
-                                <td style="padding-top: 24px;">
-                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                                        <tr>
-                                            <td valign="middle" width="32">${icons.hourly}</td>
-                                            <td valign="middle" style="padding-left: 12px;">
-                                              <h3 style="color: ${colors.primary}; font-size: 20px; font-weight: 700; margin: 0;">Hourly Forecast</h3>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="2" style="padding-top: 16px;">
-                                                <div style="background-color: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px;">
-                                                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                                                        <tr>
-                                                           ${weatherData.hourlyForecast.slice(0, 5).map(renderHourlyForecastItem).join('')}
-                                                        </tr>
-                                                    </table>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>` : ''}
+                            ${renderSection(icons.hourly, 'Hourly Forecast', `
+                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                       ${weatherData.hourlyForecast.slice(0, 5).map(renderHourlyForecastItem).join('')}
+                                    </tr>
+                                </table>
+                            `)}
+                            ` : ''}
                             <!-- AI Summary -->
                             ${renderSection(icons.summary, 'AI Weather Summary', weatherData.aiSummary)}
                             <!-- Activity Suggestion -->
