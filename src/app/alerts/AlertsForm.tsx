@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Thermometer, Wind, Umbrella, Loader2 } from 'lucide-react';
+import { AlertsCitySearch } from './AlertsCitySearch';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -67,7 +68,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       <div className={`space-y-6 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
         <div>
           <Label htmlFor="city">City for Alerts</Label>
-          <Input id="city" name="city" defaultValue={preferences.city} placeholder="e.g., London" required={alertsEnabled} className="mt-2" />
+          <AlertsCitySearch id="city" name="city" defaultValue={preferences.city} required={alertsEnabled} />
            <p className="text-sm text-muted-foreground mt-1">This city will be used for all alert checks.</p>
         </div>
 
