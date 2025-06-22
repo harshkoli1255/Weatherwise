@@ -30,13 +30,17 @@ const WeatherSummaryOutputSchema = z.object({
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
-// Define the prompt using the standard Genkit pattern
-const weatherSummaryPrompt = ai.definePrompt({
-    name: 'weatherSummaryPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
-    input: { schema: WeatherSummaryInputSchema },
-    output: { schema: WeatherSummaryOutputSchema },
-    prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, and create a detailed email subject line.
+const hasGeminiConfig = geminiApiKeys && geminiApiKeys.length > 0;
+
+let weatherSummaryFlow: ((input: WeatherSummaryInput) => Promise<WeatherSummaryOutput>) | undefined;
+
+if (hasGeminiConfig) {
+  const weatherSummaryPrompt = ai.definePrompt({
+      name: 'weatherSummaryPrompt',
+      model: 'googleai/gemini-1.5-flash-latest',
+      input: { schema: WeatherSummaryInputSchema },
+      output: { schema: WeatherSummaryOutputSchema },
+      prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, and create a detailed email subject line.
 
 Current weather data for {{{city}}}:
 - Temperature: {{{temperature}}}°C
@@ -56,38 +60,35 @@ Instructions:
 5.  Craft a summary that is easy to understand, focuses on the most important aspects, and does not exceed 50 words.
 6.  Generate a detailed and engaging email subject line. It should be as long as is reasonable for a subject line, summarizing the most important aspects of the weather like temperature, feels like, wind, and overall conditions to give the user a full picture before they open the email. For example: "Mild 22°C in London with a gentle breeze, but feels cooler at 19°C - a perfect day for a walk!".
 `,
-    config: {
-        temperature: 0.5,
-        safetySettings: [
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        ],
+      config: {
+          temperature: 0.5,
+          safetySettings: [
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          ],
+      },
+  });
+
+  weatherSummaryFlow = ai.defineFlow(
+    {
+      name: 'weatherSummaryFlow',
+      inputSchema: WeatherSummaryInputSchema,
+      outputSchema: WeatherSummaryOutputSchema,
     },
-});
-
-// Define the flow using the standard Genkit pattern
-const weatherSummaryFlow = ai.defineFlow(
-  {
-    name: 'weatherSummaryFlow',
-    inputSchema: WeatherSummaryInputSchema,
-    outputSchema: WeatherSummaryOutputSchema,
-  },
-  async (input) => {
-    const { output } = await weatherSummaryPrompt(input);
-    if (!output) {
-      throw new Error("AI summary generation failed to produce an output.");
+    async (input) => {
+      const { output } = await weatherSummaryPrompt(input);
+      if (!output) {
+        throw new Error("AI summary generation failed to produce an output.");
+      }
+      return output;
     }
-    return output;
-  }
-);
+  );
+}
 
-
-// Exported function that calls the flow. This maintains the existing API for `actions.ts`.
 export async function summarizeWeather(input: WeatherSummaryInput): Promise<WeatherSummaryOutput> {
-  const hasGeminiConfig = geminiApiKeys && geminiApiKeys.length > 0;
-  if (!hasGeminiConfig) {
+  if (!hasGeminiConfig || !weatherSummaryFlow) {
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
 
