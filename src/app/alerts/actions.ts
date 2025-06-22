@@ -132,7 +132,7 @@ export async function sendTestEmailAction(
                     <tr>
                         <td style="padding-bottom: 24px;">
                             <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">Hello,</p>
-                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">As requested, here is your test weather report from Weatherwise. This is a sample of the alerts you can configure to stay ahead of the weather.</p>
+                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">Here is your requested test weather report for <strong>${weatherData.city}</strong>. This is a sample of the automated alerts you can receive based on your preferences.</p>
                         </td>
                     </tr>
 

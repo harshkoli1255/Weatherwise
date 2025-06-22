@@ -59,7 +59,7 @@ Instructions:
     -   'Good' weather: Pleasant temperatures (e.g., 15°C-25°C), clear or partly cloudy skies, light winds.
     -   'Neutral': Conditions that don't strongly fit 'good' or 'bad'.
 3.  **Craft the Summary:** Write a professional and friendly summary for the body of an email. It should be easy to understand, focus on the most important aspects, and adopt a helpful tone. If the 'feels like' temperature is significantly different from the actual temperature (a difference of more than 5 degrees), mention it. Otherwise, do not mention it. This summary will be labeled "AI Weather Summary" in the email.
-4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London").
+4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏠.
 5.  **Create Activity Suggestion:** Based on the weather, generate a concise, one-sentence suggestion for activities. For example: "A beautiful day for outdoor activities and travel.", "Weather is ideal for staying productive indoors.", or "Exercise caution if traveling due to high winds." Set this in the 'activitySuggestion' field.
 `,
       config: {
