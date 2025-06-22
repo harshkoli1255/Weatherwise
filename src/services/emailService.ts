@@ -3,11 +3,13 @@
 
 import nodemailer from 'nodemailer';
 
+const portNumber = Number(process.env.EMAIL_PORT);
+
 const emailConfig = {
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : undefined,
+  port: !isNaN(portNumber) && portNumber > 0 ? portNumber : undefined,
   // secure: true for 465, false for other ports
-  secure: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) === 465 : false,
+  secure: portNumber === 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
