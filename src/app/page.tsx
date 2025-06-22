@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useTransition, useCallback, useRef } from 'react';
@@ -66,6 +65,15 @@ export default function WeatherPage() {
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
+      
+      if (!result) {
+        setWeatherState({
+          ...initialState,
+          isLoading: false,
+          error: 'An unexpected server error occurred. Please try again.',
+        });
+        return;
+      }
 
       setWeatherState(prev => ({ // Set final state
         data: result.data,
@@ -139,6 +147,16 @@ export default function WeatherPage() {
         setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather using ${locationSource}...` }));
         startTransition(async () => {
           const result = await fetchWeatherAndSummaryAction(weatherParams!);
+
+          if (!result) {
+            setWeatherState({
+              ...initialState,
+              isLoading: false,
+              error: 'An unexpected server error occurred. Please try again.',
+            });
+            return;
+          }
+
           setWeatherState({
             data: result.data,
             error: result.error,
