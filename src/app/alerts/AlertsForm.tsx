@@ -10,11 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, Waves, Wind } from 'lucide-react';
+import { Loader2, Clock, Zap } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -92,7 +91,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
         <Switch id="alertsEnabled" name="alertsEnabled" checked={alertsEnabled} onCheckedChange={setAlertsEnabled} aria-label="Enable all alerts" />
       </div>
 
-      <div className={`space-y-6 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+      <div className={`space-y-8 pt-4 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
         <div>
           <Label htmlFor="city">City for Alerts</Label>
           <AlertsCitySearch 
@@ -105,36 +104,39 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
         </div>
         
-        <Separator />
-        <h3 className="text-lg font-medium border-b pb-2 pt-2">Notification Frequency</h3>
-        <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="space-y-3 rounded-lg border p-4 shadow-sm bg-background/50">
-          <Label className="text-base font-bold">Alert Sensitivity</Label>
-          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
-            <RadioGroupItem value="everyHour" id="freq-max" />
-            <div className="grid gap-1.5 leading-normal">
-              <Label htmlFor="freq-max" className="font-semibold cursor-pointer">Maximum</Label>
-              <p className="text-sm text-muted-foreground">Get an alert every hour that significant weather conditions are detected.</p>
+        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
+          <div className="flex items-center gap-3 mb-1">
+            <Zap className="h-6 w-6 text-primary" />
+            <div className="space-y-0.5">
+              <h4 className="font-medium">Alert Sensitivity</h4>
+              <p className="text-sm text-muted-foreground">Control how often you receive alerts for significant weather.</p>
             </div>
           </div>
-          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
-            <RadioGroupItem value="balanced" id="freq-bal" />
-            <div className="grid gap-1.5 leading-normal">
-              <Label htmlFor="freq-bal" className="font-semibold cursor-pointer">Balanced (Recommended)</Label>
-              <p className="text-sm text-muted-foreground">Get one alert when significant weather starts, then stay quiet for 4 hours to prevent noise.</p>
+          <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="space-y-2 pt-2">
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+              <RadioGroupItem value="everyHour" id="freq-max" />
+              <div className="grid gap-1.5 leading-normal">
+                <Label htmlFor="freq-max" className="font-semibold cursor-pointer">Maximum</Label>
+                <p className="text-sm text-muted-foreground">Get an alert every hour that significant weather conditions are detected.</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
-            <RadioGroupItem value="oncePerDay" id="freq-min" />
-            <div className="grid gap-1.5 leading-normal">
-              <Label htmlFor="freq-min" className="font-semibold cursor-pointer">Minimal</Label>
-              <p className="text-sm text-muted-foreground">Get a maximum of one alert per day for the first significant weather event.</p>
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+              <RadioGroupItem value="balanced" id="freq-bal" />
+              <div className="grid gap-1.5 leading-normal">
+                <Label htmlFor="freq-bal" className="font-semibold cursor-pointer">Balanced (Recommended)</Label>
+                <p className="text-sm text-muted-foreground">Get one alert when significant weather starts, then stay quiet for 4 hours to prevent noise.</p>
+              </div>
             </div>
-          </div>
-        </RadioGroup>
-
-        <Separator />
-        <h3 className="text-lg font-medium border-b pb-2 pt-2">Alert Schedule</h3>
-
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+              <RadioGroupItem value="oncePerDay" id="freq-min" />
+              <div className="grid gap-1.5 leading-normal">
+                <Label htmlFor="freq-min" className="font-semibold cursor-pointer">Minimal</Label>
+                <p className="text-sm text-muted-foreground">Get a maximum of one alert per day for the first significant weather event.</p>
+              </div>
+            </div>
+          </RadioGroup>
+        </div>
+        
         <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -147,7 +149,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
               <Switch id="scheduleEnabled" name="scheduleEnabled" checked={scheduleEnabled} onCheckedChange={setScheduleEnabled} />
           </div>
 
-          <div className={`space-y-6 pt-4 transition-opacity duration-300 ${scheduleEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+          <div className={`space-y-6 pt-4 border-t border-border/50 transition-opacity duration-300 ${scheduleEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
               <div>
                   <Label>Active Days of the Week</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">

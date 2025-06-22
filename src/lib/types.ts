@@ -157,17 +157,6 @@ export interface IpApiLocationResponse {
   lon?: number;
 }
 
-export interface WeatherConditionAlert {
-  type: 'Extreme Temperature' | 'Heavy Rain' | 'Strong Wind';
-  details: string;
-  city: string;
-  customThresholds?: {
-    highTemp?: number;
-    lowTemp?: number;
-    windSpeed?: number;
-  }
-}
-
 export interface CitySuggestion {
   name: string;
   lat: number;
