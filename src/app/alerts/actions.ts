@@ -115,180 +115,122 @@ export async function sendTestEmailAction(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${subject}</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f9fa; /* Lighter background */
-            background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-            background-size: 16px 16px;
-            color: #1a202c; /* Updated foreground */
-        }
-        .container {
-            max-width: 600px;
-            margin: 32px auto;
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent */
-            border-radius: 16px; /* Softer radius */
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Deeper shadow */
-            overflow: hidden;
-            border: 1px solid #e2e8f0; /* Softer border */
-        }
-        .header {
-            background-color: #3b82f6;
-            color: #ffffff;
-            padding: 24px;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .content {
-            padding: 32px;
-        }
-        .weather-main {
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0; /* Softer border */
-            padding-bottom: 24px;
-            margin-bottom: 24px;
-        }
-        .weather-main h2 {
-            margin: 0 0 4px 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #1a202c;
-        }
-        .weather-main .description {
-            margin: 0 0 12px 0;
-            font-size: 18px; /* Larger description */
-            color: #718096; /* Muted foreground */
-            text-transform: capitalize;
-        }
-        .weather-main .temperature {
-            font-size: 72px; /* Larger temperature */
-            font-weight: 800; /* extrabold */
-            color: #2563eb; /* Darker primary */
-            margin: 0;
-            line-height: 1;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-        }
-        .weather-main img {
-            margin: -15px auto -10px;
-            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
-        }
-        .weather-details {
-            display: table;
-            width: 100%;
-            border-spacing: 12px 0;
-            margin: 0 -6px;
-            border-collapse: separate;
-        }
-        .detail-item {
-            display: table-cell;
-            width: 33.33%;
-            background-color: #f8f9fa; /* Matches body background */
-            padding: 16px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .detail-item .label {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 6px;
-            display: block;
-            font-weight: 500;
-        }
-        .detail-item .value {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a202c;
-        }
-        .ai-summary {
-            margin-top: 32px;
-            background-color: #f7fafc; /* Very light muted bg */
-            border-radius: 12px;
-            padding: 24px;
-            border-left: 5px solid #3b82f6; /* Primary accent */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-        .ai-summary h3 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-            color: #2563eb; /* Darker primary */
-            font-weight: 600;
-        }
-        .ai-summary p {
-            margin: 0;
-            font-size: 16px;
-            color: #4a5568; /* Gray-700 */
-            line-height: 1.65;
-        }
-        .footer {
-            background-color: #f8f9fa; /* Matches body background */
-            padding: 24px;
-            text-align: center;
-            font-size: 13px;
-            color: #718096; /* Muted foreground */
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer .button-cta {
-            background-color: #3b82f6;
-            color: #ffffff;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 8px;
-            display: inline-block;
-            margin-top: 12px;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Weatherwise</h1>
-        </div>
-        <div class="content">
-            <div class="weather-main">
-                <h2>${weatherData.city}, ${weatherData.country}</h2>
-                <p class="description">${weatherData.description}</p>
-                <img src="${iconUrl}" alt="${weatherData.description}" width="160" height="160">
-                <p class="temperature">${weatherData.temperature}°C</p>
-            </div>
-            <div class="weather-details">
-                <div class="detail-item">
-                    <span class="label">Feels Like</span>
-                    <span class="value">${weatherData.feelsLike}°C</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">Humidity</span>
-                    <span class="value">${weatherData.humidity}%</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">Wind</span>
-                    <span class="value">${weatherData.windSpeed} km/h</span>
-                </div>
-            </div>
-            <div class="ai-summary">
-                <h3>AI Summary</h3>
-                <p>${weatherData.aiSummary}</p>
-            </div>
-        </div>
-        <div class="footer">
-            <p>This is a test alert. To manage your notification preferences or to unsubscribe, please visit your settings.</p>
-            <a href="${alertsUrl}" class="button-cta">
-                Manage Alerts
-            </a>
-            <p style="margin-top: 16px; font-size: 12px;">© ${new Date().getFullYear()} Weatherwise</p>
-        </div>
-    </div>
+<body style="background-color: #0A0F1E; background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 16px 16px; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 24px; margin: 0;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+        <tr>
+            <td align="center">
+                <!--[if mso]>
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr>
+                <td>
+                <![endif]-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation" style="background-color: #111827; border-radius: 16px; border: 1px solid #374151; padding: 24px 32px; max-width: 600px;">
+                    
+                    <!-- Header: City & Description -->
+                    <tr>
+                        <td align="center" style="padding-bottom: 24px; text-align: center;">
+                            <p style="font-size: 28px; font-weight: bold; color: #60A5FA; margin: 0;">${weatherData.city}, ${weatherData.country}</p>
+                            <p style="font-size: 16px; color: #9CA3AF; margin: 4px 0 0 0; text-transform: capitalize;">${weatherData.description}</p>
+                        </td>
+                    </tr>
+
+                    <!-- Main Weather: Temperature & Icon -->
+                    <tr>
+                        <td style="padding-bottom: 24px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                                <tr>
+                                    <td width="55%" align="left" valign="middle">
+                                        <p style="margin: 0; font-size: 80px; font-weight: bold; color: #60A5FA; line-height: 1;">
+                                            ${weatherData.temperature}<span style="font-size: 40px; color: #9CA3AF; vertical-align: 30px; margin-left: 4px;">°C</span>
+                                        </p>
+                                    </td>
+                                    <td width="45%" align="right" valign="middle">
+                                        <img src="${iconUrl}" alt="${weatherData.description}" width="160" height="160" style="display: block; border: 0;">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Weather Details Cards -->
+                    <tr>
+                        <td style="padding-bottom: 24px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                                <tr>
+                                    <td width="33.33%" style="padding-right: 6px;">
+                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Feels Like</p>
+                                            <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.feelsLike}°C</p>
+                                        </div>
+                                    </td>
+                                    <td width="33.33%" style="padding-left: 3px; padding-right: 3px;">
+                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Humidity</p>
+                                            <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.humidity}%</p>
+                                        </div>
+                                    </td>
+                                    <td width="33.33%" style="padding-left: 6px;">
+                                        <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Wind</p>
+                                            <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.windSpeed} km/h</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Hourly Forecast -->
+                    ${weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? `
+                    <tr>
+                        <td style="padding-top: 16px; padding-bottom: 16px;">
+                            <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">Hourly Forecast</p>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+                                <tr>
+                                    ${weatherData.hourlyForecast.slice(0, 5).map(forecast => `
+                                        <td align="center" style="padding: 0 4px;">
+                                            <div style="background-color: #1F2937; border-radius: 12px; padding: 12px 8px; text-align: center; width: 85px;">
+                                                <p style="font-size: 14px; color: #9CA3AF; margin: 0; white-space: nowrap;">${forecast.time}</p>
+                                                <img src="https://openweathermap.org/img/wn/${forecast.iconCode}@2x.png" width="40" height="40" alt="${forecast.condition}" style="margin: 4px auto; display: block; border: 0;" />
+                                                <p style="font-size: 18px; font-weight: bold; color: #ffffff; margin: 0;">${forecast.temp}°</p>
+                                            </div>
+                                        </td>
+                                    `).join('')}
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>` : ''}
+
+                    <!-- AI Summary -->
+                    <tr>
+                        <td style="padding-top: 24px;">
+                             <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">AI Weather Summary</p>
+                            <div style="background-color: #1F2937; border-radius: 12px; padding: 16px;">
+                                <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">${weatherData.aiSummary}</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding-top: 32px; text-align: center; font-size: 13px; color: #9CA3AF;">
+                             <p style="margin: 0 0 16px 0;">To manage your alert preferences, please visit your settings.</p>
+                             <a href="${alertsUrl}" style="background-color: #3B82F6; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 500;">
+                                 Manage Alerts
+                             </a>
+                             <p style="margin-top: 24px; font-size: 12px;">© ${new Date().getFullYear()} Weatherwise</p>
+                        </td>
+                    </tr>
+                </table>
+                <!--[if mso]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+            </td>
+        </tr>
+    </table>
 </body>
 </html>`;
 
