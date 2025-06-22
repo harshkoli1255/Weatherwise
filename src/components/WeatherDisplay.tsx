@@ -69,7 +69,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
               AI Weather Summary
             </h3>
           </div>
-          <p className="text-base text-foreground/90 leading-relaxed bg-muted/40 p-4 rounded-lg shadow-inner border border-border/30">
+          <p className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
             {weatherData.aiSummary}
           </p>
         </div>
@@ -82,7 +82,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
                 Activity Suggestion
               </h3>
             </div>
-            <p className="text-base text-foreground/90 leading-relaxed bg-muted/40 p-4 rounded-lg shadow-inner border border-border/30">
+            <p className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
               {weatherData.activitySuggestion}
             </p>
           </div>

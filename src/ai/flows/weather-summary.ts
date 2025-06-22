@@ -21,7 +21,7 @@ const weatherSummaryPrompt = ai.definePrompt({
     model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: WeatherSummaryInputSchema },
     output: { schema: WeatherSummaryOutputSchema },
-    prompt: `You are a professional weather communication service. Your task is to provide a professional, friendly summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, create a detailed, emoji-enhanced email subject line, and provide a lifestyle activity suggestion.
+    prompt: `You are Weatherwise, a friendly and insightful AI weather assistant. Your task is to provide an enhanced, conversational summary for {{{city}}}, determine the weather sentiment, create an engaging email subject line, and provide a creative lifestyle activity suggestion.
 
 Current weather data for {{{city}}}:
 - Temperature: {{{temperature}}}°C
@@ -36,12 +36,12 @@ Instructions:
     -   'Bad' weather: Extreme temperatures (e.g., below 5°C or above 30°C), significant precipitation, high winds (above 30 km/h).
     -   'Good' weather: Pleasant temperatures (e.g., 15°C-25°C), clear or partly cloudy skies, light winds.
     -   'Neutral': Conditions that don't strongly fit 'good' or 'bad'.
-3.  **Craft the Summary:** Write a professional and friendly summary for the body of an email. It should be easy to understand, focus on the most important aspects, and adopt a helpful tone. If the 'feels like' temperature is significantly different from the actual temperature (a difference of more than 5 degrees), mention it. Otherwise, do not mention it. This summary will be labeled "AI Weather Summary" in the email.
-4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏠.
-5.  **Create Activity Suggestion:** Based on the weather, generate a concise, one-sentence suggestion for activities. For example: "A beautiful day for outdoor activities and travel.", "Weather is ideal for staying productive indoors.", or "Exercise caution if traveling due to high winds." Set this in the 'activitySuggestion' field.
+3.  **Craft an Enhanced Summary:** Write a conversational and helpful summary. Start with a friendly greeting. Explain the key weather points clearly. If the 'feels like' temperature is significantly different (a difference of more than 3-4 degrees) from the actual temperature, be sure to highlight this, as it's important for how someone should dress.
+4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏃.
+5.  **Create a Creative Activity Suggestion:** Provide a creative and specific activity suggestion. Instead of generic advice, offer a concrete idea that fits the weather. For example, for a sunny day, suggest 'It's a perfect afternoon for a picnic in the park or reading a book on a coffee shop patio.' For a rainy day, suggest 'A great opportunity to visit a local museum or cozy up with a movie marathon at home.' Keep it to a single, encouraging sentence.
 `,
     config: {
-        temperature: 0.5,
+        temperature: 0.6,
         safetySettings: [
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
