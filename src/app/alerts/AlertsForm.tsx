@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences } from '@/lib/types';
-import { saveAlertPreferencesAction, sendTestEmailAction } from './actions';
+import { saveAlertPreferencesAction, sendTestEmailAction, testAllAlertsAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,11 +40,22 @@ function TestEmailButton({ city }: { city: string }) {
   )
 }
 
+function TestCronButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="destructive" className="w-full sm:w-auto" disabled={pending}>
+      <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !pending })} />
+      {pending ? 'Running...' : 'Run Hourly Check Now'}
+    </Button>
+  );
+}
+
 
 export function AlertsForm({ preferences }: AlertsFormProps) {
   const { toast } = useToast();
   const [saveState, saveAction] = useFormState(saveAlertPreferencesAction, { message: null, error: false });
   const [testEmailState, testEmailAction] = useFormState(sendTestEmailAction, { message: null, error: false });
+  const [testCronState, testCronAction] = useFormState(testAllAlertsAction, { message: null, error: false });
 
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
   const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);
@@ -71,6 +82,17 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       });
     }
   }, [testEmailState, toast]);
+
+  useEffect(() => {
+    if (testCronState.message) {
+      toast({
+        title: testCronState.error ? 'Test Finished with Errors' : 'Test Finished Successfully',
+        description: testCronState.message,
+        variant: testCronState.error ? 'destructive' : 'default',
+        duration: 15000 // Give more time to read the result
+      });
+    }
+  }, [testCronState, toast]);
 
   return (
     <div className="space-y-8">
@@ -165,6 +187,18 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
             <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
           </p>
           <TestEmailButton city={city} />
+      </form>
+
+      <Separator />
+
+      <form action={testCronAction}>
+          <h3 className="text-lg font-medium">Test: Manually Trigger Hourly Alert Check</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            This simulates the hourly cron job. It will immediately check weather conditions for all users with enabled alerts and send notifications if their criteria are met. This is a powerful tool for testing the entire alert system.
+            <br/>
+            <span className="text-xs text-muted-foreground/80">Note: This action may take some time to complete depending on the number of users.</span>
+          </p>
+          <TestCronButton />
       </form>
     </div>
   );

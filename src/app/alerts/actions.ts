@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { sendEmail } from '@/services/emailService';
 import { fetchWeatherAndSummaryAction } from '@/app/actions';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
+import { checkAndSendAlerts } from '@/services/alertProcessing';
 
 export type SaveAlertsFormState = {
   message: string | null;
@@ -123,5 +124,25 @@ export async function sendTestEmailAction(
     console.error('Failed to send test email action:', error);
     const errorMessage = error.message || 'An unexpected error occurred.';
     return { message: `Failed to send test email. ${errorMessage}`, error: true };
+  }
+}
+
+export async function testAllAlertsAction(): Promise<{ message: string | null; error: boolean }> {
+  const { userId } = auth();
+  if (!userId) {
+    return { message: 'You must be signed in to perform this test.', error: true };
+  }
+
+  console.log(`Manual CRON job test triggered by user: ${userId}`);
+
+  try {
+    const result = await checkAndSendAlerts();
+    const successMessage = `Test finished. Processed ${result.processedUsers} users, found ${result.eligibleUsers} eligible for alerts, and sent ${result.alertsSent} alerts. Errors: ${result.errors.length}.`;
+    console.log(successMessage);
+    return { message: successMessage, error: result.errors.length > 0 };
+  } catch (error) {
+    console.error("Manual CRON job test failed:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return { message: `Test failed: ${errorMessage}`, error: true };
   }
 }
