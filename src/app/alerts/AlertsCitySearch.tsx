@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, a{ useState, useEffect, useCallback, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Loader2, MapPin, LocateFixed } from 'lucide-react';
