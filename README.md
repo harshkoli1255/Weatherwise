@@ -16,7 +16,16 @@ Before running the application, you must configure your API keys in the `.env` f
 
 ### Optional (for enhanced features):
 *   `GEMINI_API_KEYS`: Required for AI-powered summaries. Get one or more keys from [Google AI Studio](https://aistudio.google.com/).
-*   `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`: Required for sending email alerts. These are your SMTP server details from a provider like Gmail (using an App Password), SendGrid, etc.
+*   **Email Alerts (`EMAIL_*` variables)**: Required for sending email alerts.
+    *   The application is pre-configured to use **Gmail's SMTP servers**.
+    *   To use your Gmail account, you must generate a 16-digit **App Password**. Simply using your regular Google password will not work.
+    *   Follow Google's instructions to [Sign in with App Passwords](https://support.google.com/accounts/answer/185833).
+    *   Once you have your App Password, fill in the following in `.env`:
+        *   `EMAIL_HOST`: `smtp.gmail.com`
+        *   `EMAIL_PORT`: `465`
+        *   `EMAIL_USER`: Your full Gmail address (e.g., `youremail@gmail.com`).
+        *   `EMAIL_PASSWORD`: Your 16-digit App Password.
+        *   `EMAIL_FROM`: The email address you want alerts to be sent from (can be the same as `EMAIL_USER`).
 *   `NEXT_PUBLIC_BASE_URL`: The public URL of your application, used for generating links in emails. Defaults to `http://localhost:3000`.
 
 
