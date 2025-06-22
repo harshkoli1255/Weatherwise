@@ -1,6 +1,4 @@
 
-'use server';
-
 import type { WeatherSummaryData } from '@/lib/types';
 
 interface EmailTemplatePayload {
