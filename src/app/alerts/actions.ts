@@ -122,126 +122,131 @@ export async function sendTestEmailAction(
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f3f4f6; /* Tailwind gray-100 */
-            color: #1f2937; /* gray-800 */
+            background-color: #f8f9fa; /* Lighter background */
+            background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-size: 16px 16px;
+            color: #1a202c; /* Updated foreground */
         }
         .container {
             max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Tailwind shadow-lg */
+            margin: 32px auto;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent */
+            border-radius: 16px; /* Softer radius */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Deeper shadow */
             overflow: hidden;
-            border: 1px solid #e5e7eb; /* gray-200 */
+            border: 1px solid #e2e8f0; /* Softer border */
         }
         .header {
-            background-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6;
             color: #ffffff;
             padding: 24px;
             text-align: center;
         }
         .header h1 {
             margin: 0;
-            font-size: 26px;
-            font-weight: 600; /* semibold */
+            font-size: 28px;
+            font-weight: 700;
         }
         .content {
             padding: 32px;
         }
         .weather-main {
             text-align: center;
-            border-bottom: 1px solid #e5e7eb; /* gray-200 */
+            border-bottom: 1px solid #e2e8f0; /* Softer border */
             padding-bottom: 24px;
             margin-bottom: 24px;
         }
         .weather-main h2 {
             margin: 0 0 4px 0;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
-            color: #111827; /* gray-900 */
+            color: #1a202c;
         }
         .weather-main .description {
             margin: 0 0 12px 0;
-            font-size: 16px;
-            color: #6b7280; /* gray-500 */
+            font-size: 18px; /* Larger description */
+            color: #718096; /* Muted foreground */
             text-transform: capitalize;
         }
         .weather-main .temperature {
-            font-size: 60px;
-            font-weight: 700; /* bold */
-            color: #1f2937; /* gray-800 */
+            font-size: 72px; /* Larger temperature */
+            font-weight: 800; /* extrabold */
+            color: #2563eb; /* Darker primary */
             margin: 0;
             line-height: 1;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
         }
         .weather-main img {
-            margin: -10px auto;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            margin: -15px auto -10px;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
         }
         .weather-details {
             display: table;
             width: 100%;
             border-spacing: 12px 0;
-            margin-left: -6px;
+            margin: 0 -6px;
             border-collapse: separate;
         }
         .detail-item {
             display: table-cell;
             width: 33.33%;
-            background-color: #f9fafb; /* gray-50 */
+            background-color: #f8f9fa; /* Matches body background */
             padding: 16px;
-            border-radius: 8px;
+            border-radius: 12px;
             text-align: center;
-            border: 1px solid #e5e7eb; /* gray-200 */
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
         }
         .detail-item .label {
-            font-size: 13px;
-            color: #6b7280; /* gray-500 */
+            font-size: 14px;
+            color: #718096;
             margin-bottom: 6px;
             display: block;
             font-weight: 500;
         }
         .detail-item .value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
-            color: #1f2937; /* gray-800 */
+            color: #1a202c;
         }
         .ai-summary {
             margin-top: 32px;
-            background-color: #f9fafb; /* gray-50 */
-            border-radius: 8px;
-            padding: 20px;
-            border-left: 4px solid #3b82f6; /* blue-500 accent */
+            background-color: #f7fafc; /* Very light muted bg */
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 5px solid #3b82f6; /* Primary accent */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .ai-summary h3 {
             margin: 0 0 10px 0;
-            font-size: 16px;
-            color: #111827; /* gray-900 */
+            font-size: 18px;
+            color: #2563eb; /* Darker primary */
             font-weight: 600;
         }
         .ai-summary p {
             margin: 0;
-            font-size: 15px;
-            color: #4b5563; /* gray-600 */
-            line-height: 1.6;
+            font-size: 16px;
+            color: #4a5568; /* Gray-700 */
+            line-height: 1.65;
         }
         .footer {
-            background-color: #f9fafb; /* gray-50 */
+            background-color: #f8f9fa; /* Matches body background */
             padding: 24px;
             text-align: center;
-            font-size: 12px;
-            color: #6b7280; /* gray-500 */
-            border-top: 1px solid #e5e7eb; /* gray-200 */
+            font-size: 13px;
+            color: #718096; /* Muted foreground */
+            border-top: 1px solid #e2e8f0;
         }
         .footer .button-cta {
-            background-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6;
             color: #ffffff;
             padding: 12px 24px;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
             display: inline-block;
             margin-top: 12px;
             margin-bottom: 12px;
-            font-weight: 500; /* medium */
+            font-weight: 500;
         }
     </style>
 </head>
@@ -254,7 +259,7 @@ export async function sendTestEmailAction(
             <div class="weather-main">
                 <h2>${weatherData.city}, ${weatherData.country}</h2>
                 <p class="description">${weatherData.description}</p>
-                <img src="${iconUrl}" alt="${weatherData.description}" width="150" height="150">
+                <img src="${iconUrl}" alt="${weatherData.description}" width="160" height="160">
                 <p class="temperature">${weatherData.temperature}°C</p>
             </div>
             <div class="weather-details">
@@ -281,7 +286,7 @@ export async function sendTestEmailAction(
             <a href="${alertsUrl}" class="button-cta">
                 Manage Alerts
             </a>
-            <p style="margin-top: 16px;">© ${new Date().getFullYear()} Weatherwise</p>
+            <p style="margin-top: 16px; font-size: 12px;">© ${new Date().getFullYear()} Weatherwise</p>
         </div>
     </div>
 </body>
