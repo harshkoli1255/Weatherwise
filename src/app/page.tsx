@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, useRef } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
@@ -29,7 +29,7 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: false, // Set to false to prevent initial loading state
+  isLoading: false, 
   loadingMessage: null,
   cityNotFound: false,
   currentFetchedCityName: undefined,
@@ -39,6 +39,7 @@ export default function WeatherPage() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isTransitionPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const initialFetchAttempted = useRef(false);
 
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading) {
@@ -51,10 +52,14 @@ export default function WeatherPage() {
   }, [weatherState.error, weatherState.isLoading, toast]);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
+    const loadingMessage = params.city 
+      ? `Searching for ${params.city}...` 
+      : 'Fetching weather for your location...';
+      
     setWeatherState(prev => ({
       ...prev,
       isLoading: true,
-      loadingMessage: `Searching for ${params.city}...`,
+      loadingMessage,
       data: null,
       error: null,
       cityNotFound: false,
@@ -73,6 +78,85 @@ export default function WeatherPage() {
       }));
     });
   }, []);
+
+  const fetchWeatherByIp = useCallback(async () => {
+    setWeatherState(prev => ({
+      ...prev,
+      isLoading: true,
+      loadingMessage: "Detecting location via IP...",
+      error: null,
+      data: null,
+    }));
+
+    startTransition(async () => {
+      const ipLocationResult = await fetchCityByIpAction();
+      if (ipLocationResult.error) {
+        setWeatherState(prev => ({
+          ...prev,
+          isLoading: false,
+          loadingMessage: null,
+          error: `IP-based location failed: ${ipLocationResult.error}`,
+          data: null,
+        }));
+      } else if (ipLocationResult.lat && ipLocationResult.lon) {
+        performWeatherFetch({ lat: ipLocationResult.lat, lon: ipLocationResult.lon });
+      } else if (ipLocationResult.city) {
+        performWeatherFetch({ city: ipLocationResult.city });
+      } else {
+        setWeatherState(prev => ({
+            ...prev,
+            isLoading: false,
+            loadingMessage: null,
+            error: "Could not determine location from IP.",
+            data: null,
+        }));
+      }
+    });
+  }, [performWeatherFetch]);
+
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || initialFetchAttempted.current) {
+        return;
+    }
+    initialFetchAttempted.current = true;
+
+    setWeatherState(prev => ({
+      ...prev,
+      isLoading: true,
+      loadingMessage: 'Requesting location permission...',
+      error: null,
+      data: null,
+    }));
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setWeatherState(prev => ({ ...prev, loadingMessage: 'Location found. Fetching weather...' }));
+          performWeatherFetch({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.warn(`Geolocation error (${error.code}): ${error.message}`);
+          toast({
+            title: "Location Access Denied",
+            description: "Falling back to IP-based location.",
+          });
+          fetchWeatherByIp();
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      console.warn("Geolocation is not supported by this browser.");
+      toast({
+        title: "Geolocation Not Supported",
+        description: "Falling back to IP-based location.",
+      });
+      fetchWeatherByIp();
+    }
+  }, [performWeatherFetch, fetchWeatherByIp, toast]);
 
 
   const handleSearch = (city: string, lat?: number, lon?: number) => {
