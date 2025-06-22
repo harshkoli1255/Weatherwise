@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Thermometer, Wind, Umbrella, Loader2, Clock } from 'lucide-react';
+import { Loader2, Clock } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -53,9 +53,6 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [saveState, saveAction] = useFormState<SaveAlertsFormState, FormData>(saveAlertPreferencesAction, initialState);
   
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
-  const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);
-  const [notifyRain, setNotifyRain] = useState(preferences.notifyHeavyRain);
-  const [notifyWind, setNotifyWind] = useState(preferences.notifyStrongWind);
   const [city, setCity] = useState(preferences.city);
   
   const [scheduleEnabled, setScheduleEnabled] = useState(preferences.schedule?.enabled ?? false);
@@ -88,7 +85,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50">
         <div className="space-y-0.5">
           <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable Alerts</Label>
-          <p className="text-sm text-muted-foreground">Master switch for all weather notifications.</p>
+          <p className="text-sm text-muted-foreground">Master switch for all AI-powered weather notifications.</p>
         </div>
         <Switch id="alertsEnabled" name="alertsEnabled" checked={alertsEnabled} onCheckedChange={setAlertsEnabled} aria-label="Enable all alerts" />
       </div>
@@ -103,54 +100,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
             onValueChange={setCity}
             required={alertsEnabled} 
           />
-          <p className="text-sm text-muted-foreground mt-1.5">This city will be used for all alert checks.</p>
-        </div>
-
-        <Separator />
-        <h3 className="text-lg font-medium border-b pb-2 pt-2">Alert Conditions</h3>
-
-        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Thermometer className="h-6 w-6 text-primary" />
-              <Label htmlFor="notifyExtremeTemp" className="font-medium">Extreme Temperature Alerts</Label>
-            </div>
-            <Switch id="notifyExtremeTemp" name="notifyExtremeTemp" checked={notifyTemp} onCheckedChange={setNotifyTemp} />
-          </div>
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 transition-opacity duration-300 ${notifyTemp ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
-            <div>
-              <Label htmlFor="highTempThreshold">Notify above (°C)</Label>
-              <Input id="highTempThreshold" name="highTempThreshold" type="number" defaultValue={preferences.highTempThreshold} className="mt-2" />
-            </div>
-            <div>
-              <Label htmlFor="lowTempThreshold">Notify below (°C)</Label>
-              <Input id="lowTempThreshold" name="lowTempThreshold" type="number" defaultValue={preferences.lowTempThreshold} className="mt-2" />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50 h-full">
-            <div className="flex items-center gap-3">
-              <Umbrella className="h-6 w-6 text-primary" />
-              <Label htmlFor="notifyHeavyRain" className="font-medium">Heavy Rain Alerts</Label>
-            </div>
-            <Switch id="notifyHeavyRain" name="notifyHeavyRain" checked={notifyRain} onCheckedChange={setNotifyRain} />
-          </div>
-
-          <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Wind className="h-6 w-6 text-primary" />
-                <Label htmlFor="notifyStrongWind" className="font-medium">Strong Wind Alerts</Label>
-              </div>
-              <Switch id="notifyStrongWind" name="notifyStrongWind" checked={notifyWind} onCheckedChange={setNotifyWind} />
-            </div>
-            <div className={`pt-2 transition-opacity duration-300 ${notifyWind ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
-              <Label htmlFor="windSpeedThreshold">Notify above (km/h)</Label>
-              <Input id="windSpeedThreshold" name="windSpeedThreshold" type="number" defaultValue={preferences.windSpeedThreshold} className="mt-2" />
-            </div>
-          </div>
+          <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
         </div>
 
         <Separator />

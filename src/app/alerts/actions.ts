@@ -17,12 +17,6 @@ export async function saveAlertPreferencesAction(
   const BaseAlertPreferencesSchema = z.object({
     city: z.string().optional(), // City is optional at the base level
     alertsEnabled: z.boolean(),
-    notifyExtremeTemp: z.boolean(),
-    highTempThreshold: z.coerce.number().optional(),
-    lowTempThreshold: z.coerce.number().optional(),
-    notifyHeavyRain: z.boolean(),
-    notifyStrongWind: z.boolean(),
-    windSpeedThreshold: z.coerce.number().optional(),
     schedule: z.object({
       enabled: z.boolean(),
       days: z.array(z.number().min(0).max(6)),
@@ -52,12 +46,6 @@ export async function saveAlertPreferencesAction(
   const dataToValidate = {
     city: formData.get('city') as string,
     alertsEnabled: formData.get('alertsEnabled') === 'on',
-    notifyExtremeTemp: formData.get('notifyExtremeTemp') === 'on',
-    highTempThreshold: formData.get('highTempThreshold'),
-    lowTempThreshold: formData.get('lowTempThreshold'),
-    notifyHeavyRain: formData.get('notifyHeavyRain') === 'on',
-    notifyStrongWind: formData.get('notifyStrongWind') === 'on',
-    windSpeedThreshold: formData.get('windSpeedThreshold'),
     schedule: {
       enabled: formData.get('scheduleEnabled') === 'on',
       days: scheduleDays,
@@ -87,11 +75,26 @@ export async function saveAlertPreferencesAction(
       return { message: 'Could not find your email address. Please ensure you have a primary email set on your account.', error: true };
     }
 
+    // Get existing preferences to merge, so we don't overwrite unrelated settings
+    const existingPrefs = user.privateMetadata?.alertPreferences 
+        ? JSON.parse(JSON.stringify(user.privateMetadata.alertPreferences)) 
+        : {};
+
     const newPreferences: AlertPreferences = {
+      ...existingPrefs,
       ...validatedFields.data,
       city: validatedFields.data.city || '', // Ensure city is a string
       email,
     };
+    
+    // Clean up old, unused properties to keep metadata tidy
+    delete (newPreferences as any).notifyExtremeTemp;
+    delete (newPreferences as any).highTempThreshold;
+    delete (newPreferences as any).lowTempThreshold;
+    delete (newPreferences as any).notifyHeavyRain;
+    delete (newPreferences as any).notifyStrongWind;
+    delete (newPreferences as any).windSpeedThreshold;
+
 
     await clerkClient.users.updateUserMetadata(userId, {
       privateMetadata: {

@@ -108,7 +108,7 @@ export async function checkAndSendAlerts(): Promise<{
       }
 
       // Step 5: Check if current weather triggers any of the user's alerts
-      const alertTriggers = checkAlertConditions(preferences, weatherData);
+      const alertTriggers = checkAlertConditions(weatherData);
 
       if (alertTriggers.length > 0) {
         console.log(`Sending alert to ${email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
@@ -146,41 +146,15 @@ export async function checkAndSendAlerts(): Promise<{
  * @returns An array of strings describing which alerts were triggered. An empty array means no alerts.
  */
 function checkAlertConditions(
-  preferences: AlertPreferences,
   weatherData: WeatherSummaryData,
 ): string[] {
-  const triggered: string[] = [];
-
-  // Check for extreme temperatures
-  if (preferences.notifyExtremeTemp) {
-    if (preferences.highTempThreshold != null && weatherData.temperature > preferences.highTempThreshold) {
-      triggered.push(
-        `High temperature of ${weatherData.temperature}°C (threshold: >${preferences.highTempThreshold}°C)`
-      );
-    }
-    if (preferences.lowTempThreshold != null && weatherData.temperature < preferences.lowTempThreshold) {
-      triggered.push(
-        `Low temperature of ${weatherData.temperature}°C (threshold: <${preferences.lowTempThreshold}°C)`
-      );
-    }
+  // If the AI has determined the weather sentiment is 'bad', we trigger an alert.
+  if (weatherData.weatherSentiment === 'bad') {
+    // The email template will use the AI summary for detailed context, 
+    // so we just need a simple, clear message here explaining why the alert was sent.
+    return ['AI analysis determined that current weather conditions are significant. Please review the summary for details.'];
   }
 
-  // Check for strong wind
-  if (preferences.notifyStrongWind && preferences.windSpeedThreshold != null) {
-    if (weatherData.windSpeed > preferences.windSpeedThreshold) {
-      triggered.push(
-        `Strong wind of ${weatherData.windSpeed} km/h (threshold: >${preferences.windSpeedThreshold} km/h)`
-      );
-    }
-  }
-
-  // Check for rain
-  if (preferences.notifyHeavyRain) {
-    const condition = weatherData.condition?.toLowerCase();
-    if (condition && (condition.includes('rain') || condition.includes('thunderstorm') || condition.includes('drizzle'))) {
-      triggered.push(`Rain is forecasted (${weatherData.description}).`);
-    }
-  }
-
-  return triggered;
+  // If sentiment is not 'bad', no alerts are triggered.
+  return [];
 }
