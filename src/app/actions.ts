@@ -221,7 +221,7 @@ export async function fetchWeatherAndSummaryAction(
       try {
           console.log("Attempting to generate AI weather summary for:", aiInput.city);
           aiSummaryOutput = await summarizeWeather(aiInput);
-          console.log("AI summary successfully generated.");
+          console.log("AI summary and subject successfully generated.");
       } catch (err) {
           console.error("Error generating AI weather summary:", err);
           aiError = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
@@ -232,10 +232,13 @@ export async function fetchWeatherAndSummaryAction(
       console.log(aiError);
   }
   
+  const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${currentWeatherData.city}`;
+  
   return {
     data: { 
       ...currentWeatherData, 
       aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.",
+      aiSubject: aiSummaryOutput?.subjectLine || fallbackSubject,
       weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
       hourlyForecast: hourlyForecastData || [], 
     },

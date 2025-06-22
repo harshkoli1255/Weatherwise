@@ -104,7 +104,7 @@ export async function sendTestEmailAction(
     }
     const weatherData = weatherResult.data;
 
-    const subject = `${weatherData.temperature}°C & ${weatherData.description} in ${weatherData.city}`;
+    const subject = weatherData.aiSubject;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const alertsUrl = new URL('/alerts', baseUrl).toString();
     const iconUrl = `https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png`;

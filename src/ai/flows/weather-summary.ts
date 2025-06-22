@@ -26,6 +26,7 @@ export type WeatherSummaryInput = z.infer<typeof WeatherSummaryInputSchema>;
 
 const WeatherSummaryOutputSchema = z.object({
   summary: z.string().describe('A short summary of the weather conditions.'),
+  subjectLine: z.string().describe('A detailed and engaging email subject line about the current weather. It should be as descriptive and long as possible within typical subject line limits, summarizing the most important conditions like temperature, feel, wind, and precipitation.'),
   weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'.")
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
@@ -36,7 +37,7 @@ const weatherSummaryPrompt = ai.definePrompt({
     model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: WeatherSummaryInputSchema },
     output: { schema: WeatherSummaryOutputSchema },
-    prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{{city}}} and determine the overall weather sentiment.
+    prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, and create a detailed email subject line.
 
 Current weather data for {{{city}}}:
 - Temperature: {{{temperature}}}°C
@@ -54,6 +55,7 @@ Instructions:
     -   'Neutral' weather: Conditions that don't strongly fit 'good' or 'bad'.
 4.  Set the 'weatherSentiment' field in your output schema to 'good', 'bad', or 'neutral'.
 5.  Craft a summary that is easy to understand, focuses on the most important aspects, and does not exceed 50 words.
+6.  Generate a detailed and engaging email subject line. It should be as long as is reasonable for a subject line, summarizing the most important aspects of the weather like temperature, feels like, wind, and overall conditions to give the user a full picture before they open the email. For example: "Mild 22°C in London with a gentle breeze, but feels cooler at 19°C - a perfect day for a walk!".
 `,
     config: {
         temperature: 0.5,
