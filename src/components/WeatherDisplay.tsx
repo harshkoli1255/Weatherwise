@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -112,10 +113,38 @@ interface HourlyForecastItemProps {
 }
 
 function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
+  const getIconColor = (iconCode: string): string => {
+    const isDay = iconCode.endsWith('d');
+    const code = iconCode.substring(0, 2);
+
+    switch (code) {
+      case '01': // Clear sky
+        return isDay ? 'text-yellow-400' : 'text-sky-300';
+      case '02': // Few clouds
+        return isDay ? 'text-yellow-400' : 'text-sky-400';
+      case '03': // Scattered clouds
+      case '04': // Broken clouds
+        return 'text-slate-400 dark:text-slate-300';
+      case '09': // Shower rain
+      case '10': // Rain
+        return 'text-blue-400';
+      case '11': // Thunderstorm
+        return 'text-indigo-500';
+      case '13': // Snow
+        return 'text-cyan-300';
+      case '50': // Mist / Fog
+        return 'text-slate-400 dark:text-slate-300';
+      default:
+        return 'text-accent-foreground';
+    }
+  };
+
+  const iconColor = getIconColor(forecast.iconCode);
+
   return (
     <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-colors duration-200 shadow-lg border border-border/30 w-[85px] flex-shrink-0">
       <p className="text-sm font-medium text-muted-foreground mb-1.5">{forecast.time}</p>
-      <WeatherIcon iconCode={forecast.iconCode} className="h-9 w-9 text-accent-foreground drop-shadow-lg mb-1" />
+      <WeatherIcon iconCode={forecast.iconCode} className={cn("h-9 w-9 drop-shadow-lg mb-1", iconColor)} />
       <p className="text-lg font-bold text-primary mt-1.5">{forecast.temp}°</p>
     </div>
   );
