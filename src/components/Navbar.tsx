@@ -1,4 +1,3 @@
-
 'use client'; // Required for state management (pathname, sheet)
 
 import Link from 'next/link';
@@ -38,7 +37,7 @@ export function Navbar() {
         </div>
 
         {/* Right Side: Links & Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
             {/* Desktop Links & User Actions */}
             <div className="hidden md:flex items-center gap-4">
                 {navItems.map((item) => (
@@ -59,7 +58,9 @@ export function Navbar() {
                         <Button variant="outline">Sign In</Button>
                     </SignInButton>
                 </SignedOut>
-                <ThemeToggle />
+                <div className="ml-2">
+                  <ThemeToggle />
+                </div>
             </div>
 
             {/* Mobile navigation menu */}
