@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useEffect, useState } from 'react';
+import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences } from '@/lib/types';
 import { saveAlertPreferencesAction, sendTestEmailAction } from './actions';
@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Thermometer, Wind, Umbrella, Loader2, Send } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
+import { cn } from '@/lib/utils';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -42,8 +43,8 @@ function TestEmailButton({ city }: { city: string }) {
 
 export function AlertsForm({ preferences }: AlertsFormProps) {
   const { toast } = useToast();
-  const [saveState, saveAction] = useActionState(saveAlertPreferencesAction, { message: null, error: false });
-  const [testEmailState, testEmailAction] = useActionState(sendTestEmailAction, { message: null, error: false });
+  const [saveState, saveAction] = useFormState(saveAlertPreferencesAction, { message: null, error: false });
+  const [testEmailState, testEmailAction] = useFormState(sendTestEmailAction, { message: null, error: false });
 
 
   // Component state for immediate UI feedback on switch toggles
