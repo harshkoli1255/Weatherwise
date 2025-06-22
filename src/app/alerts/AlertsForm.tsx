@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences } from '@/lib/types';
 import { saveAlertPreferencesAction } from './actions';
@@ -29,7 +29,7 @@ function SubmitButton() {
 
 export function AlertsForm({ preferences }: AlertsFormProps) {
   const { toast } = useToast();
-  const [formState, formAction] = useFormState(saveAlertPreferencesAction, { message: null, error: false });
+  const [formState, formAction] = useActionState(saveAlertPreferencesAction, { message: null, error: false });
 
   // Component state for immediate UI feedback on switch toggles
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
