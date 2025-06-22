@@ -40,7 +40,7 @@ export function Navbar() {
         {/* Right Side: Links & Actions */}
         <div className="flex items-center space-x-2">
             {/* Desktop Links & User Actions */}
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="hidden md:flex items-center gap-4">
                 {navItems.map((item) => (
                     <Button 
                         key={item.href}
