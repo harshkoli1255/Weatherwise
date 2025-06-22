@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Droplets, ThermometerSun, Wind, Brain, Clock } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb } from 'lucide-react';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -72,6 +72,20 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
             {weatherData.aiSummary}
           </p>
         </div>
+
+        {weatherData.activitySuggestion && (
+          <div className="pt-6 border-t border-border/50">
+            <div className="flex items-center mb-4">
+              <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+              <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
+                Activity Suggestion
+              </h3>
+            </div>
+            <p className="text-base text-foreground/90 leading-relaxed bg-muted/40 p-4 rounded-lg shadow-inner border border-border/30">
+              {weatherData.activitySuggestion}
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
