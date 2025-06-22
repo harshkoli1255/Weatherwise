@@ -12,7 +12,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { geminiApiKeys } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 
 
 const CityCorrectionInputSchema = z.object({
@@ -47,7 +46,7 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
 
 const cityCorrectionPrompt = ai.definePrompt({
   name: 'cityCorrectionPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: 'googleai/gemini-1.5-flash-latest',
   input: { schema: CityCorrectionInputSchema },
   output: { schema: CityCorrectionOutputSchema },
   prompt: `You are a geography expert who is excellent at correcting misspelled city names.
