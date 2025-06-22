@@ -24,6 +24,7 @@ export interface WeatherSummaryData extends WeatherData {
   aiSubject: string;
   hourlyForecast?: HourlyForecastData[];
   weatherSentiment?: 'good' | 'bad' | 'neutral';
+  activitySuggestion?: string;
 }
 
 // For current weather from /data/2.5/weather

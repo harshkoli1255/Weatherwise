@@ -240,6 +240,7 @@ export async function fetchWeatherAndSummaryAction(
         aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.",
         aiSubject: aiSummaryOutput?.subjectLine || fallbackSubject,
         weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
+        activitySuggestion: aiSummaryOutput?.activitySuggestion || "Check conditions before planning activities.",
         hourlyForecast: hourlyForecastData || [], 
       },
       error: null, 

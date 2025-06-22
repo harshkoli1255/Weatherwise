@@ -23,9 +23,10 @@ const WeatherSummaryInputSchema = z.object({
 export type WeatherSummaryInput = z.infer<typeof WeatherSummaryInputSchema>;
 
 const WeatherSummaryOutputSchema = z.object({
-  summary: z.string().describe('A professional and friendly summary of the weather conditions for the body of an email.'),
+  summary: z.string().describe('A professional and friendly summary of the weather conditions for the body of an email. It should be a short paragraph.'),
   subjectLine: z.string().describe('A detailed and engaging email subject line, starting with one or more relevant weather emojis (e.g., ☀️, 🌧️, 💨).'),
-  weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'.")
+  weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'."),
+  activitySuggestion: z.string().describe('A friendly and professional suggestion for activities based on the weather (e.g., "A beautiful day for outdoor activities," "Ideal weather for travel," "A good day to focus on indoor tasks."). Keep it to a single, concise sentence.')
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
@@ -42,7 +43,7 @@ function defineWeatherSummaryFlow() {
       model: 'googleai/gemini-1.5-flash-latest',
       input: { schema: WeatherSummaryInputSchema },
       output: { schema: WeatherSummaryOutputSchema },
-      prompt: `You are a professional weather communication service. Your task is to provide a professional, friendly summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, and create a detailed, emoji-enhanced email subject line.
+      prompt: `You are a professional weather communication service. Your task is to provide a professional, friendly summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, create a detailed, emoji-enhanced email subject line, and provide a lifestyle activity suggestion.
 
 Current weather data for {{{city}}}:
 - Temperature: {{{temperature}}}°C
@@ -53,15 +54,13 @@ Current weather data for {{{city}}}:
 
 Instructions:
 1.  **Analyze the Data:** Thoroughly review the provided weather data.
-2.  **Determine Sentiment:** Based on all conditions (temperature, actual condition, humidity, wind), determine if the overall weather sentiment is 'good', 'bad', or 'neutral'.
-    -   'Bad' weather: Extreme temperatures (e.g., below 5°C or above 30°C), significant precipitation (rain, snow, storm), high winds (above 30 km/h).
+2.  **Determine Sentiment:** Based on all conditions, determine if the overall weather sentiment is 'good', 'bad', or 'neutral'. Set the 'weatherSentiment' field accordingly.
+    -   'Bad' weather: Extreme temperatures (e.g., below 5°C or above 30°C), significant precipitation, high winds (above 30 km/h).
     -   'Good' weather: Pleasant temperatures (e.g., 15°C-25°C), clear or partly cloudy skies, light winds.
-    -   'Neutral' weather: Conditions that don't strongly fit 'good' or 'bad'.
-    -   Set the 'weatherSentiment' field in your output schema accordingly.
-3.  **Craft the Summary:** Write a professional and friendly summary for the body of an email. It should be easy to understand, focus on the most important aspects, and adopt a helpful tone. If the 'feels like' temperature is significantly different from the actual temperature (a difference of more than 5 degrees), mention it (e.g., "it feels like X°C"). Otherwise, do not mention it. This summary will be labeled "AI Weather Summary" in the email.
-4.  **Generate the Subject Line:** Create a detailed and engaging email subject line.
-    -   It should be as long as is reasonable for a subject line, summarizing the key weather aspects (temperature, feel, wind, conditions).
-    -   Crucially, **start the subject line with one or more relevant weather emojis**. For example: "☀️ Clear Skies & 22°C in London" or "🌧️💨 Rainy and Windy Day Ahead in Paris". Use emojis like ☀️, ☁️, 🌧️, ❄️, ⚡, 💨, 🌡️.
+    -   'Neutral': Conditions that don't strongly fit 'good' or 'bad'.
+3.  **Craft the Summary:** Write a professional and friendly summary for the body of an email. It should be easy to understand, focus on the most important aspects, and adopt a helpful tone. If the 'feels like' temperature is significantly different from the actual temperature (a difference of more than 5 degrees), mention it. Otherwise, do not mention it. This summary will be labeled "AI Weather Summary" in the email.
+4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London").
+5.  **Create Activity Suggestion:** Based on the weather, generate a concise, one-sentence suggestion for activities. For example: "A beautiful day for outdoor activities and travel.", "Weather is ideal for staying productive indoors.", or "Exercise caution if traveling due to high winds." Set this in the 'activitySuggestion' field.
 `,
       config: {
           temperature: 0.5,

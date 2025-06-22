@@ -131,8 +131,8 @@ export async function sendTestEmailAction(
                     <!-- Greeting -->
                     <tr>
                         <td style="padding-bottom: 24px;">
-                            <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">Hi there,</p>
-                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">Here is your requested test weather alert. This is a preview of the notifications you can receive based on your custom alert settings.</p>
+                            <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">Hello,</p>
+                            <p style="font-size: 16px; color: #D1D5DB; margin: 12px 0 0 0; line-height: 1.6;">As requested, here is your test weather report from Weatherwise. This is a sample of the alerts you can configure to stay ahead of the weather.</p>
                         </td>
                     </tr>
 
@@ -171,24 +171,24 @@ export async function sendTestEmailAction(
 
                     <!-- Weather Details Cards -->
                     <tr>
-                        <td style="padding-bottom: 24px;">
+                        <td style="padding-bottom: 16px;">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                     <td width="33.33%" style="padding-right: 6px;">
                                         <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Feels Like</p>
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">🌡️ Feels Like</p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.feelsLike}°C</p>
                                         </div>
                                     </td>
                                     <td width="33.33%" style="padding-left: 3px; padding-right: 3px;">
                                         <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Humidity</p>
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">💧 Humidity</p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.humidity}%</p>
                                         </div>
                                     </td>
                                     <td width="33.33%" style="padding-left: 6px;">
                                         <div style="background-color: #1F2937; border-radius: 12px; padding: 16px; text-align: center;">
-                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">Wind</p>
+                                            <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">💨 Wind</p>
                                             <p style="font-size: 20px; font-weight: bold; color: #ffffff; margin: 0;">${weatherData.windSpeed} km/h</p>
                                         </div>
                                     </td>
@@ -220,13 +220,25 @@ export async function sendTestEmailAction(
 
                     <!-- AI Summary -->
                     <tr>
-                        <td style="padding-top: 24px;">
-                             <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">AI Weather Summary</p>
+                        <td style="padding-top: 16px; padding-bottom: 16px;">
+                             <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">🤖 AI Weather Summary</p>
                             <div style="background-color: #1F2937; border-radius: 12px; padding: 16px;">
                                 <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">${weatherData.aiSummary}</p>
                             </div>
                         </td>
                     </tr>
+
+                    <!-- Activity Suggestion -->
+                    ${weatherData.activitySuggestion ? `
+                    <tr>
+                        <td style="padding-top: 8px; padding-bottom: 24px;">
+                            <p style="font-size: 18px; font-weight: bold; color: #60A5FA; margin: 0 0 16px 0;">💡 Activity Suggestion</p>
+                            <div style="background-color: #1F2937; border-radius: 12px; padding: 16px;">
+                                <p style="font-size: 16px; color: #D1D5DB; margin: 0; line-height: 1.6;">${weatherData.activitySuggestion}</p>
+                            </div>
+                        </td>
+                    </tr>` : ''}
+
 
                     <!-- Footer -->
                     <tr>
