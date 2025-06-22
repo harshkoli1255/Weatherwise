@@ -13,15 +13,15 @@ export default async function AlertsPage() {
   if (!userId) {
     return (
       <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-        <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl text-center shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
-          <CardHeader className="items-center pt-6 sm:pt-8 md:pt-10 pb-4 sm:pb-5">
-            <BellOff className="h-14 w-14 sm:h-16 md:h-20 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
-            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Unlock Weather Alerts</CardTitle>
-            <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
+        <Card className="w-full max-w-md text-center shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
+          <CardHeader className="items-center pt-6 sm:pt-8 pb-4">
+            <BellOff className="h-16 w-16 text-primary mb-4 drop-shadow-lg" />
+            <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Unlock Weather Alerts</CardTitle>
+            <CardDescription className="text-base text-muted-foreground mt-2 px-4">
               To set up and receive personalized weather notifications, please sign in or create an account.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 pb-6 sm:pb-8">
+          <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 pb-6 sm:pb-8">
             <SignInButton mode="modal">
               <Button size="lg" className="w-full sm:w-auto">Sign In</Button>
             </SignInButton>
@@ -63,12 +63,12 @@ export default async function AlertsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-      <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
-        <CardHeader className="text-center items-center pt-6 sm:pt-8 md:pt-10 pb-4 sm:pb-5">
-          <Bell className="h-14 w-14 sm:h-16 md:h-20 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Weather Alert Settings</CardTitle>
-          <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
+    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 flex flex-col items-center">
+      <Card className="w-full max-w-2xl shadow-xl rounded-xl bg-card/90 backdrop-blur-lg border border-primary/20">
+        <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
+          <Bell className="h-16 w-16 text-primary mb-4 drop-shadow-lg" />
+          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Weather Alert Settings</CardTitle>
+          <CardDescription className="text-base text-muted-foreground mt-2 px-4">
             Configure email notifications for specific weather conditions in your city.
           </CardDescription>
         </CardHeader>

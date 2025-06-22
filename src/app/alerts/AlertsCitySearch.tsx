@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
+import React, a{ useState, useEffect, useCallback, useTransition, useRef } from 'react';
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Loader2, MapPin, LocateFixed } from 'lucide-react';
@@ -141,75 +141,79 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
         className="w-full overflow-visible rounded-md bg-transparent border-none p-0 shadow-none"
         shouldFilter={false}
       >
-        <CommandPrimitive.Input
-          ref={inputRef}
-          id={id}
-          name={name}
-          value={inputValue}
-          onValueChange={handleInputChange}
-          onFocus={handleInputFocus}
-          placeholder="e.g., London"
-          required={required}
-          autoComplete="off"
-          className={cn(
-            "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-base font-headline ring-offset-background placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200 ease-in-out"
-          )}
-        />
+        <div className="relative">
+            <CommandPrimitive.Input
+            ref={inputRef}
+            id={id}
+            name={name}
+            value={inputValue}
+            onValueChange={handleInputChange}
+            onFocus={handleInputFocus}
+            placeholder="e.g., London"
+            required={required}
+            autoComplete="off"
+            className={cn(
+                "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-base ring-offset-background placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200 ease-in-out"
+            )}
+            />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-primary z-10"
+                onClick={handleUseLocation}
+                disabled={isLocating}
+                aria-label="Use current location"
+            >
+                {isLocating ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                <LocateFixed className="h-5 w-5" />
+                )}
+            </Button>
+        </div>
 
         {isSuggestionsOpen && hasFocus && (
-          <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-auto">
-            {isLoadingSuggestions && (
-              <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
-              </div>
-            )}
-            {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >= 2 && (
-              <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
-            )}
-            {!isLoadingSuggestions && inputValue.length < 2 && (
-              <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
-            )}
-            <CommandGroup>
-              {suggestions.map((suggestion, index) => (
-                <CommandItem
-                  key={`${suggestion.name}-${suggestion.country}-${suggestion.state || 'nostate'}-${index}`}
-                  value={suggestion.name}
-                  onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center"
-                >
-                  <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="font-medium text-foreground truncate">{suggestion.name}</span>
-                  {suggestion.country && (
-                      <span className="ml-1 text-muted-foreground flex-shrink-0">
-                        , {suggestion.country}
-                      </span>
-                    )}
-                    {suggestion.state && (
-                      <span className="ml-1 text-xs text-muted-foreground flex-shrink-0">
-                        ({suggestion.state})
-                      </span>
-                    )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
+          <div className="relative w-full">
+            <CommandList className="absolute top-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-auto">
+                {isLoadingSuggestions && (
+                <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
+                </div>
+                )}
+                {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >= 2 && (
+                <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
+                )}
+                {!isLoadingSuggestions && inputValue.length < 2 && (
+                <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
+                )}
+                <CommandGroup>
+                {suggestions.map((suggestion, index) => (
+                    <CommandItem
+                    key={`${suggestion.name}-${suggestion.country}-${suggestion.state || 'nostate'}-${index}`}
+                    value={suggestion.name}
+                    onSelect={() => handleSelectSuggestion(suggestion)}
+                    className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center"
+                    >
+                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="font-medium text-foreground truncate">{suggestion.name}</span>
+                    {suggestion.country && (
+                        <span className="ml-1 text-muted-foreground flex-shrink-0">
+                            , {suggestion.country}
+                        </span>
+                        )}
+                        {suggestion.state && (
+                        <span className="ml-1 text-xs text-muted-foreground flex-shrink-0">
+                            ({suggestion.state})
+                        </span>
+                        )}
+                    </CommandItem>
+                ))}
+                </CommandGroup>
+            </CommandList>
+          </div>
         )}
       </Command>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-primary z-10"
-        onClick={handleUseLocation}
-        disabled={isLocating}
-        aria-label="Use current location"
-      >
-        {isLocating ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <LocateFixed className="h-5 w-5" />
-        )}
-      </Button>
     </div>
   );
 }

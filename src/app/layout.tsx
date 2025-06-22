@@ -19,9 +19,6 @@ export default function RootLayout({
 }>) {
   const currentYear = new Date().getFullYear();
 
-  // ClerkProvider is designed to automatically read the publishable key
-  // from the NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable.
-  // Manually passing the key is not necessary and was the source of the error.
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
@@ -43,7 +40,7 @@ export default function RootLayout({
               <main className="flex-grow">
                 {children}
               </main>
-              <footer className="py-6 sm:py-8 text-base sm:text-lg text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md text-center">
+              <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md">
                 © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
               </footer>
             </div>

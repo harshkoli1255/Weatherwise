@@ -22,7 +22,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+      <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !pending })} />
       {pending ? 'Saving...' : 'Save Preferences'}
     </Button>
   );
@@ -32,7 +32,8 @@ function TestEmailButton({ city }: { city: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={pending || !city}>
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+      <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !pending })} />
+      <Send className={cn("mr-2 h-4 w-4", { "hidden": pending })}/>
       {pending ? 'Sending...' : 'Send Test Alert'}
     </Button>
   )
