@@ -343,3 +343,50 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
   }
   return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys." };
 }
+
+
+export async function getCityFromCoordsAction(
+  lat: number, 
+  lon: number
+): Promise<{ city: string | null; error: string | null }> {
+  const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
+  if (!openWeatherApiKeysString) {
+    return { city: null, error: "Server configuration error: OpenWeather API keys missing." };
+  }
+  const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
+  if (openWeatherApiKeys.length === 0) {
+    return { city: null, error: "Server configuration error: No valid OpenWeather API keys." };
+  }
+
+  let resultCity: string | null = null;
+  let lastError: string | null = "Failed to get city from coordinates.";
+
+  for (const apiKey of openWeatherApiKeys) {
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const data: OpenWeatherCurrentAPIResponse = await response.json();
+        if (data.name) {
+          resultCity = data.name;
+          lastError = null;
+          break; // Success
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
+        lastError = errorData.message || `Failed to fetch city name (status: ${response.status})`;
+        // Only retry on key-related errors
+        if (![401, 403, 429].includes(response.status)) {
+            break; 
+        }
+      }
+    } catch(e) {
+        if (e instanceof Error) {
+            lastError = e.message;
+        }
+        // Don't break on fetch errors, could be network hiccup. Let it try next key.
+    }
+  }
+
+  return { city: resultCity, error: lastError };
+}
