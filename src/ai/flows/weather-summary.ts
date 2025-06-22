@@ -12,6 +12,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { geminiApiKeys } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 const WeatherSummaryInputSchema = z.object({
   city: z.string().describe('The city to get the weather summary for.'),
@@ -32,6 +33,7 @@ export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 // Define the prompt using the standard Genkit pattern
 const weatherSummaryPrompt = ai.definePrompt({
     name: 'weatherSummaryPrompt',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: WeatherSummaryInputSchema },
     output: { schema: WeatherSummaryOutputSchema },
     prompt: `You are a helpful weather assistant. Your task is to provide a concise summary of the weather conditions for {{{city}}} and determine the overall weather sentiment.
