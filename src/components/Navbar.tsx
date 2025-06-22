@@ -17,9 +17,6 @@ export function Navbar() {
             <Link href="/" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
               Home
             </Link>
-            <Link href="/alerts" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
-              Alerts
-            </Link>
           </div>
           <ThemeToggle />
         </div>
