@@ -11,10 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Thermometer, Wind, Umbrella, Loader2, Send, Info } from 'lucide-react';
+import { Thermometer, Wind, Umbrella, Loader2, Send } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -161,7 +160,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <input type="hidden" name="city" value={city} />
           <h3 className="text-lg font-medium">Demo: Send a Sample Alert</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            This will send a sample weather alert for <strong>{city || 'the city you enter above'}</strong> to your primary email address. This demonstrates how the email notifications will look.
+            This will send a sample weather alert for <strong>{city || 'the city you have saved'}</strong> to your primary email address. This demonstrates how the email notifications will look.
             <br/>
             <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
           </p>
