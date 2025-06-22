@@ -38,9 +38,31 @@ const initialState: WeatherPageState = {
 export default function WeatherPage() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); // Used to check session storage on mount
   const [isTransitionPending, startTransition] = useTransition();
   const { toast } = useToast();
   
+  // On initial mount, try to load the last search result from session storage.
+  useEffect(() => {
+    try {
+      const cachedDataJSON = sessionStorage.getItem('lastWeatherResult');
+      if (cachedDataJSON) {
+        const parsedData: WeatherSummaryData = JSON.parse(cachedDataJSON);
+        setWeatherState(prev => ({
+          ...prev,
+          data: parsedData,
+          currentFetchedCityName: parsedData.city,
+        }));
+      }
+    } catch (error) {
+      console.error("Could not load weather data from session storage:", error);
+      sessionStorage.removeItem('lastWeatherResult'); // Clear potentially corrupt data
+    } finally {
+      setIsInitializing(false);
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount.
+
+
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading) {
       toast({
@@ -72,7 +94,19 @@ export default function WeatherPage() {
           isLoading: false,
           error: 'An unexpected server error occurred. Please try again.',
         });
+        sessionStorage.removeItem('lastWeatherResult');
         return;
+      }
+
+      if (result.data) {
+        try {
+          sessionStorage.setItem('lastWeatherResult', JSON.stringify(result.data));
+        } catch (error) {
+          console.error("Could not save weather data to session storage:", error);
+        }
+      } else {
+        // Clear storage on error or if city not found
+        sessionStorage.removeItem('lastWeatherResult');
       }
       
       setWeatherState(prev => ({
@@ -81,7 +115,7 @@ export default function WeatherPage() {
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
-        currentFetchedCityName: result.data ? result.data.city : prev.currentFetchedCityName,
+        currentFetchedCityName: result.data ? result.data.city : undefined,
       }));
     });
   }, []);
@@ -134,6 +168,7 @@ export default function WeatherPage() {
                 error: `Location detection failed completely. ${ipError.message} Please use the search bar.`,
             });
             setIsLocating(false);
+            sessionStorage.removeItem('lastWeatherResult');
             return;
         }
     }
@@ -143,6 +178,7 @@ export default function WeatherPage() {
         performWeatherFetch(locationParams);
     } else {
          setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
+         sessionStorage.removeItem('lastWeatherResult');
     }
     setIsLocating(false);
   }, [performWeatherFetch, toast]);
@@ -160,7 +196,7 @@ export default function WeatherPage() {
     performWeatherFetch(params);
   };
 
-  const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
+  const isLoadingDisplay = isInitializing || weatherState.isLoading || isTransitionPending;
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
@@ -186,7 +222,7 @@ export default function WeatherPage() {
         <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
           <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
             <WeatherLoadingAnimation className="h-20 w-20 sm:h-24 sm:w-24 text-primary" />
-            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
+            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{isInitializing ? 'Checking for previous searches...' : weatherState.loadingMessage || "Loading..."}</p>
           </CardContent>
         </Card>
       )}
