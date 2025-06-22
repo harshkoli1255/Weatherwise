@@ -29,7 +29,7 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-isLoading: false,
+  isLoading: false,
   loadingMessage: null,
   cityNotFound: false,
   currentFetchedCityName: undefined,
@@ -120,8 +120,8 @@ export default function WeatherPage() {
         try {
           setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
           const ipResult = await fetchCityByIpAction();
-          if (ipResult.error || (!ipResult.lat && !ipResult.lon)) {
-            throw new Error(ipResult.error || 'Could not determine location from IP.');
+          if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
+            throw new Error(ipResult.error || 'Could not determine location coordinates from IP.');
           }
           weatherParams = { lat: ipResult.lat, lon: ipResult.lon };
           locationSource = 'IP lookup';
