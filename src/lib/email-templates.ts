@@ -17,14 +17,13 @@ export function generateWeatherAlertEmailHtml({
 
   // --- Theme Colors and Fonts ---
   const colors = {
-    background: '#12121c',
-    card: '#1e1e2c',
-    border: '#333344',
-    primary: '#60a5fa', // A vibrant blue
+    background: '#0f172a', // Dark Slate
+    card: 'rgba(30, 41, 59, 0.8)', // Lighter Slate (semi-transparent)
+    border: '#334155',
+    primary: '#facc15', // Sunny Yellow
     textHeading: '#ffffff',
-    textMuted: '#a0a0b0',
-    textBody: '#d0d0e0',
-    red: '#f87171',
+    textMuted: '#94a3b8', // Slate-400
+    textBody: '#e2e8f0', // Slate-200
   };
   const fontFamily = "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
@@ -38,8 +37,6 @@ export function generateWeatherAlertEmailHtml({
     activity: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colors.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/><path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>`,
   };
 
-  const weatherIconSvg = `<svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M73.8,29.8C71.3,18.4,60.8,10,48.5,10c-10.4,0-19.4,6.2-23.2,15.1C13.2,26.4,5,35,5,45.9 c0,11.8,9.6,21.4,21.4,21.4h45.9c9.5,0,17.2-7.7,17.2-17.2C89.5,41.2,82.8,33.5,73.8,29.8z" fill="none" stroke="${colors.red}" stroke-width="4" stroke-linecap="round" stroke-miterlimit="10"/></svg>`;
-  
   // --- Reusable Components ---
   const renderDetailCard = (icon: string, label: string, value: string) => `
     <td align="center" width="33.33%" style="padding: 0 4px;">
@@ -122,9 +119,9 @@ export function generateWeatherAlertEmailHtml({
         }
     </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: ${colors.background};">
-    <center style="width: 100%; table-layout: fixed; background-color: ${colors.background};">
-        <div style="max-width: 600px; background-color: ${colors.card}; border-radius: 16px; border: 1px solid ${colors.border}; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<body style="margin: 0; padding: 24px; background-color: ${colors.background}; background-image: linear-gradient(135deg, #1e3a8a 0%, #0c4a6e 50%, #4c1d95 100%);">
+    <center style="width: 100%; table-layout: fixed; background-color: transparent;">
+        <div style="max-width: 600px; background-color: ${colors.card}; border-radius: 16px; border: 1px solid ${colors.border}; box-shadow: 0 10px 25px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
             <!--[if mso]>
             <table role="presentation" width="600" style="width: 600px;" cellspacing="0" cellpadding="0" border="0" align="center"><tr><td style="padding: 32px;">
             <![endif]-->
@@ -135,7 +132,7 @@ export function generateWeatherAlertEmailHtml({
                             <!-- Header -->
                             <tr>
                                 <td align="center" style="padding-bottom: 24px;">
-                                    <h1 style="font-size: 32px; font-weight: 700; color: ${colors.primary}; margin: 0;">${weatherData.city}, ${weatherData.country}</h1>
+                                    <h1 style="font-size: 32px; font-weight: 800; color: ${colors.textHeading}; margin: 0;">${weatherData.city}, ${weatherData.country}</h1>
                                     <p style="font-size: 18px; color: ${colors.textMuted}; margin: 4px 0 0 0; font-weight: 500; text-transform: capitalize;">${weatherData.description}</p>
                                 </td>
                             </tr>
@@ -144,11 +141,11 @@ export function generateWeatherAlertEmailHtml({
                                 <td style="padding-bottom: 24px;">
                                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                         <tr>
-                                            <td width="55%" align="center" valign="middle" style="font-size: 80px; font-weight: 700; color: ${colors.primary}; line-height: 1;">
+                                            <td width="55%" align="center" valign="middle" style="font-size: 80px; font-weight: 800; color: ${colors.primary}; line-height: 1; text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);">
                                                 ${weatherData.temperature}°<span style="font-size: 48px; vertical-align: 20px;">C</span>
                                             </td>
                                             <td width="45%" align="center" valign="middle">
-                                               ${weatherIconSvg}
+                                               <img src="https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png" alt="${weatherData.condition}" width="120" height="120" style="margin: 0 auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">
                                             </td>
                                         </tr>
                                     </table>
@@ -198,9 +195,9 @@ export function generateWeatherAlertEmailHtml({
                             
                              <!-- Footer -->
                              <tr>
-                                <td align="center" style="padding: 32px 0 0 0; border-top: 1px solid ${colors.border};">
+                                <td align="center" style="padding: 32px 0 0 0; border-top: 1px solid ${colors.border}; margin-top: 24px;">
                                     <p style="font-size: 14px; color: ${colors.textMuted}; margin: 0 0 16px 0;">Want to change how you get these alerts?</p>
-                                    <a href="${alertsUrl}" style="display: inline-block; background-color: ${colors.primary}; color: ${colors.textHeading}; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px;">Manage Preferences</a>
+                                    <a href="${alertsUrl}" style="display: inline-block; background-color: ${colors.primary}; color: #000; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 24px; border-radius: 8px;">Manage Preferences</a>
                                     <p style="font-size: 12px; color: ${colors.textMuted}; margin: 24px 0 0 0;">© ${new Date().getFullYear()} Weatherwise. All rights reserved.</p>
                                 </td>
                             </tr>
@@ -214,5 +211,6 @@ export function generateWeatherAlertEmailHtml({
         </div>
     </center>
 </body>
-</html>`;
+</html>
+`;
 }
