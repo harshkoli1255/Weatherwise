@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -89,10 +88,15 @@ export default {
             height: '0',
           },
         },
+        'weather-float': {
+          '0%, 100%': { transform: 'translateX(-10px)' },
+          '50%': { transform: 'translateX(10px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'weather-float': 'weather-float 4s ease-in-out infinite',
       },
     },
   },
