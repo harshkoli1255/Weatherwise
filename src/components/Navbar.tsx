@@ -18,14 +18,17 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Left Side: Logo and Main Nav Links */}
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center space-x-2.5 group">
-            <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
-            <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
-              Weatherwise
-            </span>
-          </Link>
+        {/* Left Side: Logo */}
+        <Link href="/" className="flex items-center space-x-2.5 group">
+          <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
+          <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
+            Weatherwise
+          </span>
+        </Link>
+        
+        {/* Right Side: Main Nav Links, User Actions, and Mobile Menu */}
+        <div className="flex items-center space-x-4">
+          {/* Desktop Links & Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <Button variant="ghost" asChild>
               <Link href="/">Home</Link>
@@ -33,13 +36,6 @@ export function Navbar() {
             <Button variant="ghost" asChild>
               <Link href="/alerts">Alerts</Link>
             </Button>
-          </div>
-        </div>
-
-        {/* Right Side: User Actions and Mobile Menu */}
-        <div className="flex items-center space-x-4">
-          {/* Desktop User Actions */}
-          <div className="hidden md:flex items-center space-x-4">
             <SignedOut>
               <SignInButton mode="modal">
                 <Button variant="outline">Sign In</Button>
