@@ -4,7 +4,7 @@ import { SignInButton, SignUpButton } from '@clerk/nextjs';
 import type { AlertPreferences } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertsForm } from './AlertsForm';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default async function AlertsPage() {
@@ -18,9 +18,9 @@ export default async function AlertsPage() {
             <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <BellOff className="h-12 w-12 text-primary drop-shadow-lg" />
             </div>
-            <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Unlock Weather Alerts</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Unlock Alert Previews</CardTitle>
             <CardDescription className="text-base text-muted-foreground mt-2 px-4">
-              To set up and receive personalized weather notifications, please sign in or create an account.
+              To preview our email alerts and manage preferences, please sign in or create an account.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 pb-6 sm:pb-8">
@@ -69,11 +69,11 @@ export default async function AlertsPage() {
       <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl">
         <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
            <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-              <Bell className="h-12 w-12 text-primary drop-shadow-lg" />
+              <MailCheck className="h-12 w-12 text-primary drop-shadow-lg" />
            </div>
-          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Weather Alert Settings</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Email Alert Preview</CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-2 px-4">
-            Configure email notifications for specific weather conditions in your city.
+            Preview our new email design or manage your alert condition preferences.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">

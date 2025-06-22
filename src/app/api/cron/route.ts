@@ -1,20 +1,17 @@
 
 import { NextResponse } from 'next/server';
-import { checkAndSendAlerts } from '@/services/alertProcessing';
 
+/**
+ * This endpoint is disabled as per user request to remove cron-based scheduling.
+ * Automatic hourly alerts are no longer active.
+ */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  try {
-    console.log('Cron job started: Checking and sending weather alerts.');
-    const result = await checkAndSendAlerts();
-    console.log('Cron job finished successfully.', result);
-    return NextResponse.json({ success: true, ...result });
-  } catch (error) {
-    console.error('Cron job failed:', error);
-    return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
-  }
+  // Return a 410 Gone status to indicate the resource is intentionally unavailable.
+  return NextResponse.json(
+    { 
+      success: false, 
+      message: "Automatic alert processing via cron has been disabled. This endpoint is no longer active." 
+    }, 
+    { status: 410 }
+  );
 }

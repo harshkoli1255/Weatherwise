@@ -11,9 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Thermometer, Wind, Umbrella, Loader2, Send } from 'lucide-react';
+import { Thermometer, Wind, Umbrella, Loader2, Send, Info } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -74,7 +75,16 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
   return (
     <div className="space-y-8">
+       <Alert variant="default" className="bg-blue-500/10 border-blue-500/30 text-blue-800 dark:text-blue-300">
+        <Info className="h-4 w-4 !text-blue-500" />
+        <AlertTitle className="font-bold">Automatic Alerts Are Disabled</AlertTitle>
+        <AlertDescription>
+          The automated hourly email alert system is currently inactive. You can still save your preferences and use the 'Send Sample Alert' feature below to preview the email design.
+        </AlertDescription>
+      </Alert>
+
       <form action={saveAction} className="space-y-8">
+        <h3 className="text-lg font-medium border-b pb-2">Alert Condition Preferences</h3>
         <div>
           <Label htmlFor="email">Alerts Email</Label>
           <Input id="email" name="email" value={preferences.email} readOnly className="mt-2 bg-muted/60 cursor-not-allowed" />
@@ -84,8 +94,8 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
         <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50">
           <div className="space-y-0.5">
-            <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable All Alerts</Label>
-            <p className="text-sm text-muted-foreground">Master switch for all weather notifications.</p>
+            <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable Alerts</Label>
+            <p className="text-sm text-muted-foreground">Master switch for weather notifications (currently inactive).</p>
           </div>
           <Switch id="alertsEnabled" name="alertsEnabled" checked={alertsEnabled} onCheckedChange={setAlertsEnabled} aria-label="Enable all alerts" />
         </div>
@@ -159,7 +169,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <input type="hidden" name="city" value={city} />
           <h3 className="text-lg font-medium">Demo: Send a Sample Alert</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            This will send a sample weather alert for <strong>{city || 'the city in the input above'}</strong> to your primary email address. This demonstrates how the automated email notifications will look.
+            This will send a sample weather alert for <strong>{city || 'the city you enter above'}</strong> to your primary email address. This demonstrates how the email notifications will look.
             <br/>
             <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
           </p>
