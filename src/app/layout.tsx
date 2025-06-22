@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { Navbar } from '@/components/Navbar';
 
 export const metadata: Metadata = {
   title: 'Weatherwise',
@@ -45,7 +46,7 @@ export default function RootLayout({
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   if (!publishableKey) {
-    return (
+     return (
        <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -60,6 +61,8 @@ export default function RootLayout({
     )
   }
   
+  const currentYear = new Date().getFullYear();
+
   return (
     <ClerkProvider publishableKey={publishableKey}>
       <html lang="en" suppressHydrationWarning>
@@ -76,7 +79,15 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-secondary/30 dark:from-background dark:to-muted/20">
+              <Navbar />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <footer className="py-6 sm:py-8 text-base sm:text-lg text-muted-foreground/80 border-t border-border/60 bg-background/80 backdrop-blur-md text-center">
+                © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
+              </footer>
+            </div>
             <Toaster />
           </ThemeProvider>
         </body>
