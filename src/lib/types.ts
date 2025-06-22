@@ -176,3 +176,7 @@ export type SaveAlertsFormState = {
   message: string | null;
   error: boolean;
 };
+
+export type LocationIdentifier =
+  | { type: 'city'; city: string }
+  | { type: 'coords'; lat: number; lon: number };

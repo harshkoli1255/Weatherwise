@@ -1,16 +1,12 @@
 
 'use server';
 
-import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion } from '@/lib/types';
+import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion, LocationIdentifier } from '@/lib/types';
 import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
 import { correctCitySpelling } from '@/ai/flows/city-correction';
 import { hasGeminiConfig } from '@/ai/genkit';
 import { z } from 'zod';
 import { format } from 'date-fns';
-
-type LocationIdentifier = 
-  | { type: 'city', city: string }
-  | { type: 'coords', lat: number, lon: number };
 
 async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
   const CoordinatesSchema = z.object({
