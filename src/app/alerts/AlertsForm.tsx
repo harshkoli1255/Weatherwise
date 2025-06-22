@@ -35,7 +35,7 @@ function TestEmailButton({ city }: { city: string }) {
     <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={pending || !city}>
       <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !pending })} />
       <Send className={cn("mr-2 h-4 w-4", { "hidden": pending })}/>
-      {pending ? 'Sending...' : 'Send Test Alert'}
+      {pending ? 'Sending...' : 'Send Sample Alert'}
     </Button>
   )
 }
@@ -50,6 +50,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);
   const [notifyRain, setNotifyRain] = useState(preferences.notifyHeavyRain);
   const [notifyWind, setNotifyWind] = useState(preferences.notifyStrongWind);
+  const [city, setCity] = useState(preferences.city);
 
   useEffect(() => {
     if (saveState.message) {
@@ -92,7 +93,13 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
         <div className={`space-y-6 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
           <div>
             <Label htmlFor="city">City for Alerts</Label>
-            <AlertsCitySearch id="city" name="city" defaultValue={preferences.city} required={alertsEnabled} />
+            <AlertsCitySearch 
+              id="city" 
+              name="city" 
+              value={city}
+              onValueChange={setCity}
+              required={alertsEnabled} 
+            />
             <p className="text-sm text-muted-foreground mt-1.5">This city will be used for all alert checks.</p>
           </div>
 
@@ -149,12 +156,14 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       <Separator />
 
       <form action={testEmailAction}>
-          <input type="hidden" name="city" value={preferences.city} />
-          <h3 className="text-lg font-medium">Test Your Alerts</h3>
+          <input type="hidden" name="city" value={city} />
+          <h3 className="text-lg font-medium">Demo: Send a Sample Alert</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Send a sample weather alert for your saved city (<strong>{preferences.city || 'not set'}</strong>) to your primary email address.
+            This will send a sample weather alert for <strong>{city || 'the city in the input above'}</strong> to your primary email address. This demonstrates how the automated email notifications will look.
+            <br/>
+            <span className="text-xs text-muted-foreground/80">Note: The email service must be configured by the administrator for this feature to work.</span>
           </p>
-          <TestEmailButton city={preferences.city} />
+          <TestEmailButton city={city} />
       </form>
     </div>
   );

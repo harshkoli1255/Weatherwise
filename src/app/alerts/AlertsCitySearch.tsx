@@ -12,14 +12,14 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 interface AlertsCitySearchProps {
-  defaultValue: string;
+  value: string;
+  onValueChange: (newValue: string) => void;
   name: string;
   id: string;
   required?: boolean;
 }
 
-export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCitySearchProps) {
-  const [inputValue, setInputValue] = useState(defaultValue);
+export function AlertsCitySearch({ value, onValueChange, name, id, required }: AlertsCitySearchProps) {
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -46,7 +46,7 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
         const result = await getCityFromCoordsAction(latitude, longitude);
 
         if (result.city) {
-          setInputValue(result.city);
+          onValueChange(result.city);
         } else {
           toast({
             variant: 'destructive',
@@ -91,27 +91,27 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (inputValue && hasFocus && inputValue !== defaultValue) {
-        debouncedFetchSuggestions(inputValue);
+      if (value && hasFocus) {
+        debouncedFetchSuggestions(value);
       } else if (!hasFocus) {
         setIsSuggestionsOpen(false);
       }
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [inputValue, hasFocus, defaultValue, debouncedFetchSuggestions]);
+  }, [value, hasFocus, debouncedFetchSuggestions]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
     const displayName = `${suggestion.name}${suggestion.state ? ` (${suggestion.state})` : ''}${suggestion.country ? `, ${suggestion.country}` : ''}`;
-    setInputValue(displayName);
+    onValueChange(displayName);
     setIsSuggestionsOpen(false);
     setSuggestions([]);
     inputRef.current?.blur();
   };
   
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
-    if (value.length > 1) {
+  const handleInputChange = (inputValue: string) => {
+    onValueChange(inputValue);
+    if (inputValue.length > 1) {
       setIsSuggestionsOpen(true);
     } else {
       setIsSuggestionsOpen(false);
@@ -147,7 +147,7 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
             ref={inputRef}
             id={id}
             name={name}
-            value={inputValue}
+            value={value}
             onValueChange={handleInputChange}
             onFocus={handleInputFocus}
             placeholder="e.g., London"
@@ -182,10 +182,10 @@ export function AlertsCitySearch({ defaultValue, name, id, required }: AlertsCit
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
                 </div>
                 )}
-                {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length >= 2 && (
-                <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
+                {!isLoadingSuggestions && suggestions.length === 0 && value.length >= 2 && (
+                <CommandEmpty>No cities found for &quot;{value}&quot;.</CommandEmpty>
                 )}
-                {!isLoadingSuggestions && inputValue.length < 2 && (
+                {!isLoadingSuggestions && value.length < 2 && (
                 <CommandEmpty>Type 2+ characters to see suggestions.</CommandEmpty>
                 )}
                 <CommandGroup>
