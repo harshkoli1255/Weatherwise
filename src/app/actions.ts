@@ -19,106 +19,116 @@ const CoordinatesSchema = z.object({
 const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
 
 async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
-  let url = '';
-  if (location.type === 'city') {
-    const cityValidation = CityNameSchema.safeParse(location.city);
-    if (!cityValidation.success) {
-      return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
+  try {
+    let url = '';
+    if (location.type === 'city') {
+      const cityValidation = CityNameSchema.safeParse(location.city);
+      if (!cityValidation.success) {
+        return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
+      }
+      url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric`;
+    } else { // type === 'coords'
+      const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
+      if (!coordsValidation.success) {
+        return { data: null, error: "Invalid coordinates provided.", status: 400 };
+      }
+      url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric`;
     }
-    url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric`;
-  } else { // type === 'coords'
-    const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
-    if (!coordsValidation.success) {
-      return { data: null, error: "Invalid coordinates provided.", status: 400 };
+
+    const response = await fetch(url, { cache: 'no-store' });
+    const responseStatus = response.status;
+    const data: OpenWeatherCurrentAPIResponse = await response.json();
+
+    if (!response.ok) {
+      let errorMessage = data.message || `Failed to fetch current weather data (status: ${responseStatus})`;
+      if (responseStatus === 404) {
+        errorMessage = location.type === 'city' ? `City "${location.city}" not found.` : "Weather data not found for the provided coordinates.";
+      }
+      console.error("OpenWeather Current API error:", { status: responseStatus, message: errorMessage, url });
+      return { data: null, error: errorMessage, status: responseStatus };
     }
-    url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric`;
-  }
 
-  const response = await fetch(url);
-  const responseStatus = response.status;
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: `HTTP error ${responseStatus}` }));
-    let errorMessage = errorData.message || `Failed to fetch current weather data (status: ${responseStatus})`;
-    if (responseStatus === 404) {
-      errorMessage = location.type === 'city' ? `City "${location.city}" not found.` : "Weather data not found for the provided coordinates.";
+    if (!data.weather || data.weather.length === 0) {
+      return { data: null, error: "Current weather condition data not available.", status: 200, rawResponse: data }; 
     }
-    console.error("OpenWeather Current API error:", { status: responseStatus, message: errorMessage, url });
-    return { data: null, error: errorMessage, status: responseStatus };
+
+    return {
+      data: {
+        city: data.name,
+        country: data.sys.country,
+        temperature: Math.round(data.main.temp),
+        feelsLike: Math.round(data.main.feels_like),
+        humidity: data.main.humidity,
+        windSpeed: Math.round(data.wind.speed * 3.6), // m/s to km/h
+        condition: data.weather[0].main,
+        description: data.weather[0].description,
+        iconCode: data.weather[0].icon,
+      },
+      error: null,
+      status: 200,
+      rawResponse: data
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error in fetchCurrentWeather";
+    console.error("Unexpected error in fetchCurrentWeather:", error);
+    return { data: null, error: message, status: 500 };
   }
-
-  const data: OpenWeatherCurrentAPIResponse = await response.json();
-
-  if (!data.weather || data.weather.length === 0) {
-    return { data: null, error: "Current weather condition data not available.", status: 200, rawResponse: data }; 
-  }
-
-  return {
-    data: {
-      city: data.name,
-      country: data.sys.country,
-      temperature: Math.round(data.main.temp),
-      feelsLike: Math.round(data.main.feels_like),
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind.speed * 3.6), // m/s to km/h
-      condition: data.weather[0].main,
-      description: data.weather[0].description,
-      iconCode: data.weather[0].icon,
-    },
-    error: null,
-    status: 200,
-    rawResponse: data
-  };
 }
 
 async function fetchHourlyForecast(location: LocationIdentifier, apiKey: string): Promise<{data: HourlyForecastData[] | null, error: string | null, status?: number}> {
-   let url = '';
-  if (location.type === 'city') {
-    const cityValidation = CityNameSchema.safeParse(location.city);
-    if (!cityValidation.success) {
-        return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
+  try {
+    let url = '';
+    if (location.type === 'city') {
+      const cityValidation = CityNameSchema.safeParse(location.city);
+      if (!cityValidation.success) {
+          return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
+      }
+      url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric&cnt=8`; // cnt=8 for 24hr forecast (3hr intervals)
+    } else { // type === 'coords'
+      const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
+      if (!coordsValidation.success) {
+          return { data: null, error: "Invalid coordinates provided for forecast.", status: 400 };
+      }
+      url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric&cnt=8`;
     }
-    url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric&cnt=8`; // cnt=8 for 24hr forecast (3hr intervals)
-  } else { // type === 'coords'
-    const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
-    if (!coordsValidation.success) {
-        return { data: null, error: "Invalid coordinates provided for forecast.", status: 400 };
+    
+    const response = await fetch(url, { cache: 'no-store' });
+    const responseStatus = response.status;
+    const data: OpenWeatherForecastAPIResponse = await response.json();
+
+    if (!response.ok) {
+      const errorMessage = typeof data.message === 'string' ? data.message : `Failed to fetch forecast data (status: ${responseStatus})`;
+      console.error("OpenWeather Forecast API error:", { status: responseStatus, message: errorMessage, url });
+      return { data: null, error: errorMessage, status: responseStatus };
     }
-    url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric&cnt=8`;
+
+
+    if (!data.list || data.list.length === 0) {
+      return { data: [], error: null, status: 200 }; 
+    }
+    
+    const timezoneOffsetSeconds = data.city?.timezone ?? 0;
+
+    const forecastList = data.list.map(item => {
+      const localTimestamp = (item.dt + timezoneOffsetSeconds) * 1000;
+      const localDate = new Date(localTimestamp);
+      const time = format(localDate, 'ha', { useAdditionalWeekYearTokens: false, useAdditionalDayOfYearTokens: false });
+
+      return {
+        time: time,
+        timestamp: item.dt,
+        temp: Math.round(item.main.temp),
+        iconCode: item.weather[0].icon,
+        condition: item.weather[0].main,
+      };
+    });
+    return { data: forecastList, error: null, status: 200 };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error in fetchHourlyForecast";
+    console.error("Unexpected error in fetchHourlyForecast:", error);
+    return { data: null, error: message, status: 500 };
   }
-  
-  const response = await fetch(url);
-  const responseStatus = response.status;
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: `HTTP error ${responseStatus}` }));
-    const errorMessage = typeof errorData.message === 'string' ? errorData.message : `Failed to fetch forecast data (status: ${responseStatus})`;
-    console.error("OpenWeather Forecast API error:", { status: responseStatus, message: errorMessage, url });
-    return { data: null, error: errorMessage, status: responseStatus };
-  }
-
-  const data: OpenWeatherForecastAPIResponse = await response.json();
-
-  if (!data.list || data.list.length === 0) {
-    return { data: [], error: null, status: 200 }; 
-  }
-  
-  const timezoneOffsetSeconds = data.city?.timezone ?? 0;
-
-  const forecastList = data.list.map(item => {
-    const localTimestamp = (item.dt + timezoneOffsetSeconds) * 1000;
-    const localDate = new Date(localTimestamp);
-    const time = format(localDate, 'ha', { useAdditionalWeekYearTokens: false, useAdditionalDayOfYearTokens: false });
-
-    return {
-      time: time,
-      timestamp: item.dt,
-      temp: Math.round(item.main.temp),
-      iconCode: item.weather[0].icon,
-      condition: item.weather[0].main,
-    };
-  });
-  return { data: forecastList, error: null, status: 200 };
 }
 
 export async function fetchWeatherAndSummaryAction(
@@ -160,39 +170,30 @@ export async function fetchWeatherAndSummaryAction(
       currentKeyIndex++;
       console.log(`Attempting OpenWeatherMap API with key ${currentKeyIndex} of ${openWeatherApiKeys.length}.`);
       
-      const currentWeatherResult = await fetchCurrentWeather(locationIdentifier, apiKey);
+      const [currentWeatherResult, hourlyForecastResult] = await Promise.all([
+        fetchCurrentWeather(locationIdentifier, apiKey),
+        fetchHourlyForecast(locationIdentifier, apiKey),
+      ]);
 
-      if (currentWeatherResult.data && currentWeatherResult.rawResponse) {
+      // Prioritize "not found" errors, as they are definitive.
+      if (currentWeatherResult.status === 404) {
+        return { data: null, error: currentWeatherResult.error, cityNotFound: true };
+      }
+
+      // Check for API key-related errors (401, 403, 429) to decide whether to retry.
+      const isKeyError = [401, 403, 429].includes(currentWeatherResult.status ?? 0) || [401, 403, 429].includes(hourlyForecastResult.status ?? 0);
+
+      // If we have successful current weather data, we can proceed. A failed forecast is non-critical.
+      if (currentWeatherResult.data) {
         currentWeatherData = currentWeatherResult.data;
-        // Use coordinates from successful current weather fetch for forecast to ensure consistency
-        const coord = currentWeatherResult.rawResponse.coord;
-        const forecastLocationIdentifier: LocationIdentifier = { 
-          type: 'coords', 
-          lat: coord.lat,
-          lon: coord.lon
-        };
-        
-        const hourlyForecastResult = await fetchHourlyForecast(forecastLocationIdentifier, apiKey);
-
-        if (hourlyForecastResult.data !== null) { // Allows empty array as success
-          hourlyForecastData = hourlyForecastResult.data;
-          successWithKey = true;
-          lastOpenWeatherError = null; 
-          break; 
-        } else {
-          lastOpenWeatherError = `Forecast fetch failed: ${hourlyForecastResult.error} (Key ${currentKeyIndex})`;
-          if (![401, 403, 429].includes(hourlyForecastResult.status ?? 0)) {
-            break; 
-          }
-        }
+        hourlyForecastData = hourlyForecastResult.data ?? []; // Use forecast if available, otherwise empty array.
+        successWithKey = true;
+        lastOpenWeatherError = null;
+        break; // Success, exit the loop.
       } else {
-        lastOpenWeatherError = `Current weather fetch failed: ${currentWeatherResult.error} (Key ${currentKeyIndex})`;
-        if (currentWeatherResult.status === 404) {
-          const cityNotFound = lastOpenWeatherError.toLowerCase().includes("not found") || lastOpenWeatherError.toLowerCase().includes("city name cannot be empty");
-          return { data: null, error: lastOpenWeatherError, cityNotFound };
-        }
-        if (![401, 403, 429].includes(currentWeatherResult.status ?? 0)) {
-          break;
+        lastOpenWeatherError = `API failure on key ${currentKeyIndex}. Current: "${currentWeatherResult.error}". Forecast: "${hourlyForecastResult.error}".`;
+        if (!isKeyError) {
+          break; // It's a non-key-related error, so stop retrying.
         }
       }
     }

@@ -175,7 +175,7 @@ export default function WeatherPage() {
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16 flex flex-col items-center">
+    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
       <section className="w-full max-w-2xl mb-8 sm:mb-10 text-center">
         <h1 className="text-4xl sm:text-6xl font-headline font-extrabold text-primary mb-4 drop-shadow-lg">
           Weatherwise
@@ -193,7 +193,7 @@ export default function WeatherPage() {
       </section>
 
       {isLoadingDisplay && (
-        <Card className="w-full max-w-2xl mt-8 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 rounded-xl">
+        <Card className="w-full max-w-2xl mt-4 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 rounded-xl">
           <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
             <svg className="animate-spin h-16 w-16 sm:h-20 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -209,7 +209,7 @@ export default function WeatherPage() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && weatherState.error && (
-           <Card className="w-full max-w-2xl mt-8 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
+           <Card className="w-full max-w-2xl mt-4 border-destructive/70 bg-destructive/15 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
                     <MapPin className="h-16 w-16 sm:h-20 text-destructive mb-4 drop-shadow-lg" /> :
@@ -231,7 +231,7 @@ export default function WeatherPage() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
-           <Card className="w-full max-w-2xl mt-8 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 rounded-xl">
+           <Card className="w-full max-w-2xl mt-4 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 rounded-xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <Compass className="h-16 w-16 sm:h-20 text-primary mb-4 drop-shadow-lg" />
                   <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
