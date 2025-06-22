@@ -17,26 +17,31 @@ export async function checkAndSendAlerts(): Promise<{
   alertsSent: number;
   errors: string[];
 }> {
+  let userList: any[] = [];
   let processedUsers = 0;
   let eligibleUsers = 0;
   let alertsSent = 0;
   const errors: string[] = [];
 
   try {
-    const users = await clerkClient.users.getUserList({ limit: 500 }); // Adjust limit as needed
+    const response = await clerkClient.users.getUserList({ limit: 500 });
     
-    // Defensive check: ensure users is an array before processing
-    if (!Array.isArray(users)) {
-      const errorMsg = 'Failed to fetch a valid user list from the authentication provider.';
-      console.error(errorMsg, 'Received:', users);
+    // Defensively handle the response from the user service.
+    // It could be a direct array or an object with a `data` property.
+    if (Array.isArray(response)) {
+      userList = response;
+    } else if (response && Array.isArray((response as any).data)) {
+      userList = (response as any).data;
+    } else {
+      const errorMsg = 'Failed to fetch a valid user list. The response was not in the expected format.';
+      console.error(errorMsg, 'Received:', response);
       errors.push(errorMsg);
-      // Return early with the error, ensuring all return properties are defined.
       return { processedUsers: 0, eligibleUsers: 0, alertsSent: 0, errors };
     }
         
-    processedUsers = users.length;
+    processedUsers = userList.length;
 
-    for (const user of users) {
+    for (const user of userList) {
       const prefsRaw = user.privateMetadata?.alertPreferences;
       if (!prefsRaw) continue;
 
@@ -61,11 +66,16 @@ export async function checkAndSendAlerts(): Promise<{
         if (alertTriggers.length > 0) {
           console.log(`Sending alert to ${user.id} for city ${preferences.city}. Triggers:`, alertTriggers);
           
+          if (!preferences.email) {
+            errors.push(`User ${user.id} has alerts enabled but no email address in preferences.`);
+            continue;
+          }
+          
           const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers, isTest: false });
           const emailSubject = weatherData.aiSubject;
 
           const emailResult = await sendEmail({
-            to: preferences.email!,
+            to: preferences.email,
             subject: emailSubject,
             html: emailHtml,
           });
