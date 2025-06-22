@@ -30,20 +30,12 @@ const WeatherSummaryOutputSchema = z.object({
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
-// Lazily-initialized flow. This will be defined only on the first call.
-let weatherSummaryFlow: ((input: WeatherSummaryInput) => Promise<WeatherSummaryOutput>) | undefined;
-
-function defineWeatherSummaryFlow() {
-  if (weatherSummaryFlow) {
-    return weatherSummaryFlow;
-  }
-  
-  const weatherSummaryPrompt = ai.definePrompt({
-      name: 'weatherSummaryPrompt',
-      model: 'googleai/gemini-1.5-flash-latest',
-      input: { schema: WeatherSummaryInputSchema },
-      output: { schema: WeatherSummaryOutputSchema },
-      prompt: `You are a professional weather communication service. Your task is to provide a professional, friendly summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, create a detailed, emoji-enhanced email subject line, and provide a lifestyle activity suggestion.
+const weatherSummaryPrompt = ai.definePrompt({
+    name: 'weatherSummaryPrompt',
+    model: 'googleai/gemini-1.5-flash-latest',
+    input: { schema: WeatherSummaryInputSchema },
+    output: { schema: WeatherSummaryOutputSchema },
+    prompt: `You are a professional weather communication service. Your task is to provide a professional, friendly summary of the weather conditions for {{{city}}}, determine the overall weather sentiment, create a detailed, emoji-enhanced email subject line, and provide a lifestyle activity suggestion.
 
 Current weather data for {{{city}}}:
 - Temperature: {{{temperature}}}°C
@@ -62,34 +54,31 @@ Instructions:
 4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏠.
 5.  **Create Activity Suggestion:** Based on the weather, generate a concise, one-sentence suggestion for activities. For example: "A beautiful day for outdoor activities and travel.", "Weather is ideal for staying productive indoors.", or "Exercise caution if traveling due to high winds." Set this in the 'activitySuggestion' field.
 `,
-      config: {
-          temperature: 0.5,
-          safetySettings: [
-              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          ],
-      },
-  });
-
-  weatherSummaryFlow = ai.defineFlow(
-    {
-      name: 'weatherSummaryFlow',
-      inputSchema: WeatherSummaryInputSchema,
-      outputSchema: WeatherSummaryOutputSchema,
+    config: {
+        temperature: 0.5,
+        safetySettings: [
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        ],
     },
-    async (input) => {
-      const { output } = await weatherSummaryPrompt(input);
-      if (!output) {
-        throw new Error("AI summary generation failed to produce an output.");
-      }
-      return output;
-    }
-  );
+});
 
-  return weatherSummaryFlow;
-}
+const weatherSummaryFlow = ai.defineFlow(
+  {
+    name: 'weatherSummaryFlow',
+    inputSchema: WeatherSummaryInputSchema,
+    outputSchema: WeatherSummaryOutputSchema,
+  },
+  async (input) => {
+    const { output } = await weatherSummaryPrompt(input);
+    if (!output) {
+      throw new Error("AI summary generation failed to produce an output.");
+    }
+    return output;
+  }
+);
 
 
 export async function summarizeWeather(input: WeatherSummaryInput): Promise<WeatherSummaryOutput> {
@@ -97,14 +86,8 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
 
-  const flow = defineWeatherSummaryFlow();
-  if (!flow) {
-    // This case should not be reachable if hasGeminiConfig is true, but it's here for type safety.
-    throw new Error('AI summary service failed to initialize.');
-  }
-
   try {
-    return await flow(input);
+    return await weatherSummaryFlow(input);
   } catch (err: any) {
     // Simplify error handling. Let the caller handle UI presentation.
     console.error(`AI summary generation failed:`, err);
