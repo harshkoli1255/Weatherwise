@@ -1,11 +1,10 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIconLucide, Loader2, MapPin } from 'lucide-react';
+import { Search as SearchIconLucide, Loader2, MapPin, LocateFixed } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -14,9 +13,11 @@ interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
   isSearchingWeather: boolean;
   currentCityName?: string;
+  onLocate: () => void;
+  isLocating: boolean;
 }
 
-export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: SearchBarProps) {
+export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLocate, isLocating }: SearchBarProps) {
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
@@ -98,6 +99,8 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
     };
   }, [commandRef]);
 
+  const isDisabled = isSearchingWeather || isLocating;
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -108,7 +111,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
         shouldFilter={false}
         className={cn(
             "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all",
-            isSearchingWeather ? "opacity-70 cursor-not-allowed" : ""
+            isDisabled ? "opacity-70 cursor-not-allowed" : ""
         )}
       >
         <div className="relative flex items-center">
@@ -119,27 +122,44 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName }: Sea
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={currentCityName ? `Try "${currentCityName}" or another city` : "Search cities by name..."}
-                className="block w-full h-12 md:h-14 pl-12 pr-28 text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-12 md:h-14 pl-12 pr-[150px] md:pr-[160px] text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
-                disabled={isSearchingWeather}
+                disabled={isDisabled}
                 name="city"
                 autoComplete="off"
             />
-            <Button
-                type="submit"
-                disabled={isSearchingWeather || !inputValue.trim()}
-                aria-label="Search weather"
-                className="absolute right-2.5 h-9 md:h-10 text-sm md:text-base"
-            >
-                {isSearchingWeather ? (
-                    <>
-                    <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                    Searching
-                    </>
-                ) : (
-                    'Search'
-                )}
-            </Button>
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 md:h-10 w-9 md:w-10 text-muted-foreground hover:text-primary"
+                    onClick={onLocate}
+                    disabled={isDisabled}
+                    aria-label="Use current location"
+                >
+                    {isLocating ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                    <LocateFixed className="h-5 w-5" />
+                    )}
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isDisabled || !inputValue.trim()}
+                    aria-label="Search weather"
+                    className="h-9 md:h-10 text-sm md:text-base"
+                >
+                    {isSearchingWeather ? (
+                        <>
+                        <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
+                        Searching
+                        </>
+                    ) : (
+                        'Search'
+                    )}
+                </Button>
+            </div>
         </div>
         {isSuggestionsOpen && (
         <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-20 border border-border max-h-64 overflow-y-auto">

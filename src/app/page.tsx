@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useTransition, useCallback } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
@@ -37,10 +37,10 @@ const initialState: WeatherPageState = {
 
 export default function WeatherPage() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
+  const [isLocating, setIsLocating] = useState(false);
   const [isTransitionPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const initialFetchAttempted = useRef(false);
-
+  
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading) {
       toast({
@@ -86,93 +86,66 @@ export default function WeatherPage() {
     });
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || initialFetchAttempted.current) {
-        return;
-    }
-    initialFetchAttempted.current = true;
-
-    const getInitialWeather = async () => {
-      setWeatherState({
+  const handleLocate = useCallback(async () => {
+    setIsLocating(true);
+    setWeatherState(prev => ({
         ...initialState,
-        isLoading: true,
+        isLoading: true, // Use isLoading for the main spinner card
         loadingMessage: 'Detecting your location...',
-      });
+    }));
 
-      const getPosition = (): Promise<GeolocationPosition> => {
+    const getPosition = (): Promise<GeolocationPosition> => {
         return new Promise((resolve, reject) => {
-          if (!navigator.geolocation) {
-            return reject(new Error('Geolocation is not supported.'));
-          }
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
+            if (!navigator.geolocation) {
+                return reject(new Error('Geolocation is not supported by your browser.'));
+            }
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
         });
-      };
-
-      let weatherParams: ApiLocationParams | null = null;
-      let locationSource = '';
-
-      try {
-        setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
-        const position = await getPosition();
-        weatherParams = { lat: position.coords.latitude, lon: position.coords.longitude };
-        locationSource = 'geolocation';
-      } catch (geoError: any) {
-        console.warn(`Geolocation error: ${geoError.message}`);
-        toast({
-          title: "Location permission denied",
-          description: "Falling back to IP-based location.",
-          duration: 5000,
-        });
-        
-        try {
-          setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
-          const ipResult = await fetchCityByIpAction();
-          if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
-            throw new Error(ipResult.error || 'Could not determine location coordinates from IP.');
-          }
-          weatherParams = { lat: ipResult.lat, lon: ipResult.lon };
-          locationSource = 'IP lookup';
-        } catch (ipError: any) {
-          setWeatherState({
-            ...initialState,
-            isLoading: false,
-            error: `Location detection failed. ${ipError.message} Please use the search bar.`,
-          });
-          return;
-        }
-      }
-      
-      if (weatherParams) {
-        setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather using ${locationSource}...` }));
-        startTransition(async () => {
-          const result = await fetchWeatherAndSummaryAction(weatherParams!);
-
-          if (!result) {
-            setWeatherState({
-              ...initialState,
-              isLoading: false,
-              error: 'An unexpected server error occurred. Please try again.',
-            });
-            return;
-          }
-
-          setWeatherState({
-            data: result.data,
-            error: result.error,
-            isLoading: false,
-            loadingMessage: null,
-            cityNotFound: result.cityNotFound,
-            currentFetchedCityName: result.data ? result.data.city : undefined,
-          });
-        });
-      } else {
-        setWeatherState({ ...initialState, isLoading: false });
-      }
     };
 
-    getInitialWeather();
-  }, [performWeatherFetch, toast]);
+    let locationParams: ApiLocationParams | null = null;
+    let locationSource = '';
 
+    try {
+        setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
+        const position = await getPosition();
+        locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
+        locationSource = 'geolocation';
+    } catch (geoError: any) {
+        console.warn(`Geolocation error: ${geoError.message}. Falling back to IP.`);
+        toast({
+            title: "Location via GPS failed",
+            description: "Falling back to IP-based location, which may be less accurate.",
+            duration: 5000,
+        });
+
+        try {
+            setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
+            const ipResult = await fetchCityByIpAction();
+            if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
+                throw new Error(ipResult.error || 'Could not determine location from IP.');
+            }
+            locationParams = { lat: ipResult.lat, lon: ipResult.lon };
+            locationSource = 'IP lookup';
+        } catch (ipError: any) {
+            setWeatherState({
+                ...initialState,
+                isLoading: false,
+                error: `Location detection failed completely. ${ipError.message} Please use the search bar.`,
+            });
+            setIsLocating(false);
+            return;
+        }
+    }
+
+    if (locationParams) {
+        setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather using ${locationSource}...` }));
+        performWeatherFetch(locationParams);
+    } else {
+         setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
+    }
+    setIsLocating(false);
+  }, [performWeatherFetch, toast]);
 
   const handleSearch = (city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
@@ -203,6 +176,8 @@ export default function WeatherPage() {
             onSearch={handleSearch}
             isSearchingWeather={isLoadingDisplay}
             currentCityName={weatherState.currentFetchedCityName}
+            onLocate={handleLocate}
+            isLocating={isLocating}
           />
         </div>
       </section>
@@ -252,7 +227,7 @@ export default function WeatherPage() {
                   </div>
                   <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                   <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
-                      Use the search bar above to find weather information for any city.
+                      Use the search bar or location button to find weather information for any city.
                   </CardDescription>
               </CardHeader>
                <CardContent className="flex justify-center pb-4 pt-8 px-4">
