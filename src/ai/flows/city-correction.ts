@@ -5,26 +5,15 @@
  * @fileOverview An AI flow to correct misspelled city names.
  *
  * - correctCitySpelling - A function that takes a potentially misspelled city name and returns a corrected version.
- * - CityCorrectionInput - The input type for the correctCitySpelling function.
- * - CityCorrectionOutput - The return type for the correctCitySpelling function.
  */
 
 import { ai, hasGeminiConfig } from '@/ai/genkit';
-import { z } from 'zod';
-
-const CityCorrectionInputSchema = z.object({
-  query: z.string().describe('A potentially misspelled city name.'),
-});
-export type CityCorrectionInput = z.infer<typeof CityCorrectionInputSchema>;
-
-const CityCorrectionOutputSchema = z.object({
-  correctedQuery: z
-    .string()
-    .describe(
-      'The corrected spelling of the city name. If the input was correct or unfixable, return the original query.'
-    ),
-});
-export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
+import { 
+  type CityCorrectionInput, 
+  type CityCorrectionOutput,
+  CityCorrectionInputSchema,
+  CityCorrectionOutputSchema
+} from '@/lib/types';
 
 const cityCorrectionPrompt = ai.definePrompt({
   name: 'cityCorrectionPrompt',

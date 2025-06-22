@@ -1,8 +1,17 @@
 
 'use server';
 
-import type { WeatherData, WeatherSummaryData, HourlyForecastData, IpApiLocationResponse, CitySuggestion, LocationIdentifier, OpenWeatherCurrentAPIResponse } from '@/lib/types';
-import { summarizeWeather, type WeatherSummaryInput, type WeatherSummaryOutput } from '@/ai/flows/weather-summary';
+import { 
+  type WeatherSummaryData, 
+  type HourlyForecastData, 
+  type IpApiLocationResponse, 
+  type CitySuggestion, 
+  type LocationIdentifier, 
+  type OpenWeatherCurrentAPIResponse,
+  type WeatherSummaryInput,
+  type WeatherSummaryOutput
+} from '@/lib/types';
+import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { correctCitySpelling } from '@/ai/flows/city-correction';
 import { hasGeminiConfig } from '@/ai/genkit';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
@@ -36,7 +45,7 @@ export async function fetchWeatherAndSummaryAction(
       console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries will not be available.");
     }
 
-    let currentWeatherData: WeatherData | null = null;
+    let currentWeatherData: any | null = null;
     let hourlyForecastData: HourlyForecastData[] | null = null;
     let lastOpenWeatherError: string | null = null;
     let successWithKey = false;

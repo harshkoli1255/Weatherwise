@@ -5,30 +5,16 @@
  * @fileOverview A weather summary AI agent.
  *
  * - summarizeWeather - A function that handles the weather summary process.
- * - WeatherSummaryInput - The input type for the summarizeWeather function.
- * - WeatherSummaryOutput - The return type for the summarizeWeather function.
  */
 
 import { ai, hasGeminiConfig } from '@/ai/genkit';
-import { z } from 'zod';
+import { 
+  type WeatherSummaryInput, 
+  type WeatherSummaryOutput,
+  WeatherSummaryInputSchema,
+  WeatherSummaryOutputSchema
+} from '@/lib/types';
 
-const WeatherSummaryInputSchema = z.object({
-  city: z.string().describe('The city to get the weather summary for.'),
-  temperature: z.number().describe('The current temperature in Celsius.'),
-  feelsLike: z.number().describe('The current feels like temperature in Celsius.'),
-  humidity: z.number().describe('The current humidity percentage.'),
-  windSpeed: z.number().describe('The current wind speed in kilometers per hour.'),
-  condition: z.string().describe('The current weather condition (e.g., sunny, cloudy, rainy).'),
-});
-export type WeatherSummaryInput = z.infer<typeof WeatherSummaryInputSchema>;
-
-const WeatherSummaryOutputSchema = z.object({
-  summary: z.string().describe('A professional and friendly summary of the weather conditions for the body of an email. It should be a short paragraph.'),
-  subjectLine: z.string().describe('A detailed and engaging email subject line, starting with one or more relevant weather emojis (e.g., ☀️, 🌧️, 💨).'),
-  weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'."),
-  activitySuggestion: z.string().describe('A friendly and professional suggestion for activities based on the weather (e.g., "A beautiful day for outdoor activities," "Ideal weather for travel," "A good day to focus on indoor tasks."). Keep it to a single, concise sentence.')
-});
-export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
 const weatherSummaryPrompt = ai.definePrompt({
     name: 'weatherSummaryPrompt',

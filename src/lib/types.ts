@@ -1,4 +1,5 @@
 
+import { z } from 'zod';
 
 export interface HourlyForecastData {
   time: string; // Formatted time e.g., "3 PM" or "15:00"
@@ -180,3 +181,38 @@ export type SaveAlertsFormState = {
 export type LocationIdentifier =
   | { type: 'city'; city: string }
   | { type: 'coords'; lat: number; lon: number };
+
+
+// AI Schema: City Correction
+export const CityCorrectionInputSchema = z.object({
+  query: z.string().describe('A potentially misspelled city name.'),
+});
+export type CityCorrectionInput = z.infer<typeof CityCorrectionInputSchema>;
+
+export const CityCorrectionOutputSchema = z.object({
+  correctedQuery: z
+    .string()
+    .describe(
+      'The corrected spelling of the city name. If the input was correct or unfixable, return the original query.'
+    ),
+});
+export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
+
+// AI Schema: Weather Summary
+export const WeatherSummaryInputSchema = z.object({
+  city: z.string().describe('The city to get the weather summary for.'),
+  temperature: z.number().describe('The current temperature in Celsius.'),
+  feelsLike: z.number().describe('The current feels like temperature in Celsius.'),
+  humidity: z.number().describe('The current humidity percentage.'),
+  windSpeed: z.number().describe('The current wind speed in kilometers per hour.'),
+  condition: z.string().describe('The current weather condition (e.g., sunny, cloudy, rainy).'),
+});
+export type WeatherSummaryInput = z.infer<typeof WeatherSummaryInputSchema>;
+
+export const WeatherSummaryOutputSchema = z.object({
+  summary: z.string().describe('A professional and friendly summary of the weather conditions for the body of an email. It should be a short paragraph.'),
+  subjectLine: z.string().describe('A detailed and engaging email subject line, starting with one or more relevant weather emojis (e.g., ☀️, 🌧️, 💨).'),
+  weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'."),
+  activitySuggestion: z.string().describe('A friendly and professional suggestion for activities based on the weather (e.g., "A beautiful day for outdoor activities," "Ideal weather for travel," "A good day to focus on indoor tasks."). Keep it to a single, concise sentence.')
+});
+export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
