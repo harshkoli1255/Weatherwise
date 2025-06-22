@@ -70,7 +70,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
             </h3>
           </div>
           <div
-            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary"
+            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-md"
             dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
           />
         </div>
@@ -84,7 +84,7 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
               </h3>
             </div>
             <div
-              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary"
+              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-md"
               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
             />
           </div>
