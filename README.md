@@ -4,17 +4,25 @@ This is a Next.js web application, Weatherwise, designed to provide real-time we
 
 ## ⚠️ Important Setup Instructions
 
-Before running the application, you must configure your API keys in the `.env` file. The application **will not start** without the required keys.
+Before running the application, you must configure your API keys in the `.env` file at the root of the project. The application **will not start** without some of the required keys.
 
 1.  **Locate the `.env` file** in the project's root directory.
-2.  **Add your API keys** inside the quotes for each variable:
-    *   `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: **Required for authentication.** Get this from your [Clerk Dashboard](https://dashboard.clerk.com/).
-    *   `CLERK_SECRET_KEY`: **Required for authentication.** Get this from your [Clerk Dashboard](https://dashboard.clerk.com/).
-    *   `NEXT_PUBLIC_OPENWEATHER_API_KEYS`: **Required for weather data.** Get one or more keys from the [OpenWeatherMap API](https://openweathermap.org/api).
-    *   `GEMINI_API_KEYS`: Optional, but required for AI-powered summaries. Get one or more keys from [Google AI Studio](https://aistudio.google.com/).
+2.  **Add your API keys** inside the quotes for each variable.
 
-3.  **Start the application:**
+### Required for Core Functionality:
+*   `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: **Required for authentication.** Get this from your [Clerk Dashboard](https://dashboard.clerk.com/).
+*   `CLERK_SECRET_KEY`: **Required for authentication.** Get this from your [Clerk Dashboard](https://dashboard.clerk.com/).
+*   `NEXT_PUBLIC_OPENWEATHER_API_KEYS`: **Required for weather data.** Get one or more keys from the [OpenWeatherMap API](https://openweathermap.org/api). You can add multiple keys separated by commas.
+
+### Optional (for enhanced features):
+*   `GEMINI_API_KEYS`: Required for AI-powered summaries. Get one or more keys from [Google AI Studio](https://aistudio.google.com/).
+*   `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`: Required for sending email alerts. These are your SMTP server details from a provider like Gmail (using an App Password), SendGrid, etc.
+*   `NEXT_PUBLIC_BASE_URL`: The public URL of your application, used for generating links in emails. Defaults to `http://localhost:3000`.
+
+
+3.  **Install dependencies and start the application:**
     ```bash
+    npm install
     npm run dev
     ```
 
@@ -39,3 +47,4 @@ Before running the application, you must configure your API keys in the `.env` f
 *   ShadCN UI Components
 *   Clerk (for authentication)
 *   Genkit (for AI features)
+*   Nodemailer (for email sending)
