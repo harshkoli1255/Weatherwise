@@ -273,7 +273,7 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
     console.error("Error fetching city by IP (ipapi.co):", error);
     try {
         console.log("Falling back to ip-api.com for IP geolocation.");
-        const fallbackResponse = await fetch('http://ip-api.com/json/?fields=status,message,country,city,lat,lon');
+        const fallbackResponse = await fetch('https://ip-api.com/json/?fields=status,message,country,city,lat,lon');
         if (!fallbackResponse.ok) {
             throw new Error(`IP Geolocation service (ip-api.com) failed with status: ${fallbackResponse.status}`);
         }
