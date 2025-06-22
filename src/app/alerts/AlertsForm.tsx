@@ -1,11 +1,10 @@
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
-import { saveAlertPreferencesAction } from './actions';
+import { saveAlertPreferencesAction, sendSampleAlertAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Thermometer, Wind, Umbrella, Loader2, Clock } from 'lucide-react';
+import { Thermometer, Wind, Umbrella, Loader2, Clock, Send } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -52,6 +51,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const { toast } = useToast();
   const initialState: SaveAlertsFormState = { message: null, error: false };
   const [saveState, saveAction] = useFormState<SaveAlertsFormState, FormData>(saveAlertPreferencesAction, initialState);
+  const [isSendingSample, startSampleTransition] = useTransition();
 
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
   const [notifyTemp, setNotifyTemp] = useState(preferences.notifyExtremeTemp);
@@ -71,6 +71,18 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       });
     }
   }, [saveState, toast]);
+
+  const handleSendSample = () => {
+    startSampleTransition(async () => {
+      const result = await sendSampleAlertAction();
+      toast({
+        title: result.error ? 'Sample Alert Failed' : 'Sample Alert Sent',
+        description: result.message,
+        variant: result.error ? 'destructive' : 'default',
+        duration: 8000,
+      });
+    });
+  };
   
   const handleDayChange = (dayId: number, checked: boolean) => {
     setSelectedDays(prev => 
@@ -216,8 +228,22 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
       </div>
       
-      <div className="pt-4">
+      <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
         <SubmitButton />
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full sm:w-auto"
+          onClick={handleSendSample}
+          disabled={isSendingSample}
+        >
+          {isSendingSample ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="mr-2 h-4 w-4" />
+          )}
+          {isSendingSample ? 'Sending...' : 'Send Sample Alert'}
+        </Button>
       </div>
     </form>
   );
