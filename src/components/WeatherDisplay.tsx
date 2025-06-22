@@ -38,9 +38,9 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} />
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} />
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} />
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-orange-400" />
+          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-sky-400" />
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-cyan-400" />
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
@@ -96,12 +96,13 @@ interface WeatherDetailItemProps {
   icon: React.ElementType;
   label: string;
   value: string;
+  iconColor?: string;
 }
 
-function WeatherDetailItem({ icon: Icon, label, value }: WeatherDetailItemProps) {
+function WeatherDetailItem({ icon: Icon, label, value, iconColor }: WeatherDetailItemProps) {
   return (
     <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-200 shadow-lg border border-border/30">
-      <Icon className="h-7 w-7 text-primary mb-2" />
+      <Icon className={cn("h-7 w-7 mb-2", iconColor || 'text-primary')} />
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>
     </div>
