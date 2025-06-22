@@ -30,8 +30,8 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: true,
-  loadingMessage: "Initializing Weatherwise...",
+  isLoading: false, // Set to false to prevent initial loading state
+  loadingMessage: null,
   cityNotFound: false,
   currentFetchedCityName: undefined,
 };
@@ -56,11 +56,11 @@ export default function WeatherPage() {
     }
   }, [weatherState.error, weatherState.isLoading, toast]);
 
-  const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad: boolean = false) => {
+  const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     setWeatherState(prev => ({
       ...prev,
       isLoading: true,
-      loadingMessage: params.city ? `Searching for ${params.city}...` : "Fetching weather for your location...",
+      loadingMessage: `Searching for ${params.city}...`,
       data: null,
       error: null,
       cityNotFound: false,
@@ -75,55 +75,9 @@ export default function WeatherPage() {
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
-        currentFetchedCityName: isInitialLoad && result.data ? result.data.city : (result.data ? result.data.city : prev.currentFetchedCityName),
+        currentFetchedCityName: result.data ? result.data.city : prev.currentFetchedCityName,
       }));
     });
-  }, [startTransition]);
-
-
-  useEffect(() => {
-    setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: "Detecting your location...", currentFetchedCityName: undefined }));
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          performWeatherFetch({ lat: position.coords.latitude, lon: position.coords.longitude }, true);
-        },
-        async (geoError) => {
-          console.warn(`Geolocation error: ${geoError.message}. Falling back to IP lookup.`);
-          const ipResult = await fetchCityByIpAction();
-          if (ipResult.error || !ipResult.city) {
-            setWeatherState({
-              data: null,
-              error: ipResult.error || "Could not determine your location. Please use the search bar.",
-              isLoading: false,
-              loadingMessage: null,
-              cityNotFound: true,
-              currentFetchedCityName: undefined,
-            });
-          } else {
-            performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, true);
-          }
-        }
-      );
-    } else {
-      (async () => {
-        console.warn('Geolocation not supported. Falling back to IP lookup.');
-        const ipResult = await fetchCityByIpAction();
-        if (ipResult.error || !ipResult.city) {
-           setWeatherState({
-              data: null,
-              error: ipResult.error || "Could not determine your location. Please use the search bar.",
-              isLoading: false,
-              loadingMessage: null,
-              cityNotFound: true,
-              currentFetchedCityName: undefined,
-            });
-        } else {
-          performWeatherFetch({ city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon }, true);
-        }
-      })();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -151,20 +105,18 @@ export default function WeatherPage() {
             Weatherwise
           </h1>
           <p className="text-xl sm:text-2xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 md:mb-10 px-2">
-            Your smart companion for real-time weather updates and AI-powered insights. Search any city or use your current location.
+            Your smart companion for real-time weather updates and AI-powered insights. Search any city to get started.
           </p>
-          {(!isLoadingDisplay || weatherState.data) && (
-            <div className="mt-1 w-full flex justify-center"> {/* Changed from justify-end to justify-center */}
-              <SearchBar
-                onSearch={handleSearch}
-                isSearchingWeather={isLoadingDisplay && !weatherState.data}
-                currentCityName={weatherState.currentFetchedCityName}
-              />
-            </div>
-          )}
+          <div className="mt-1 w-full flex justify-center">
+            <SearchBar
+              onSearch={handleSearch}
+              isSearchingWeather={isLoadingDisplay}
+              currentCityName={weatherState.currentFetchedCityName}
+            />
+          </div>
         </section>
 
-        {isLoadingDisplay && !weatherState.data && (
+        {isLoadingDisplay && (
           <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mt-8 sm:mt-10 bg-card/80 backdrop-blur-lg shadow-xl border border-primary/20 p-6 sm:p-8 md:p-10 rounded-xl">
             <CardContent className="flex flex-col items-center justify-center space-y-5 sm:space-y-6 pt-6 sm:pt-8">
               <svg className="animate-spin h-20 w-20 sm:h-24 md:h-28 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -208,7 +160,7 @@ export default function WeatherPage() {
                     <Compass className="h-20 w-20 sm:h-24 md:h-28 text-primary mb-4 sm:mb-5 drop-shadow-lg" />
                     <CardTitle className="text-3xl sm:text-4xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
                     <CardDescription className="text-lg sm:text-xl text-muted-foreground mt-2.5 sm:mt-3.5 px-4 sm:px-6">
-                        Please use the search bar above to find weather information for any city, or allow location access for automatic detection.
+                        Please use the search bar above to find weather information for any city.
                     </CardDescription>
                 </CardHeader>
                  <CardContent className="flex justify-center pb-4 px-4 sm:px-6">
@@ -223,4 +175,3 @@ export default function WeatherPage() {
     </div>
   );
 }
-

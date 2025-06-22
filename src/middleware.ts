@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 // This is a placeholder middleware to ensure the server starts.
-// Clerk functionality is temporarily disabled.
+// Authentication functionality is temporarily disabled.
 export function middleware(request: NextRequest) {
   return NextResponse.next();
 }

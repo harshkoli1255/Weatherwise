@@ -12,7 +12,7 @@ export default function Page() {
           </div>
           <CardTitle className="mt-4">Authentication Disabled</CardTitle>
           <CardDescription>
-            The sign-in functionality is temporarily disabled while we resolve some issues. Please check back later.
+            The sign-in functionality is temporarily disabled. Please check back later.
           </CardDescription>
         </CardHeader>
         <CardContent>

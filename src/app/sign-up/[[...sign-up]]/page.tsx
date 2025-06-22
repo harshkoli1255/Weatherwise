@@ -12,7 +12,7 @@ export default function Page() {
           </div>
           <CardTitle className="mt-4">Registration Disabled</CardTitle>
           <CardDescription>
-            The sign-up functionality is temporarily disabled while we resolve some issues. Please check back later.
+            The sign-up functionality is temporarily disabled. Please check back later.
           </CardDescription>
         </CardHeader>
         <CardContent>

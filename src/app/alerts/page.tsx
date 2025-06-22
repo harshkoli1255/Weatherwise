@@ -22,7 +22,7 @@ export default function AlertsPage() {
             <AlertTriangle className="h-14 w-14 sm:h-16 md:h-20 text-primary mb-3 sm:mb-4 drop-shadow-lg" />
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary">Feature Temporarily Disabled</CardTitle>
             <CardDescription className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2 sm:mt-2.5 px-4 sm:px-6">
-              The alerts page is currently undergoing maintenance to resolve a startup issue. Please check back later.
+              The alerts page is currently undergoing maintenance. Please check back later.
             </CardDescription>
           </CardHeader>
           <CardContent>
