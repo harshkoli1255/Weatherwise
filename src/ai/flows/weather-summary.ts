@@ -29,9 +29,14 @@ const WeatherSummaryOutputSchema = z.object({
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
+// Lazily-initialized flow. This will be defined only on the first call.
 let weatherSummaryFlow: ((input: WeatherSummaryInput) => Promise<WeatherSummaryOutput>) | undefined;
 
-if (hasGeminiConfig) {
+function defineWeatherSummaryFlow() {
+  if (weatherSummaryFlow) {
+    return weatherSummaryFlow;
+  }
+  
   const weatherSummaryPrompt = ai.definePrompt({
       name: 'weatherSummaryPrompt',
       model: 'googleai/gemini-1.5-flash-latest',
@@ -82,15 +87,24 @@ Instructions:
       return output;
     }
   );
+
+  return weatherSummaryFlow;
 }
 
+
 export async function summarizeWeather(input: WeatherSummaryInput): Promise<WeatherSummaryOutput> {
-  if (!hasGeminiConfig || !weatherSummaryFlow) {
+  if (!hasGeminiConfig) {
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
 
+  const flow = defineWeatherSummaryFlow();
+  if (!flow) {
+    // This case should not be reachable if hasGeminiConfig is true, but it's here for type safety.
+    throw new Error('AI summary service failed to initialize.');
+  }
+
   try {
-    return await weatherSummaryFlow(input);
+    return await flow(input);
   } catch (err: any) {
     // Simplify error handling. Let the caller handle UI presentation.
     console.error(`AI summary generation failed:`, err);

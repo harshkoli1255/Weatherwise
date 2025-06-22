@@ -26,9 +26,14 @@ const CityCorrectionOutputSchema = z.object({
 });
 export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
 
+// Lazily-initialized flow. This will be defined only on the first call.
 let cityCorrectionFlow: ((input: CityCorrectionInput) => Promise<CityCorrectionOutput>) | undefined;
 
-if (hasGeminiConfig) {
+function defineCityCorrectionFlow() {
+  if (cityCorrectionFlow) {
+    return cityCorrectionFlow;
+  }
+
   const cityCorrectionPrompt = ai.definePrompt({
     name: 'cityCorrectionPrompt',
     model: 'googleai/gemini-1.5-flash-latest',
@@ -63,16 +68,26 @@ Your task is to correct the spelling of this city name.
       return output;
     }
   );
+
+  return cityCorrectionFlow;
 }
 
+
 export async function correctCitySpelling(input: CityCorrectionInput): Promise<CityCorrectionOutput> {
-  if (!hasGeminiConfig || !cityCorrectionFlow) {
+  if (!hasGeminiConfig) {
     // If AI is not configured, we cannot correct spelling, so return the original query.
     console.warn('AI spelling correction skipped: Gemini API key missing.');
     return { correctedQuery: input.query };
   }
+  
+  const flow = defineCityCorrectionFlow();
+  if (!flow) {
+      // This case should not be reachable if hasGeminiConfig is true, but it's here for type safety.
+      return { correctedQuery: input.query };
+  }
+
   try {
-    return await cityCorrectionFlow(input);
+    return await flow(input);
   } catch (err: any) {
     console.error(`AI spelling correction failed:`, err);
     // If the flow fails, return the original query to not break the user's search attempt.
