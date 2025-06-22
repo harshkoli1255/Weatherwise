@@ -127,7 +127,10 @@ export async function sendTestEmailAction(
   }
 }
 
-export async function testAllAlertsAction(): Promise<{ message: string | null; error: boolean }> {
+export async function testAllAlertsAction(
+  prevState: { message: string | null; error: boolean },
+  formData: FormData
+): Promise<{ message: string | null; error: boolean }> {
   const { userId } = auth();
   if (!userId) {
     return { message: 'You must be signed in to perform this test.', error: true };
