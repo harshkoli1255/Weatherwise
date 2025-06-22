@@ -28,7 +28,11 @@ export default async function AlertsPage() {
     windSpeedThreshold: 40,
   };
   
-  const savedPreferences = user.privateMetadata?.alertPreferences as Partial<AlertPreferences> | undefined;
+  const savedPreferencesRaw = user.privateMetadata?.alertPreferences;
+
+  const savedPreferences = savedPreferencesRaw 
+    ? JSON.parse(JSON.stringify(savedPreferencesRaw)) as Partial<AlertPreferences> 
+    : undefined;
 
   const preferences: AlertPreferences = {
     ...defaultPreferences,
