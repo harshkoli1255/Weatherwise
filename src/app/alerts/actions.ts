@@ -101,7 +101,10 @@ export async function sendTestEmailAction(
     const weatherData = weatherResult.data;
 
     const subject = weatherData.aiSubject;
-    const html = generateWeatherAlertEmailHtml({ weatherData });
+    const html = generateWeatherAlertEmailHtml({ 
+      weatherData,
+      alertTriggers: ["This is a successful test of your email template."] 
+    });
 
     const result = await sendEmail({
       to: emailAddress,
@@ -133,7 +136,8 @@ export async function testAllAlertsAction(
   console.log(`Manual hourly alert system test triggered by user: ${userId}`);
 
   try {
-    const result = await checkAndSendAlerts();
+    // Pass a flag to indicate this is a manual test run from the UI.
+    const result = await checkAndSendAlerts({ isTestRun: true });
     const successMessage = `Test finished. Processed ${result.processedUsers} users. Found ${result.eligibleUsers} with alerts enabled. Sent ${result.alertsSent} alerts. Errors: ${result.errors.length}.`;
     console.log(successMessage);
     

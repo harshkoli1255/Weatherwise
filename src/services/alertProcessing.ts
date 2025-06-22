@@ -1,4 +1,3 @@
-
 'use server';
 
 import { clerkClient } from '@clerk/nextjs/server';
@@ -12,20 +11,22 @@ import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
  * It fetches all users, checks their preferences, gets the latest weather,
  * and sends email alerts if the defined conditions are met.
  */
-export async function checkAndSendAlerts(): Promise<{
+export async function checkAndSendAlerts(
+  options?: { isTestRun?: boolean }
+): Promise<{
   processedUsers: number;
   eligibleUsers: number;
   alertsSent: number;
   errors: string[];
 }> {
+  const isTestRun = options?.isTestRun ?? false;
   let userList;
   const errors: string[] = [];
 
   // Step 1: Fetch all users from the authentication service (Clerk)
   try {
-    // Note: clerkClient.users.getUserList() returns a paginated response object, not a direct array.
-    const response = await clerkClient.users.getUserList({ limit: 500 }); // Fetch up to 500 users
-    userList = response.data; // The user list is in the 'data' property
+    const response = await clerkClient.users.getUserList({ limit: 500 });
+    userList = response.data;
     
     if (!Array.isArray(userList)) {
         throw new Error("User list from Clerk was not in the expected format (response.data is not an array).");
@@ -51,9 +52,10 @@ export async function checkAndSendAlerts(): Promise<{
       }
 
       const preferences = JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences>;
+      const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
 
       // Check if user is eligible for alerts
-      if (!preferences.alertsEnabled || !preferences.city || !preferences.email) {
+      if (!preferences.alertsEnabled || !preferences.city || !email) {
         continue; // Skip if alerts are off, or no city/email is set.
       }
       
@@ -68,17 +70,17 @@ export async function checkAndSendAlerts(): Promise<{
       const weatherData = weatherResult.data;
 
       // Step 4: Check if current weather triggers any of the user's alerts
-      const alertTriggers = checkAlertConditions(preferences as AlertPreferences, weatherData);
+      const alertTriggers = checkAlertConditions(preferences as AlertPreferences, weatherData, isTestRun);
 
       if (alertTriggers.length > 0) {
-        console.log(`Sending alert to ${preferences.email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
+        console.log(`Sending alert to ${email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
         
         // Step 5: If triggered, generate and send the alert email
         const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers });
         const emailSubject = `Weather Alert: ${weatherData.aiSubject}`;
 
         const emailResult = await sendEmail({
-          to: preferences.email,
+          to: email,
           subject: emailSubject,
           html: emailHtml,
         });
@@ -86,7 +88,7 @@ export async function checkAndSendAlerts(): Promise<{
         if (emailResult.success) {
           alertsSent++;
         } else {
-          const errorMsg = `Failed to send email to ${preferences.email}: ${emailResult.error}`;
+          const errorMsg = `Failed to send email to ${email}: ${emailResult.error}`;
           console.error(errorMsg);
           errors.push(errorMsg);
         }
@@ -107,8 +109,30 @@ export async function checkAndSendAlerts(): Promise<{
  */
 function checkAlertConditions(
   preferences: AlertPreferences,
-  weatherData: WeatherSummaryData
+  weatherData: WeatherSummaryData,
+  isTestRun: boolean = false
 ): string[] {
+  // If this is a manual test run from the UI, we bypass the real weather checks
+  // and send an alert if ANY condition preference is enabled. This confirms the pipeline works.
+  if (isTestRun) {
+    const activeAlerts: string[] = [];
+    if (preferences.notifyExtremeTemp) {
+      activeAlerts.push('Extreme Temperature');
+    }
+    if (preferences.notifyHeavyRain) {
+      activeAlerts.push('Heavy Rain');
+    }
+    if (preferences.notifyStrongWind) {
+      activeAlerts.push('Strong Wind');
+    }
+    
+    if (activeAlerts.length > 0) {
+      return [`This is a system test for your enabled alert(s): ${activeAlerts.join(', ')}.`];
+    }
+    // If alerts are globally on, but no conditions are selected, we don't send a test alert.
+    return [];
+  }
+
   const triggered: string[] = [];
 
   // Check for extreme temperatures

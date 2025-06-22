@@ -1,4 +1,3 @@
-
 import type { WeatherSummaryData, HourlyForecastData, EmailTemplatePayload } from '@/lib/types';
 
 export function generateWeatherAlertEmailHtml({
@@ -65,6 +64,31 @@ export function generateWeatherAlertEmailHtml({
         </td>
       </tr>
   `};
+
+  const renderAlertTriggers = (triggers: string[]) => `
+  <tr>
+    <td style="padding-top: 24px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td valign="middle" width="32" style="font-size: 24px; line-height: 24px;">🔔</td>
+          <td valign="middle" style="padding-left: 12px;">
+            <h3 style="color: ${colors.textHeading}; font-size: 20px; font-weight: 700; margin: 0;">Alert Details</h3>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding-top: 16px;">
+            <div style="background-color: rgba(30, 64, 175, 0.3); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px;">
+              <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">This alert was sent for the following reason(s):</p>
+              <ul style="font-size: 15px; color: ${colors.textBody}; margin: 12px 0 0 0; padding-left: 20px; line-height: 1.6;">
+                ${triggers.map(t => `<li style="margin-bottom: 8px;">${t}</li>`).join('')}
+              </ul>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+`;
 
   return `
 <!DOCTYPE html>
@@ -147,6 +171,8 @@ export function generateWeatherAlertEmailHtml({
                                     </table>
                                 </td>
                             </tr>
+                            <!-- Alert Triggers -->
+                            ${alertTriggers && alertTriggers.length > 0 ? renderAlertTriggers(alertTriggers) : ''}
                             <!-- Hourly Forecast -->
                             ${weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? `
                             ${renderSection('🕒', 'Hourly Forecast', `
