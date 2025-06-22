@@ -32,13 +32,13 @@ export async function fetchWeatherAndSummaryAction(
 
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
-      console.error("OpenWeather API keys are not set (NEXT_PUBLIC_OPENWEATHER_API_KEYS).");
-      return { data: null, error: "Server configuration error: OpenWeather API keys missing. Please contact support.", cityNotFound: false };
+      console.error("[Server Config Error] OpenWeather API keys are not set (NEXT_PUBLIC_OPENWEATHER_API_KEYS).");
+      return { data: null, error: "Server configuration error: Weather service keys missing. Please contact support.", cityNotFound: false };
     }
     const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
     if (openWeatherApiKeys.length === 0) {
-      console.error("No valid OpenWeather API keys found in NEXT_PUBLIC_OPENWEATHER_API_KEYS.");
-      return { data: null, error: "Server configuration error: No valid OpenWeather API keys. Please contact support.", cityNotFound: false };
+      console.error("[Server Config Error] No valid OpenWeather API keys found in NEXT_PUBLIC_OPENWEATHER_API_KEYS.");
+      return { data: null, error: "Server configuration error: No valid weather service keys. Please contact support.", cityNotFound: false };
     }
     
     if (!hasGeminiConfig) {
@@ -47,7 +47,7 @@ export async function fetchWeatherAndSummaryAction(
 
     let currentWeatherData: any | null = null;
     let hourlyForecastData: HourlyForecastData[] | null = null;
-    let lastOpenWeatherError: string | null = null;
+    let lastTechnicalError: string | null = null;
     let successWithKey = false;
     let currentKeyIndex = 0;
 
@@ -73,10 +73,10 @@ export async function fetchWeatherAndSummaryAction(
         currentWeatherData = currentWeatherResult.data;
         hourlyForecastData = hourlyForecastResult.data ?? []; // Use forecast if available, otherwise empty array.
         successWithKey = true;
-        lastOpenWeatherError = null;
+        lastTechnicalError = null;
         break; // Success, exit the loop.
       } else {
-        lastOpenWeatherError = `API failure on key ${currentKeyIndex}. Current: "${currentWeatherResult.error}". Forecast: "${hourlyForecastResult.error}".`;
+        lastTechnicalError = `API failure on key ${currentKeyIndex}. Current: "${currentWeatherResult.error}". Forecast: "${hourlyForecastResult.error}".`;
         if (!isKeyError) {
           break; // It's a non-key-related error, so stop retrying.
         }
@@ -84,10 +84,16 @@ export async function fetchWeatherAndSummaryAction(
     }
 
     if (!successWithKey || !currentWeatherData) {
-      const finalError = lastOpenWeatherError || "Failed to fetch weather data with all available API keys.";
-      console.error("All OpenWeatherMap API keys failed or a non-key-related error occurred.", finalError);
-      const cityNotFound = finalError.toLowerCase().includes("not found") || finalError.toLowerCase().includes("city name cannot be empty");
-      return { data: null, error: finalError, cityNotFound };
+      // Log the detailed, technical error for debugging purposes on the server.
+      const serverError = lastTechnicalError || "Failed to fetch weather data with all available API keys.";
+      console.error("[Service Error] All OpenWeatherMap API keys failed or a non-retriable error occurred.", { details: serverError });
+
+      // Provide a clean, user-friendly error message to the client. This avoids exposing implementation details.
+      const userFacingError = "The weather service is temporarily unavailable. This could be due to a server configuration issue or a problem with the external provider. Please try again later.";
+      
+      const cityNotFound = serverError.toLowerCase().includes("not found");
+
+      return { data: null, error: userFacingError, cityNotFound };
     }
 
     const aiInput: WeatherSummaryInput = {
@@ -187,16 +193,18 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
-      return { suggestions: null, error: "Server configuration error: OpenWeather API keys missing for suggestions." };
+      console.error("[Server Config Error] OpenWeather API keys missing for suggestions.");
+      return { suggestions: null, error: "Server configuration error: Geocoding keys missing." };
     }
     const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
     if (openWeatherApiKeys.length === 0) {
-      return { suggestions: null, error: "Server configuration error: No valid OpenWeather API keys for suggestions." };
+      console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
+      return { suggestions: null, error: "Server configuration error: No valid geocoding keys." };
     }
     
     // Helper function to perform the fetch and parse logic
     const getSuggestionsFromApi = async (searchQuery: string): Promise<{ suggestions: CitySuggestion[] | null, error: string | null, shouldRetry: boolean }> => {
-      let lastError: string | null = null;
+      let lastTechnicalError: string | null = null;
       let currentKeyIndex = 0;
 
       for (const apiKey of openWeatherApiKeys) {
@@ -206,13 +214,13 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
               const response = await fetch(url);
               if (!response.ok) {
                   const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-                  lastError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
+                  lastTechnicalError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
                   if ([401, 403, 429].includes(response.status)) { 
                       console.warn(`OpenWeather Geocoding API key ${currentKeyIndex} failed or rate limited. Trying next key.`);
                       continue; 
                   }
-                  console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastError, url });
-                  return { suggestions: null, error: lastError, shouldRetry: false };
+                  console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastTechnicalError, url });
+                  return { suggestions: null, error: "Geocoding service returned an error.", shouldRetry: false };
               }
 
               const data: any[] = await response.json();
@@ -235,14 +243,17 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
               }
               return { suggestions: uniqueSuggestions, error: null, shouldRetry: false };
           } catch (e) {
-              lastError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
+              lastTechnicalError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
               console.error("Error fetching city suggestions:", e);
-              // Don't retry on network errors for this step
-              return { suggestions: null, error: lastError, shouldRetry: false };
+              return { suggestions: null, error: "Network error while fetching suggestions.", shouldRetry: false };
           }
       }
+      
       // If all keys fail
-      return { suggestions: null, error: lastError || "Failed to fetch city suggestions with all available API keys.", shouldRetry: true };
+      const serverError = lastTechnicalError || "Failed to fetch city suggestions with all available API keys.";
+      console.error("[Service Error] All geocoding API keys failed.", { details: serverError });
+      const userFacingError = "Could not retrieve city suggestions due to a server-side issue.";
+      return { suggestions: null, error: userFacingError, shouldRetry: true };
     }
 
     // --- Main Logic ---
@@ -254,6 +265,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         return { suggestions: initialResult.suggestions, error: null };
     }
     
+    // Don't proceed if there was a non-retriable error (e.g., bad request, not just a key failure).
     if (initialResult.error && !initialResult.shouldRetry) {
         return { suggestions: null, error: initialResult.error };
     }
@@ -267,21 +279,18 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
             console.log(`AI corrected "${processedQuery}" to "${correctedQuery}". Fetching again.`);
             
-            // Step 3: Fetch again with the corrected query
             const correctedResult = await getSuggestionsFromApi(correctedQuery);
             
-            if (correctedResult.suggestions && correctedResult.suggestions.length > 0) {
-                return { suggestions: correctedResult.suggestions, error: null };
-            } else {
-                return { suggestions: [], error: correctedResult.error };
-            }
+            // Return suggestions if found, otherwise return empty array. Don't propagate the error
+            // as the UI just needs to know there are no results. The error is already logged.
+            return { suggestions: correctedResult.suggestions ?? [], error: null };
         } else {
             console.log(`AI did not provide a different correction for "${processedQuery}".`);
         }
     }
 
-    // Fallback: return the empty result from the initial fetch.
-    return { suggestions: [], error: initialResult.error };
+    // Fallback: return an empty array. The error has been logged if one occurred.
+    return { suggestions: [], error: null };
   } catch (error) {
     console.error("An unexpected error occurred in fetchCitySuggestionsAction:", error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred while fetching suggestions.";
@@ -297,15 +306,17 @@ export async function getCityFromCoordsAction(
   try {
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
-      return { city: null, error: "Server configuration error: OpenWeather API keys missing." };
+      console.error("[Server Config Error] OpenWeather API keys missing for reverse geocoding.");
+      return { city: null, error: "Server configuration error: API keys missing." };
     }
     const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
     if (openWeatherApiKeys.length === 0) {
-      return { city: null, error: "Server configuration error: No valid OpenWeather API keys." };
+      console.error("[Server Config Error] No valid OpenWeather API keys for reverse geocoding.");
+      return { city: null, error: "Server configuration error: No valid API keys." };
     }
 
     let resultCity: string | null = null;
-    let lastError: string | null = "Failed to get city from coordinates.";
+    let lastTechnicalError: string | null = null;
 
     for (const apiKey of openWeatherApiKeys) {
       const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
@@ -315,12 +326,12 @@ export async function getCityFromCoordsAction(
           const data: OpenWeatherCurrentAPIResponse = await response.json();
           if (data.name) {
             resultCity = data.name;
-            lastError = null;
+            lastTechnicalError = null;
             break; // Success
           }
         } else {
           const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-          lastError = errorData.message || `Failed to fetch city name (status: ${response.status})`;
+          lastTechnicalError = errorData.message || `Failed to fetch city name (status: ${response.status})`;
           // Only retry on key-related errors
           if (![401, 403, 429].includes(response.status)) {
               break; 
@@ -328,13 +339,19 @@ export async function getCityFromCoordsAction(
         }
       } catch(e) {
           if (e instanceof Error) {
-              lastError = e.message;
+            lastTechnicalError = e.message;
           }
           // Don't break on fetch errors, could be network hiccup. Let it try next key.
       }
     }
 
-    return { city: resultCity, error: lastError };
+    if (lastTechnicalError) {
+      console.error("[Service Error] Reverse geocoding failed for coords.", { lat, lon, details: lastTechnicalError });
+    }
+    
+    const userFacingError = resultCity ? null : "Could not determine city name from your location. The service may be temporarily unavailable.";
+    return { city: resultCity, error: userFacingError };
+
   } catch (error) {
     console.error("An unexpected error occurred in getCityFromCoordsAction:", error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred while getting city from coordinates.";
