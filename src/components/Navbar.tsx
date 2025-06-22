@@ -30,21 +30,21 @@ export function Navbar() {
         {/* Right Side: Links & Actions */}
         <div className="flex items-center space-x-2">
             {/* Desktop Links & User Actions */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-6">
                 <Button variant="ghost" asChild>
                     <Link href="/">Home</Link>
                 </Button>
                 <Button variant="ghost" asChild>
                     <Link href="/alerts">Alerts</Link>
                 </Button>
+                <SignedIn>
+                    <UserButton />
+                </SignedIn>
                 <SignedOut>
                     <SignInButton mode="modal">
                         <Button variant="outline">Sign In</Button>
                     </SignInButton>
                 </SignedOut>
-                <SignedIn>
-                    <UserButton />
-                </SignedIn>
                 <ThemeToggle />
             </div>
 
