@@ -2,8 +2,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { CloudSun } from 'lucide-react';
-// Clerk components are temporarily disabled for debugging.
-// import { SignedIn, SignedOut, UserButton, SignUpButton, SignInButton } from '@clerk/nextjs';
 import { Button } from './ui/button';
 
 export function Navbar() {
@@ -19,7 +17,9 @@ export function Navbar() {
             <Link href="/" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
               Home
             </Link>
-            {/* Alerts link is temporarily disabled as it requires authentication. */}
+            <Link href="/alerts" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
+              Alerts
+            </Link>
           </div>
           <Button variant="ghost" asChild>
             <Link href="/sign-in">Sign In</Link>

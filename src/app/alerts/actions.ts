@@ -1,9 +1,14 @@
 
 'use server';
 
-import type { SaveAlertsFormState } from './actions';
+// The state type for the form, if needed in the future.
+// For now, it's simplified.
+export type SaveAlertsFormState = {
+  message: string | null;
+  error: boolean;
+};
 
-// Clerk/auth related functionality is temporarily disabled to debug startup issues.
+// Clerk/auth related functionality is temporarily disabled.
 // These actions now return an error message immediately.
 
 export async function saveAlertPreferencesAction(
@@ -11,7 +16,7 @@ export async function saveAlertPreferencesAction(
   formData: FormData
 ): Promise<SaveAlertsFormState> {
   return {
-    message: "Cannot save preferences. Authentication system is temporarily disabled for maintenance.",
+    message: "Cannot save preferences. The authentication system is temporarily disabled.",
     error: true,
   };
 }
@@ -21,7 +26,7 @@ export async function sendTestEmailAction(
   formData: FormData
 ): Promise<{ message: string | null, error: boolean }> {
   return {
-    message: "Cannot send test email. Authentication system is temporarily disabled for maintenance.",
+    message: "Cannot send test email. The authentication system is temporarily disabled.",
     error: true,
   };
 }
