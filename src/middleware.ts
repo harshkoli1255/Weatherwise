@@ -1,11 +1,15 @@
 
-import { NextResponse, type NextRequest } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-// This is a placeholder middleware to ensure the server starts.
-// Authentication functionality is temporarily disabled.
-export function middleware(request: NextRequest) {
-  return NextResponse.next();
-}
+const isProtectedRoute = createRouteMatcher([
+  '/alerts(.*)',
+]);
+
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) {
+    auth().protect();
+  }
+});
 
 export const config = {
   // The following matcher runs middleware on all routes

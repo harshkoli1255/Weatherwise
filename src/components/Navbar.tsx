@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { CloudSun } from 'lucide-react';
 import { Button } from './ui/button';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 
 export function Navbar() {
   return (
@@ -17,7 +18,18 @@ export function Navbar() {
             <Link href="/" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
               Home
             </Link>
+            <Link href="/alerts" className="px-2.5 sm:px-3 md:px-4 py-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-primary rounded-md transition-colors">
+              Alerts
+            </Link>
           </div>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <Button variant="outline">Sign In</Button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
           <ThemeToggle />
         </div>
       </div>
