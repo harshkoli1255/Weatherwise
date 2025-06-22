@@ -20,19 +20,13 @@ export function generateWeatherAlertEmailHtml({
     background: '#0f172a', // Dark Slate
     card: 'rgba(30, 41, 59, 0.8)', // Lighter Slate (semi-transparent)
     border: '#334155',
-    primary: '#facc15', // Sunny Yellow
+    primary: '#facc15', // Sunny Yellow for main temp
     textHeading: '#ffffff',
     textMuted: '#94a3b8', // Slate-400
     textBody: '#e2e8f0', // Slate-200
   };
   const fontFamily = "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
-  // --- Icon SVGs (Base64 encoded for compatibility) ---
-  const icons = {
-    hourly: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwb2x5bGluZSBwb2ludHM9IjEyIDYgMTIgMTIgMTYgMTQiLz48L3N2Zz4=',
-    summary: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNOS41IDJBMi41IDIuNSAwIDAgMSAxMiA0LjV2MEEyLjUgMi41IDAgMCAxIDkuNSA3aDBBMi41IDIuNSAwIDAgMSA3IDQuNXYwQTIuNSAyLjUgMCAwIDEgOS41IDJaIi8+PHBhdGggZD0iTTE0LjUgMkEyLjUgMi41IDAgMCAxIDE3IDQuNXYwQTIuNSAyLjUgMCAwIDEgMTQuNSA3aDBhMi41IDIuNSAwIDAgMS0yLjUgMi41djBBMi41IDIuNSAwIDAgMSAxNC41IDJaIi8+PHBhdGggZD0iTTEyIDEyYTIuNSAyLjUgMCAwIDAtMi41IDIuNXYwQTIuNSAyLjUgMCAwIDAgMTIgMTdoMGEyLjUgMi41IDAgMCAwIDIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDEyIDEyWiIvPjxwYXRoIGQ9Ik00LjUgN0EyLjUgMi41IDAgMCAwIDcgOS41djBBMi41IDIuNSAwIDAgMCA0LjUgMTJoMGEyLjUgMi41IDAgMCAwLTIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDQuNSA3WiIvPjxwYXRoIGQ9Ik0xOS41IDdBMi41IDIuNSAwIDAgMCAyMiA5LjV2MEEyLjUgMi41IDAgMCAwIDE5LjUgMTJoMGEyLjUgMi41IDAgMCAwLTIuNS0yLjV2MEEyLjUgMi41IDAgMCAwIDE5LjUgN1oiLz48cGF0aCBkPSJNMTEgMTQuM2EuNS41IDAgMSAwIDEgMGwtMyAzaC0xLjVhMi41IDIuNSAwIDAgMS0yLjUtMi41VjEyIi8+PHBhdGggZD0iTTEzIDE0LjNhLjUuNSAwIDAgMS0xIDBsMyAzaDEuNWMyIDEuNSAyLjUgMi41IDIuNSA1djIuNSIvPjwvc3ZnPg==',
-    activity: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmYWNjMTUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTEuNSAyYy0uNSAyLjMtMS41IDQuMy0zIDUuNSAwbDcgM2MgLjUtMS4yIDEuNS0yLjUgMy0zLjUiLz48cGF0aCBkPSJNMNSA4YzAgMS41IDAgMyAwIDQuNWwxMCA1Ii8+PHBhdGggZD0iTTE2IDRhNCA0IDAgMCAwLTIuNSAxQzEyIDYgNyA4IDcgOGw1LjUgMy41Ii8+PHBhdGggZD0ibTE2IDE5IDItMi41IDEtMi41LTIgMS0xIDItMSAxeiIvPjwvc3ZnPg=='
-  };
 
   // --- Reusable Components ---
   const renderDetailCard = (label: string, value: string) => `
@@ -56,15 +50,15 @@ export function generateWeatherAlertEmailHtml({
     </td>
   `;
 
-  const renderSection = (iconBase64: string, title: string, content: string) => {
+  const renderSection = (emoji: string, title: string, content: string) => {
     return `
       <tr>
         <td style="padding-top: 24px;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
-              <td valign="middle" width="32"><img src="data:image/svg+xml;base64,${iconBase64}" width="24" height="24" alt=""/></td>
+              <td valign="middle" width="32" style="font-size: 24px; line-height: 24px;">${emoji}</td>
               <td valign="middle" style="padding-left: 12px;">
-                <h3 style="color: ${colors.primary}; font-size: 20px; font-weight: 700; margin: 0;">${title}</h3>
+                <h3 style="color: ${colors.textHeading}; font-size: 20px; font-weight: 700; margin: 0;">${title}</h3>
               </td>
             </tr>
             <tr>
@@ -162,7 +156,7 @@ export function generateWeatherAlertEmailHtml({
                             </tr>
                             <!-- Hourly Forecast -->
                             ${weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? `
-                            ${renderSection(icons.hourly, 'Hourly Forecast', `
+                            ${renderSection('🕒', 'Hourly Forecast', `
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                     <tr>
                                        ${weatherData.hourlyForecast.slice(0, 5).map(renderHourlyForecastItem).join('')}
@@ -171,9 +165,9 @@ export function generateWeatherAlertEmailHtml({
                             `)}
                             ` : ''}
                             <!-- AI Summary -->
-                            ${renderSection(icons.summary, 'AI Weather Summary', weatherData.aiSummary)}
+                            ${renderSection('💡', 'AI Weather Summary', weatherData.aiSummary)}
                             <!-- Activity Suggestion -->
-                            ${weatherData.activitySuggestion ? renderSection(icons.activity, 'Activity Suggestion', weatherData.activitySuggestion) : ''}
+                            ${weatherData.activitySuggestion ? renderSection('🏃', 'Activity Suggestion', weatherData.activitySuggestion) : ''}
                             
                              <!-- Footer -->
                              <tr>
