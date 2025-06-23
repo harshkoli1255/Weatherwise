@@ -1,8 +1,9 @@
+
 import type { WeatherSummaryData, HourlyForecastData, EmailTemplatePayload } from '@/lib/types';
 
 export function generateWeatherAlertEmailHtml({
   weatherData,
-  alertTriggers,
+  alertTriggers = [],
 }: EmailTemplatePayload): string {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   const alertsUrl = new URL('/alerts', baseUrl).toString();
