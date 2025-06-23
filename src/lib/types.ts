@@ -210,6 +210,32 @@ export const WeatherSummaryOutputSchema = z.object({
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 
+// AI Schema: Alert Decision
+export const AlertDecisionInputSchema = z.object({
+  city: z.string(),
+  temperature: z.number(),
+  feelsLike: z.number(),
+  humidity: z.number(),
+  windSpeed: z.number(),
+  condition: z.string(),
+  description: z.string(),
+});
+export type AlertDecisionInput = z.infer<typeof AlertDecisionInputSchema>;
+
+export const AlertDecisionOutputSchema = z.object({
+  shouldSendAlert: z
+    .boolean()
+    .describe(
+      'Whether an alert notification should be sent for these weather conditions.'
+    ),
+  reason: z
+    .string()
+    .describe(
+      'A concise, user-facing reason why the alert was triggered. For example, "High temperature: 32°C" or "High winds and rain." If no alert, this should be empty.'
+    ),
+});
+export type AlertDecisionOutput = z.infer<typeof AlertDecisionOutputSchema>;
+
 export interface EmailTemplatePayload {
   weatherData: WeatherSummaryData;
   alertTriggers?: string[];

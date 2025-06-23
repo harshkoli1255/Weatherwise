@@ -7,6 +7,7 @@ import type { AlertPreferences, WeatherSummaryData } from '@/lib/types';
 import { fetchWeatherAndSummaryAction } from '@/app/actions';
 import { sendEmail } from '@/services/emailService';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
+import { shouldSendWeatherAlert } from '@/ai/flows/alert-decision';
 
 function isTimeInSchedule(preferences: AlertPreferences, timezone: number): boolean {
   const schedule = preferences.schedule;
@@ -30,31 +31,6 @@ function isTimeInSchedule(preferences: AlertPreferences, timezone: number): bool
     return localHour >= startHour || localHour <= endHour;
   }
 }
-
-function checkAlertConditions(weatherData: WeatherSummaryData): string[] {
-  const triggers: string[] = [];
-
-  // Add specific, objective triggers based on thresholds.
-  // These thresholds align with the AI prompt's definition of 'bad' weather.
-  if (weatherData.temperature > 30) {
-    triggers.push(`High temperature: <strong>${weatherData.temperature}°C</strong>`);
-  }
-  if (weatherData.temperature < 5) {
-    triggers.push(`Low temperature: <strong>${weatherData.temperature}°C</strong>`);
-  }
-  if (weatherData.windSpeed > 30) {
-    triggers.push(`High wind speed: <strong>${weatherData.windSpeed} km/h</strong>`);
-  }
-
-  // Also consider the AI's overall sentiment, if it's 'bad' and we haven't already added a specific trigger.
-  // This acts as a fallback for complex "bad" conditions not captured by simple thresholds.
-  if (weatherData.weatherSentiment === 'bad' && triggers.length === 0) {
-    triggers.push('AI analysis determined that overall conditions are significant.');
-  }
-
-  return triggers;
-}
-
 
 function shouldSendBasedOnFrequency(preferences: AlertPreferences): boolean {
   const frequency = preferences.notificationFrequency ?? 'everyHour';
@@ -101,15 +77,25 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
       return 0;
     }
 
-    const alertTriggers = checkAlertConditions(weatherData);
+    const decisionResult = await shouldSendWeatherAlert({
+      city: weatherData.city,
+      temperature: weatherData.temperature,
+      feelsLike: weatherData.feelsLike,
+      humidity: weatherData.humidity,
+      windSpeed: weatherData.windSpeed,
+      condition: weatherData.condition,
+      description: weatherData.description,
+    });
 
-    if (alertTriggers.length > 0) {
+    if (decisionResult.shouldSendAlert) {
       if (!shouldSendBasedOnFrequency(preferences)) {
         console.log(`Skipping user ${user.id} for city ${preferences.city} due to frequency settings.`);
         return 0;
       }
 
-      console.log(`Sending alert to ${email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
+      const alertTriggers = [decisionResult.reason];
+
+      console.log(`Sending alert to ${email} for city ${preferences.city}. Reason:`, decisionResult.reason);
       
       const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers });
       const emailSubject = weatherData.aiSubject;
@@ -136,6 +122,8 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
         console.error(errorMsg);
         errors.push(emailResult.error || 'Unknown email error');
       }
+    } else {
+        console.log(`AI decided no alert needed for ${preferences.city} for user ${user.id}.`);
     }
     return alertsSentCount;
   } catch (error) {
