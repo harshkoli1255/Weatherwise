@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback, Suspense } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
@@ -44,13 +44,12 @@ function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
   const [isTransitionPending, startTransition] = useTransition();
-  const [lastSearchedCity, setLastSearchedCity] = useState<CitySuggestion | null>(null);
   
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoriteCities();
+  const isInitialLoad = useRef(true);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -85,7 +84,6 @@ function WeatherPageContent() {
         };
         try {
             localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(cityForStorage));
-            setLastSearchedCity(cityForStorage); // Also update state
         } catch (e) {
             console.warn("Could not save last search to localStorage.");
         }
@@ -179,42 +177,47 @@ function WeatherPageContent() {
     setIsLocating(false);
   }, [performWeatherFetch, toast, handleSearch]);
 
-  // On mount, load the last search from local storage.
+  // This effect is the single source of truth for loading weather data.
   useEffect(() => {
-    try {
+    // If a fetch is already in progress, don't start another one.
+    if (isTransitionPending || isLocating) return;
+
+    const city = searchParams.get('city');
+
+    if (city) {
+      // If a city is in the URL, fetch its weather. This is the primary logic.
+      isInitialLoad.current = false;
+      const lat = searchParams.get('lat');
+      const lon = searchParams.get('lon');
+      const params: ApiLocationParams = { city };
+      if (lat) params.lat = parseFloat(lat);
+      if (lon) params.lon = parseFloat(lon);
+      performWeatherFetch(params);
+    } else if (isInitialLoad.current) {
+      // This block only runs on the first load if there are no search params.
+      // It decides what city to show by default.
+      isInitialLoad.current = false;
+      
+      try {
         const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
         if (savedLastSearch) {
-            setLastSearchedCity(JSON.parse(savedLastSearch));
+            const lastCity = JSON.parse(savedLastSearch);
+            handleSearch(lastCity.name, lastCity.lat, lastCity.lon);
+            return;
         }
-    } catch(e) {
-        console.warn("Could not read last search from localStorage.");
+      } catch(e) {
+          console.warn("Could not read last search from localStorage.");
+      }
+
+      if (favorites.length > 0) {
+        const firstFav = favorites[0];
+        handleSearch(firstFav.name, firstFav.lat, firstFav.lon);
+      } else {
+        handleLocate();
+      }
     }
-  }, []);
+  }, [searchParams, favorites, isTransitionPending, isLocating, handleSearch, handleLocate, performWeatherFetch]);
   
-  useEffect(() => {
-    // Only run this logic after the initial state has been determined.
-    if (weatherState.loadingMessage === 'Initializing...') {
-        const city = searchParams.get('city');
-        const lat = searchParams.get('lat');
-        const lon = searchParams.get('lon');
-
-        if (city) {
-          const params: ApiLocationParams = { city };
-          if (lat) params.lat = parseFloat(lat);
-          if (lon) params.lon = parseFloat(lon);
-          performWeatherFetch(params);
-        } else if (lastSearchedCity) {
-            handleSearch(lastSearchedCity.name, lastSearchedCity.lat, lastSearchedCity.lon);
-        } else if (favorites.length > 0) {
-          const firstFav = favorites[0];
-          handleSearch(firstFav.name, firstFav.lat, firstFav.lon);
-        } else {
-          handleLocate();
-        }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, lastSearchedCity, favorites]);
-
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
       toast({
