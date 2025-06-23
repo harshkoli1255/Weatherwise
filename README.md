@@ -1,7 +1,7 @@
 
 # Weatherwise: Intelligent Weather & Alert Platform
 
-![Weatherwise Screenshot](https://storage.googleapis.com/aide-studio-enterprise-U5J9/d9ipy79c_1720516597926.png)
+![Weatherwise Screenshot](./public/weatherwise-screenshot.png)
 *The Weatherwise dashboard showing real-time weather data for New York.*
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
@@ -182,5 +182,7 @@ This project includes a `.vscode/extensions.json` file. The first time you open 
 *   **Clerk & Google Cloud Code:** Official extensions for easier integration with our auth and AI services.
 *   **DotENV & GitLens:** Quality-of-life improvements for managing environment variables and Git history.
 *   **Lucide Icons:** Easily search and preview icons used in the project.
+
+    
 
     
