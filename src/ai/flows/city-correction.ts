@@ -63,7 +63,7 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
         input: { schema: CityCorrectionInputSchema },
         output: { schema: CityCorrectionOutputSchema },
         prompt: correctionPromptTemplate,
-        model: 'googleai/gemini-1.5-flash-latest',
+        model: 'googleai/gemini-1.5-pro-latest',
         temperature: 0.2,
       });
 
