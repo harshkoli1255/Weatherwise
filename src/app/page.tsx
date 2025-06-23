@@ -12,7 +12,7 @@ import { useFavoriteCities } from '@/hooks/use-favorite-cities';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
-import { SignedIn } from '@clerk/nextjs';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 interface WeatherPageState {
   data: WeatherSummaryData | null;
