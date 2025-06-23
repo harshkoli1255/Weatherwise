@@ -9,6 +9,7 @@ import { Search as SearchIconLucide, Loader2, MapPin, LocateFixed } from 'lucide
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
@@ -25,6 +26,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
 
   const fetchSuggestions = useCallback((query: string) => {
@@ -37,7 +39,16 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
     }
     startSuggestionTransition(async () => {
       const result = await fetchCitySuggestionsAction(query);
-      if (result.suggestions) {
+      
+      if (result.error) {
+        toast({
+          variant: 'destructive',
+          title: 'Suggestion Error',
+          description: result.error,
+        });
+        setSuggestions([]);
+        setIsSuggestionsOpen(false);
+      } else if (result.suggestions) {
         setSuggestions(result.suggestions.slice(0, 8));
         setIsSuggestionsOpen(true);
       } else {
@@ -46,7 +57,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
         setIsSuggestionsOpen(false);
       }
     });
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
