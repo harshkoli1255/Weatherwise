@@ -36,7 +36,7 @@ export default async function AlertsPage() {
     );
   }
 
-  const user = await clerkClient.users.getUser(userId);
+  const user = await clerkClient().users.getUser(userId);
   
   const primaryEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ?? '';
 

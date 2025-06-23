@@ -152,7 +152,7 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
       if (emailResult.success) {
         alertsSentCount++;
         // Update the timestamp in user metadata
-        await clerkClient.users.updateUserMetadata(user.id, {
+        await clerkClient().users.updateUserMetadata(user.id, {
           privateMetadata: {
             ...user.privateMetadata,
             alertPreferences: {
@@ -195,7 +195,7 @@ export async function checkAndSendAlerts(): Promise<{
   while(hasMore) {
     try {
       console.log(`[CRON] Fetching users from Clerk API with offset: ${offset}`);
-      const userList = await clerkClient.users.getUserList({ limit: pageSize, offset: offset });
+      const userList = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
       const fetchedCount = userList.length;
       totalProcessedUsers += fetchedCount;
 

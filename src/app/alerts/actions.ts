@@ -84,7 +84,7 @@ export async function saveAlertPreferencesAction(
   }
 
   try {
-    const user = await clerkClient.users.getUser(userId);
+    const user = await clerkClient().users.getUser(userId);
     const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
 
     if (!email) {
@@ -107,7 +107,7 @@ export async function saveAlertPreferencesAction(
         : existingPrefs.lastAlertSentTimestamp || 0,
     };
     
-    await clerkClient.users.updateUserMetadata(userId, {
+    await clerkClient().users.updateUserMetadata(userId, {
       privateMetadata: {
         ...user.privateMetadata,
         alertPreferences: newPreferences,
@@ -129,7 +129,7 @@ export async function testAlertsAction(): Promise<{ message: string; error: bool
   }
 
   try {
-    const user = await clerkClient.users.getUser(userId);
+    const user = await clerkClient().users.getUser(userId);
     const prefsRaw = user.privateMetadata?.alertPreferences;
     if (!prefsRaw) {
         return { message: 'Please save your alert preferences before sending a test.', error: true };
