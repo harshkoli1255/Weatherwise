@@ -22,14 +22,15 @@ const cityCorrectionPrompt = ai.definePrompt({
   output: { schema: CityCorrectionOutputSchema },
   prompt: `You are an expert geographer and data cleaner. A user has provided a search query for a city. The query might contain typos, extra spaces, or non-alphabetic characters.
 
-Your task is to sanitize and correct this query to make it a valid city name.
+Your task is to sanitize, correct, and simplify this query to make it a valid, specific city name suitable for a weather API.
 
 User's query: "{{{query}}}"
 
 Instructions:
-1.  **Sanitize:** First, remove any leading/trailing whitespace. Then, remove any special characters that are not part of a valid city name (e.g., remove \`!@#$%^&*()_+=[]{}\\|;:'",.<>/?\` but preserve hyphens or apostrophes if they are part of a name like "Saint-Étienne").
-2.  **Correct:** Based on the sanitized text, identify the most likely city the user intended to search for. Fix any obvious spelling mistakes. For example, "Lodon" becomes "London", "PAris" becomes "Paris", and "New Yrok" becomes "New York". For a jumbled query like "reirbge", a plausible correction could be "Freiburg".
-3.  **Output:** Return only the corrected city name in the 'correctedQuery' field. If you are absolutely unable to make a sensible correction from the input, return the original, sanitized query. Do not add any explanations.
+1.  **Simplify:** Remove any conversational words or phrases that are not part of the location name itself (e.g., "weather in", "what is the forecast for", "weather", "forecast"). For example, "weather in New Yrok" should first become "New Yrok".
+2.  **Sanitize:** After simplifying, remove any leading/trailing whitespace. Then, remove any special characters that are not part of a valid city name (e.g., remove \`!@#$%^&*()_+=[]{}\\|;:'",.<>/?\` but preserve hyphens or apostrophes if they are part of a name like "Saint-Étienne").
+3.  **Correct:** Based on the simplified and sanitized text, identify the most likely city the user intended to search for. Fix any obvious spelling mistakes. For example, "Lodon" becomes "London", "PAris" becomes "Paris", and "New Yrok" becomes "New York". For a jumbled query like "reirbge", a plausible correction could be "Freiburg".
+4.  **Output:** Return *only* the corrected city name in the 'correctedQuery' field. If you are absolutely unable to make a sensible correction from the input, return the original, simplified and sanitized query. Do not add any explanations.
 `,
   config: {
     temperature: 0.2, // Keep temperature low for deterministic corrections
