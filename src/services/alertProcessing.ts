@@ -195,8 +195,11 @@ export async function checkAndSendAlerts(): Promise<{
   while(hasMore) {
     try {
       console.log(`[CRON] Fetching users from Clerk API with offset: ${offset}`);
-      const userList = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
-      const fetchedCount = userList.length;
+      const userListResponse = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
+
+      // The user list is in the 'data' property of the response object.
+      const usersInPage = userListResponse.data;
+      const fetchedCount = usersInPage.length;
       totalProcessedUsers += fetchedCount;
 
       if (fetchedCount === 0) {
@@ -204,7 +207,7 @@ export async function checkAndSendAlerts(): Promise<{
         continue;
       }
 
-      const eligibleUsersInPage = userList.filter(user => {
+      const eligibleUsersInPage = usersInPage.filter(user => {
         const prefsRaw = user.privateMetadata?.alertPreferences;
         if (!prefsRaw) return false;
         const preferences = JSON.parse(JSON.stringify(prefsRaw)) as Partial<AlertPreferences>;
@@ -232,9 +235,11 @@ export async function checkAndSendAlerts(): Promise<{
     }
   }
 
-  console.log(`[CRON] Hourly alert check finished. Processed: ${totalProcessedUsers}, Eligible: ${totalEligibleUsers}, Sent: ${totalAlertsSent}, Errors: ${errors.length}`);
+  const processedCount = isNaN(totalProcessedUsers) ? 0 : totalProcessedUsers;
+
+  console.log(`[CRON-EXECUTION-FINISH] Hourly alert check finished. Processed: ${processedCount}, Eligible: ${totalEligibleUsers}, Sent: ${totalAlertsSent}, Errors: ${errors.length}`);
   return { 
-    processedUsers: totalProcessedUsers, 
+    processedUsers: processedCount, 
     eligibleUsers: totalEligibleUsers, 
     alertsSent: totalAlertsSent, 
     errors 
