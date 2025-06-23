@@ -19,7 +19,6 @@ import {
   CityCorrectionOutputSchema,
   type CityCorrectionOutput,
 } from '@/lib/types';
-import { geminiPro } from '@genkit-ai/googleai';
 
 // Define the reusable prompt for correcting city names.
 const correctionPrompt = ai.definePrompt(
@@ -40,7 +39,7 @@ Instructions:
 4.  **Output:** Return *only* the JSON object with the corrected city name in the 'correctedQuery' field. If you are absolutely unable to make a sensible correction from the input, return the original, simplified and sanitized query. Do not add any explanations or markdown formatting like \`\`\`json.
 `,
     config: {
-      model: geminiPro,
+      model: 'googleai/gemini-pro',
       temperature: 0.2, // Keep temperature low for deterministic corrections
     },
   }

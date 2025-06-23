@@ -17,7 +17,6 @@ import {
   AlertDecisionOutputSchema,
   type AlertDecisionOutput,
 } from '@/lib/types';
-import { geminiPro } from '@genkit-ai/googleai';
 
 
 // Define the reusable prompt for the alert decision.
@@ -47,7 +46,7 @@ Decision Criteria:
 5.  **Final Output:** Your response must be only the JSON object in the specified format with \`shouldSendAlert\` (boolean) and \`reason\` (string). If \`shouldSendAlert\` is false, the \`reason\` must be an empty string. Do not add any other text or markdown formatting like \`\`\`json.
 `,
     config: {
-        model: geminiPro,
+        model: 'googleai/gemini-pro',
         temperature: 0.1, // Low temperature for deterministic decisions
     }
   }

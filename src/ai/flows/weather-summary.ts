@@ -19,7 +19,6 @@ import {
   WeatherSummaryOutputSchema,
   type WeatherSummaryOutput,
 } from '@/lib/types';
-import { geminiPro } from '@genkit-ai/googleai';
 
 // Define the reusable prompt for summarizing weather.
 const summaryPrompt = ai.definePrompt(
@@ -49,7 +48,7 @@ Instructions:
 5.  **Create a Creative Activity Suggestion:** Provide a creative and specific activity suggestion. Instead of generic advice, offer a concrete idea that fits the weather. For example, for a sunny day, suggest 'It's a perfect afternoon for a picnic in the park or reading a book on a coffee shop patio.' For a rainy day, suggest 'A great opportunity to visit a <strong>local museum</strong> or cozy up with a movie marathon at home.' Keep it to a single, encouraging sentence. You can use \`<strong>\` tags here as well to highlight a key part of the suggestion.
 `,
     config: {
-        model: geminiPro,
+        model: 'googleai/gemini-pro',
         temperature: 0.6,
         safetySettings: [
             { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
