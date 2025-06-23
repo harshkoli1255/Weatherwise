@@ -58,18 +58,14 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
         enableTracingAndMetrics: true,
       });
 
-      const correctionPrompt = localAi.definePrompt(
-        {
-          name: `cityCorrectionPrompt_key${index}`,
-          input: { schema: CityCorrectionInputSchema },
-          output: { schema: CityCorrectionOutputSchema },
-          prompt: correctionPromptTemplate,
-        },
-        {
-          model: 'googleai/gemini-1.5-pro-latest',
-          temperature: 0.2,
-        }
-      );
+      const correctionPrompt = localAi.definePrompt({
+        name: `cityCorrectionPrompt_key${index}`,
+        input: { schema: CityCorrectionInputSchema },
+        output: { schema: CityCorrectionOutputSchema },
+        prompt: correctionPromptTemplate,
+        model: 'googleai/gemini-1.5-pro-latest',
+        temperature: 0.2,
+      });
 
       const cityCorrectionFlow = localAi.defineFlow(
         {

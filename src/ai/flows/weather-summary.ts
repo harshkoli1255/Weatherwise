@@ -62,24 +62,20 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
         enableTracingAndMetrics: true,
       });
 
-      const summaryPrompt = localAi.definePrompt(
-        {
-          name: `weatherSummaryPrompt_key${index}`,
-          input: { schema: WeatherSummaryInputSchema },
-          output: { schema: WeatherSummaryOutputSchema },
-          prompt: summaryPromptTemplate,
-        },
-        {
-          model: 'googleai/gemini-1.5-pro-latest',
-          temperature: 0.6,
-          safetySettings: [
-              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          ],
-        }
-      );
+      const summaryPrompt = localAi.definePrompt({
+        name: `weatherSummaryPrompt_key${index}`,
+        input: { schema: WeatherSummaryInputSchema },
+        output: { schema: WeatherSummaryOutputSchema },
+        prompt: summaryPromptTemplate,
+        model: 'googleai/gemini-1.5-pro-latest',
+        temperature: 0.6,
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        ],
+      });
 
       const weatherSummaryFlow = localAi.defineFlow(
         {

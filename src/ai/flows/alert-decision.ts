@@ -62,18 +62,14 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         enableTracingAndMetrics: true,
       });
 
-      const alertDecisionPrompt = localAi.definePrompt(
-        {
-          name: `alertDecisionPrompt_key${index}`,
-          input: { schema: AlertDecisionInputSchema },
-          output: { schema: AlertDecisionOutputSchema },
-          prompt: alertDecisionPromptTemplate,
-        },
-        {
-          model: 'googleai/gemini-1.5-pro-latest',
-          temperature: 0.1,
-        }
-      );
+      const alertDecisionPrompt = localAi.definePrompt({
+        name: `alertDecisionPrompt_key${index}`,
+        input: { schema: AlertDecisionInputSchema },
+        output: { schema: AlertDecisionOutputSchema },
+        prompt: alertDecisionPromptTemplate,
+        model: 'googleai/gemini-1.5-pro-latest',
+        temperature: 0.1,
+      });
 
       const alertDecisionFlow = localAi.defineFlow(
         {
