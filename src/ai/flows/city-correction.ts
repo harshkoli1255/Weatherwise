@@ -20,17 +20,19 @@ const cityCorrectionPrompt = ai.definePrompt({
   model: 'googleai/gemini-1.5-flash-latest',
   input: { schema: CityCorrectionInputSchema },
   output: { schema: CityCorrectionOutputSchema },
-  prompt: `You are a geography expert who is excellent at correcting misspelled city names.
-A user has provided the following city name: {{{query}}}.
+  prompt: `You are an expert geographer and data cleaner. A user has provided a search query for a city. The query might contain typos, extra spaces, or non-alphabetic characters.
 
-Your task is to correct the spelling of this city name.
-- If the spelling is clearly wrong (e.g., "Lodon", "PAris", "New Yrok"), return the corrected name (e.g., "London", "Paris", "New York").
-- If the name appears correct or you are unsure of the correction, return the original query.
-- Do not provide any explanation, just the corrected city name in the 'correctedQuery' field.
-- If the input is ambiguous (e.g. "berlin"), just return the original input. Let the geocoding service handle ambiguity. Your primary job is fixing clear typos.
+Your task is to sanitize and correct this query to make it a valid city name.
+
+User's query: "{{{query}}}"
+
+Instructions:
+1.  **Sanitize:** First, remove any leading/trailing whitespace. Then, remove any special characters that are not part of a valid city name (e.g., remove \`!@#$%^&*()_+=[]{}\\|;:'",.<>/?\` but preserve hyphens or apostrophes if they are part of a name like "Saint-Étienne").
+2.  **Correct:** Based on the sanitized text, identify the most likely city the user intended to search for. Fix any obvious spelling mistakes. For example, "Lodon" becomes "London", "PAris" becomes "Paris", and "New Yrok" becomes "New York". For a jumbled query like "reirbge", a plausible correction could be "Freiburg".
+3.  **Output:** Return only the corrected city name in the 'correctedQuery' field. If you are absolutely unable to make a sensible correction from the input, return the original, sanitized query. Do not add any explanations.
 `,
   config: {
-    temperature: 0.1, // Low temperature for high confidence corrections
+    temperature: 0.2, // Keep temperature low for deterministic corrections
   },
 });
 
@@ -41,10 +43,16 @@ const cityCorrectionFlow = ai.defineFlow(
     outputSchema: CityCorrectionOutputSchema,
   },
   async (input) => {
-    const { output } = await cityCorrectionPrompt(input);
+    // Sanitize input before sending to AI, just in case.
+    const sanitizedQuery = input.query.trim();
+    if (!sanitizedQuery) {
+      return { correctedQuery: '' };
+    }
+
+    const { output } = await cityCorrectionPrompt({ query: sanitizedQuery });
     if (!output) {
-      // If AI fails to produce an output, return the original query to avoid breaking the chain.
-      return { correctedQuery: input.query };
+      // If AI fails to produce an output, return the sanitized query to avoid breaking the chain.
+      return { correctedQuery: sanitizedQuery };
     }
     return output;
   }

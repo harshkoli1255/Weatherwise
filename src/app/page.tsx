@@ -64,14 +64,15 @@ export default function WeatherPage() {
 
 
   useEffect(() => {
-    if (weatherState.error && !weatherState.isLoading) {
+    // Show toasts for general errors, but not for "City Not Found" which has its own card.
+    if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
       toast({
         variant: "destructive",
         title: "Error",
         description: weatherState.error,
       });
     }
-  }, [weatherState.error, weatherState.isLoading, toast]);
+  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
