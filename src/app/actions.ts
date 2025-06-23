@@ -21,15 +21,17 @@ export async function fetchWeatherAndSummaryAction(
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
   try {
     let locationIdentifier: LocationIdentifier;
-    let resolvedCityNameForError: string | undefined = params.city;
+    // This will hold the name we want to display to the user, regardless of what the API returns.
+    let intendedCityName: string | undefined = params.city;
 
-    // If only a city name is provided (no lat/lon), resolve it to coordinates first for a more robust search.
+    // --- Step 1: Determine the exact coordinates to search for ---
+
+    // Case A: User typed a city name (or selected a suggestion without lat/lon)
     if (params.city && (typeof params.lat !== 'number' || typeof params.lon !== 'number')) {
       console.log(`Resolving city name "${params.city}" to coordinates.`);
       const suggestionsResult = await fetchCitySuggestionsAction(params.city);
       
       if (suggestionsResult.error) {
-        // Propagate server/network errors from the suggestion fetch.
         return { data: null, error: suggestionsResult.error, cityNotFound: false };
       }
       
@@ -39,13 +41,8 @@ export async function fetchWeatherAndSummaryAction(
         return { data: null, error: errorMessage, cityNotFound: true };
       }
       
-      // Use the cleaned query returned by the suggestion action for matching.
       const cleanedQuery = suggestionsResult.processedQuery.toLowerCase();
-
-      // Default to the first result provided by the API.
       let bestMatch = suggestionsResult.suggestions[0];
-      
-      // Prioritize an exact match if one exists in the suggestions.
       const exactMatch = suggestionsResult.suggestions.find(s => s.name.toLowerCase() === cleanedQuery);
       
       if (exactMatch) {
@@ -57,15 +54,22 @@ export async function fetchWeatherAndSummaryAction(
 
       console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
       locationIdentifier = { type: 'coords', lat: bestMatch.lat, lon: bestMatch.lon };
-      resolvedCityNameForError = bestMatch.name;
+      // CRITICAL: We set the intended display name to the name from our validated suggestion.
+      intendedCityName = bestMatch.name;
 
-    } else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      // If precise coordinates are provided, use them directly. This happens when a user selects a suggestion.
+    } 
+    // Case B: User clicked a suggestion with precise coordinates
+    else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
-    } else {
+      // The intendedCityName is already correctly set to params.city from the initial assignment.
+    } 
+    // Case C: Invalid input
+    else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
 
+    // --- Step 2: Fetch weather data using the determined coordinates ---
+    
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
       console.error("[Server Config Error] OpenWeather API keys are not set (NEXT_PUBLIC_OPENWEATHER_API_KEYS).");
@@ -97,9 +101,7 @@ export async function fetchWeatherAndSummaryAction(
       ]);
 
       if (currentWeatherResult.status === 404) {
-        // This is highly unlikely now because we pre-validated the location.
-        // But if it happens, it's a data availability issue, not a "not found" issue.
-        const dataUnavailableError = `Weather data is not available for "${resolvedCityNameForError || 'the selected location'}". Please try a different nearby city.`;
+        const dataUnavailableError = `Weather data is not available for "${intendedCityName || 'the selected location'}". Please try a different nearby city.`;
         return { data: null, error: dataUnavailableError, cityNotFound: true };
       }
 
@@ -122,20 +124,17 @@ export async function fetchWeatherAndSummaryAction(
     if (!successWithKey || !currentWeatherData) {
       const serverError = lastTechnicalError || "Failed to fetch weather data with all available API keys.";
       console.error("[Service Error] All OpenWeatherMap API keys failed or a non-retriable error occurred.", { details: serverError });
-
       const userFacingError = "The weather service is temporarily unavailable. This could be due to a server configuration issue or a problem with the external provider. Please try again later.";
-      
       const cityNotFound = serverError.toLowerCase().includes("not found");
-
       return { data: null, error: userFacingError, cityNotFound };
     }
+    
+    // --- Step 3: Correct the city name and generate AI summary ---
 
-    // If the user selected a specific city suggestion (which provides city, lat, and lon),
-    // the name from the API response might be for a nearby weather station (e.g., Kichha for Rudrapur).
-    // In this case, we should honor the city name the user actually selected for display purposes.
-    if (params.city && typeof params.lat === 'number' && typeof params.lon === 'number' && currentWeatherData.city !== params.city) {
-      console.log(`Overriding API city name "${currentWeatherData.city}" with user-selected city "${params.city}".`);
-      currentWeatherData.city = params.city;
+    // CRITICAL FIX: Always use the intendedCityName for display if it exists and differs from the API response.
+    if (intendedCityName && currentWeatherData.city !== intendedCityName) {
+      console.log(`Correcting API city name. API returned: "${currentWeatherData.city}", User intended: "${intendedCityName}".`);
+      currentWeatherData.city = intendedCityName;
     }
 
     const aiInput: WeatherSummaryInput = {
