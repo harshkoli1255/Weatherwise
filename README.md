@@ -125,3 +125,20 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 *   Clerk (Authentication)
 *   Genkit (AI Features)
 *   Nodemailer (Email Sending)
+
+---
+## 💻 Recommended VS Code Extensions
+
+To make your development experience smoother, this project includes a list of recommended Visual Studio Code extensions. When you open the project in VS Code, you should be prompted to install them automatically.
+
+Here’s a brief overview of why each one is helpful:
+
+*   **ESLint:** Catches common errors and enforces code quality standards.
+*   **Prettier - Code formatter:** Automatically formats your code to keep it consistent and readable.
+*   **Tailwind CSS IntelliSense:** Provides autocompletion, linting, and hover previews for Tailwind classes. Essential for this project.
+*   **PostCSS Language Support:** Adds syntax highlighting for PostCSS, which Tailwind uses under the hood.
+*   **Clerk:** Official extension for Clerk authentication, providing helpful snippets and commands.
+*   **DotENV:** Adds syntax highlighting to your `.env` file, making it easier to read.
+*   **GitLens:** Supercharges the Git features in VS Code, helping you visualize code authorship and history.
+*   **Lucide Icons:** Allows you to easily search for and preview icons from the `lucide-react` library used in this project.
+*   **Google Cloud Code:** Useful for Firebase and Google Cloud integration, including support for Genkit.

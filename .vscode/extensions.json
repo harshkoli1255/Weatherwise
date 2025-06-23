@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwind-css",
+    "csstools.postcss",
+    "Clerk.clerk-vscode",
+    "mikestead.dotenv",
+    "eamodio.gitlens",
+    "lucide-icons.lucide",
+    "GoogleCloudTools.cloudcode"
+  ]
+}
