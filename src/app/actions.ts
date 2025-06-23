@@ -21,11 +21,30 @@ export async function fetchWeatherAndSummaryAction(
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
   try {
     let locationIdentifier: LocationIdentifier;
+    let resolvedCityNameForError: string | undefined = params.city;
 
-    if (typeof params.lat === 'number' && typeof params.lon === 'number') {
+    // If only a city name is provided, resolve it to coordinates first for a more robust search.
+    if (params.city && (typeof params.lat !== 'number' || typeof params.lon !== 'number')) {
+      console.log(`Resolving city name "${params.city}" to coordinates.`);
+      const suggestionsResult = await fetchCitySuggestionsAction(params.city);
+      
+      if (suggestionsResult.error) {
+        // Propagate server/network errors from the suggestion fetch.
+        return { data: null, error: suggestionsResult.error, cityNotFound: false };
+      }
+      
+      if (!suggestionsResult.suggestions || suggestionsResult.suggestions.length === 0) {
+        console.log(`No suggestions found for "${params.city}", even after AI correction.`);
+        const errorMessage = `City "${params.city}" not found. Please check the spelling or try a nearby city.`;
+        return { data: null, error: errorMessage, cityNotFound: true };
+      }
+      
+      const bestMatch = suggestionsResult.suggestions[0];
+      console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
+      locationIdentifier = { type: 'coords', lat: bestMatch.lat, lon: bestMatch.lon };
+      resolvedCityNameForError = bestMatch.name;
+    } else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
-    } else if (params.city) {
-      locationIdentifier = { type: 'city', city: params.city };
     } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
@@ -60,35 +79,33 @@ export async function fetchWeatherAndSummaryAction(
         fetchHourlyForecast(locationIdentifier, apiKey),
       ]);
 
-      // Prioritize "not found" errors, as they are definitive.
       if (currentWeatherResult.status === 404) {
-        return { data: null, error: currentWeatherResult.error, cityNotFound: true };
+        // This is highly unlikely now because we pre-validated the location.
+        // But if it happens, it's a data availability issue, not a "not found" issue.
+        const dataUnavailableError = `Weather data is not available for "${resolvedCityNameForError || 'the selected location'}". Please try a different nearby city.`;
+        return { data: null, error: dataUnavailableError, cityNotFound: true };
       }
 
-      // Check for API key-related errors (401, 403, 429) to decide whether to retry.
       const isKeyError = [401, 403, 429].includes(currentWeatherResult.status ?? 0) || [401, 403, 429].includes(hourlyForecastResult.status ?? 0);
 
-      // If we have successful current weather data, we can proceed. A failed forecast is non-critical.
       if (currentWeatherResult.data) {
         currentWeatherData = currentWeatherResult.data;
-        hourlyForecastData = hourlyForecastResult.data ?? []; // Use forecast if available, otherwise empty array.
+        hourlyForecastData = hourlyForecastResult.data ?? []; 
         successWithKey = true;
         lastTechnicalError = null;
-        break; // Success, exit the loop.
+        break; 
       } else {
         lastTechnicalError = `API failure on key ${currentKeyIndex}. Current: "${currentWeatherResult.error}". Forecast: "${hourlyForecastResult.error}".`;
         if (!isKeyError) {
-          break; // It's a non-key-related error, so stop retrying.
+          break; 
         }
       }
     }
 
     if (!successWithKey || !currentWeatherData) {
-      // Log the detailed, technical error for debugging purposes on the server.
       const serverError = lastTechnicalError || "Failed to fetch weather data with all available API keys.";
       console.error("[Service Error] All OpenWeatherMap API keys failed or a non-retriable error occurred.", { details: serverError });
 
-      // Provide a clean, user-friendly error message to the client. This avoids exposing implementation details.
       const userFacingError = "The weather service is temporarily unavailable. This could be due to a server configuration issue or a problem with the external provider. Please try again later.";
       
       const cityNotFound = serverError.toLowerCase().includes("not found");
@@ -102,7 +119,7 @@ export async function fetchWeatherAndSummaryAction(
       feelsLike: currentWeatherData.feelsLike,
       humidity: currentWeatherData.humidity,
       windSpeed: currentWeatherData.windSpeed,
-      condition: currentWeatherData.description, // Use detailed description for better AI context
+      condition: currentWeatherData.description,
     };
 
     let aiSummaryOutput: WeatherSummaryOutput | null = null;

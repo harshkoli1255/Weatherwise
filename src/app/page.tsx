@@ -9,7 +9,6 @@ import type { WeatherSummaryData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
-import Image from 'next/image';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 
 interface WeatherPageState {
@@ -236,22 +235,22 @@ export default function WeatherPage() {
            <Card className="w-full max-w-2xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl animate-in fade-in-50">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
-                    {weatherState.error.toLowerCase().includes("location") || weatherState.error.toLowerCase().includes("city not found") ?
+                    {weatherState.error.toLowerCase().includes("location") || weatherState.cityNotFound ?
                         <MapPin className="h-12 w-12 text-destructive drop-shadow-lg" /> :
                         <AlertCircle className="h-12 w-12 text-destructive drop-shadow-lg" />
                     }
                   </div>
                   <CardTitle className="text-2xl sm:text-3xl font-headline text-destructive">
                       {weatherState.error.toLowerCase().includes("location") ? "Location Error" :
-                       weatherState.error.toLowerCase().includes("city not found") || weatherState.cityNotFound ? "City Not Found" :
+                       weatherState.cityNotFound ? "City Not Found" :
                        "Weather Error"}
                   </CardTitle>
                    <CardDescription className="text-base sm:text-lg text-destructive/90 mt-2 px-4">
                       {weatherState.error}
                   </CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center pb-2 px-4">
-                   <Image src="https://placehold.co/400x250.png" alt="Error illustration" width={400} height={250} className="rounded-lg mt-2 opacity-80 shadow-lg" data-ai-hint="map network error"/>
+              <CardContent className="flex flex-col items-center justify-center space-y-5 pt-8 pb-4">
+                  <WeatherLoadingAnimation className="h-32 w-32 text-destructive" />
               </CardContent>
           </Card>
       )}
