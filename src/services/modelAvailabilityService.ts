@@ -1,4 +1,3 @@
-'use server';
 
 /**
  * @fileOverview A service to track the availability of AI models to prevent
