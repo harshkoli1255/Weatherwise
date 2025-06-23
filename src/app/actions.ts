@@ -130,6 +130,14 @@ export async function fetchWeatherAndSummaryAction(
       return { data: null, error: userFacingError, cityNotFound };
     }
 
+    // If the user selected a specific city suggestion (which provides city, lat, and lon),
+    // the name from the API response might be for a nearby weather station (e.g., Kichha for Rudrapur).
+    // In this case, we should honor the city name the user actually selected for display purposes.
+    if (params.city && typeof params.lat === 'number' && typeof params.lon === 'number' && currentWeatherData.city !== params.city) {
+      console.log(`Overriding API city name "${currentWeatherData.city}" with user-selected city "${params.city}".`);
+      currentWeatherData.city = params.city;
+    }
+
     const aiInput: WeatherSummaryInput = {
       city: currentWeatherData.city,
       temperature: currentWeatherData.temperature,
