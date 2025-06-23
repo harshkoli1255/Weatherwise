@@ -110,8 +110,6 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
     };
   }, [commandRef]);
 
-  const isDisabled = isSearchingWeather || isLocating;
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -121,8 +119,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all",
-            isDisabled ? "opacity-70 cursor-not-allowed" : ""
+            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all"
         )}
       >
         <div className="relative flex items-center">
@@ -135,7 +132,6 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
                 placeholder={currentCityName ? `Try "${currentCityName}" or another city` : "Search 'capital of Spain' or 'Tokyo'... "}
                 className="block w-full h-12 md:h-14 pl-12 pr-[150px] md:pr-[160px] text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
-                disabled={isDisabled}
                 name="city"
                 autoComplete="off"
             />
@@ -146,7 +142,6 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
                     size="icon"
                     className="h-9 md:h-10 w-9 md:w-10 text-muted-foreground hover:text-primary"
                     onClick={onLocate}
-                    disabled={isDisabled}
                     aria-label="Use current location"
                 >
                     {isLocating ? (
@@ -157,7 +152,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
                 </Button>
                 <Button
                     type="submit"
-                    disabled={isDisabled || !inputValue.trim()}
+                    disabled={!inputValue.trim()}
                     aria-label="Search weather"
                     className="h-9 md:h-10 text-sm md:text-base"
                 >

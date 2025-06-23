@@ -38,10 +38,13 @@ const initialState: WeatherPageState = {
   currentFetchedCityName: undefined,
 };
 
+const LAST_SEARCH_KEY = 'weatherwise-last-search';
+
 function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
   const [isTransitionPending, startTransition] = useTransition();
+  const [lastSearchedCity, setLastSearchedCity] = useState<CitySuggestion | null>(null);
   
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -71,6 +74,21 @@ function WeatherPageContent() {
           error: 'An unexpected server error occurred. Please try again.',
         });
         return;
+      }
+
+      if (result.data) {
+        const cityForStorage: CitySuggestion = {
+            name: result.data.city,
+            country: result.data.country,
+            lat: result.data.lat,
+            lon: result.data.lon,
+        };
+        try {
+            localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(cityForStorage));
+            setLastSearchedCity(cityForStorage); // Also update state
+        } catch (e) {
+            console.warn("Could not save last search to localStorage.");
+        }
       }
       
       setWeatherState(prev => ({
@@ -161,23 +179,41 @@ function WeatherPageContent() {
     setIsLocating(false);
   }, [performWeatherFetch, toast, handleSearch]);
 
+  // On mount, load the last search from local storage.
   useEffect(() => {
-    const city = searchParams.get('city');
-    const lat = searchParams.get('lat');
-    const lon = searchParams.get('lon');
-
-    if (city) {
-      const params: ApiLocationParams = { city };
-      if (lat) params.lat = parseFloat(lat);
-      if (lon) params.lon = parseFloat(lon);
-      performWeatherFetch(params);
-    } else if (favorites.length > 0) {
-      const firstFav = favorites[0];
-      handleSearch(firstFav.name, firstFav.lat, firstFav.lon);
-    } else {
-      handleLocate();
+    try {
+        const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
+        if (savedLastSearch) {
+            setLastSearchedCity(JSON.parse(savedLastSearch));
+        }
+    } catch(e) {
+        console.warn("Could not read last search from localStorage.");
     }
-  }, [searchParams, favorites, handleLocate, performWeatherFetch, handleSearch]);
+  }, []);
+  
+  useEffect(() => {
+    // Only run this logic after the initial state has been determined.
+    if (weatherState.loadingMessage === 'Initializing...') {
+        const city = searchParams.get('city');
+        const lat = searchParams.get('lat');
+        const lon = searchParams.get('lon');
+
+        if (city) {
+          const params: ApiLocationParams = { city };
+          if (lat) params.lat = parseFloat(lat);
+          if (lon) params.lon = parseFloat(lon);
+          performWeatherFetch(params);
+        } else if (lastSearchedCity) {
+            handleSearch(lastSearchedCity.name, lastSearchedCity.lat, lastSearchedCity.lon);
+        } else if (favorites.length > 0) {
+          const firstFav = favorites[0];
+          handleSearch(firstFav.name, firstFav.lat, firstFav.lon);
+        } else {
+          handleLocate();
+        }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, lastSearchedCity, favorites]);
 
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
