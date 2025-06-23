@@ -13,8 +13,12 @@ import {
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { correctCitySpelling } from '@/ai/flows/city-correction';
-import { hasGeminiConfig } from '@/ai/genkit';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
+
+function isAiConfigured() {
+  const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
+  return !!geminiApiKey;
+}
 
 export async function fetchWeatherAndSummaryAction(
   params: { city?: string; lat?: number; lon?: number }
@@ -81,7 +85,7 @@ export async function fetchWeatherAndSummaryAction(
       return { data: null, error: "Server configuration error: No valid weather service keys. Please contact support.", cityNotFound: false };
     }
     
-    if (!hasGeminiConfig) {
+    if (!isAiConfigured()) {
       console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries will not be available.");
     }
 
@@ -149,7 +153,7 @@ export async function fetchWeatherAndSummaryAction(
     let aiSummaryOutput: WeatherSummaryOutput | null = null;
     let aiError: string | null = null;
 
-    if (hasGeminiConfig) {
+    if (isAiConfigured()) {
         try {
             console.log("Attempting to generate AI weather summary for:", aiInput.city);
             aiSummaryOutput = await summarizeWeather(aiInput);
@@ -233,7 +237,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     let processedQuery = query.trim();
 
     // Use AI to correct spelling and clean the query *before* calling the geocoding API.
-    if (hasGeminiConfig) {
+    if (isAiConfigured()) {
         console.log(`Attempting AI correction for raw query: "${processedQuery}"`);
         const correctionResult = await correctCitySpelling({ query: processedQuery });
         const correctedQuery = correctionResult.correctedQuery;
