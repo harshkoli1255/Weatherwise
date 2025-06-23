@@ -41,22 +41,23 @@ This project was built with a focus on modern, scalable web architecture. The ch
 
 ## 🚀 Running Locally
 
-Follow these steps to get the project running on your local machine.
+Follow these steps to get the project running on your local machine. The process is the same for **Windows, macOS, and Linux**.
 
 #### 1. Prerequisites
-*   [Node.js](https://nodejs.org/) (v18 or later recommended)
-*   [Git](https://git-scm.com/)
-*   A code editor like [VS Code](https://code.visualstudio.com/) with the recommended extensions.
+Before you begin, ensure you have the following installed:
+*   [**Node.js**](https://nodejs.org/) (v18 or later recommended)
+*   [**Git**](https://git-scm.com/)
+*   A code editor like [**VS Code**](https://code.visualstudio.com/) with the recommended extensions.
 
 #### 2. Clone the Repository
-Open your terminal and clone the project repository to your local machine.
+Open your terminal or command prompt, navigate to where you want to store the project, and run the following command:
 ```bash
 git clone <YOUR_REPOSITORY_URL>
 cd <project-directory>
 ```
 
 #### 3. Configure Environment Variables
-> **IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys.
+> **⚠️ IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys.
 
 1.  In the root directory of your project, create a new file named `.env`.
 2.  Copy the contents of the list below and paste them into your `.env` file.
