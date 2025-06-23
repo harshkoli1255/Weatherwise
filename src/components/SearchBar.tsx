@@ -176,25 +176,22 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
               const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
               return (
                 <CommandItem
-                key={uniqueKey}
-                value={uniqueKey}
-                onSelect={() => handleSelectSuggestion(suggestion)}
-                className="cursor-pointer text-sm py-2 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
+                  key={uniqueKey}
+                  value={uniqueKey}
+                  onSelect={() => handleSelectSuggestion(suggestion)}
+                  className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                 >
-                <div className="flex items-center min-w-0">
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium text-foreground truncate">{suggestion.name}</span>
-                    {suggestion.state && (
-                    <span className="ml-1.5 text-xs text-muted-foreground flex-shrink-0">
-                        ({suggestion.state})
-                    </span>
-                    )}
-                     {suggestion.country && (
-                    <span className="ml-1.5 text-muted-foreground flex-shrink-0">
-                        , {suggestion.country}
-                    </span>
-                    )}
-                </div>
+                  <div className="flex items-center min-w-0">
+                    <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="flex flex-col items-start truncate">
+                      <span className="font-medium text-foreground">{suggestion.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        City
+                        {suggestion.state && ` in ${suggestion.state}`}
+                        {suggestion.country && `, ${suggestion.country}`}
+                      </span>
+                    </div>
+                  </div>
                 </CommandItem>
               )
             })}
