@@ -17,6 +17,7 @@ import { Loader2, Clock, Zap, MailQuestion, Info } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TimezoneSearch } from './TimezoneSearch';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -56,6 +57,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   
   const [alertsEnabled, setAlertsEnabled] = useState(preferences.alertsEnabled);
   const [city, setCity] = useState(preferences.city);
+  const [timezone, setTimezone] = useState(preferences.timezone ?? '');
   
   const [scheduleEnabled, setScheduleEnabled] = useState(preferences.schedule?.enabled ?? false);
   const [selectedDays, setSelectedDays] = useState<number[]>(preferences.schedule?.days ?? []);
@@ -72,6 +74,24 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       });
     }
   }, [saveState, toast]);
+
+  useEffect(() => {
+    // On the client, if schedule is enabled but no timezone is set, auto-detect it.
+    if (scheduleEnabled && !timezone) {
+        try {
+            const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (detected) {
+                setTimezone(detected);
+                 toast({
+                    title: 'Timezone Auto-Detected',
+                    description: `Schedule timezone has been set to ${detected}.`,
+                });
+            }
+        } catch (e) {
+            console.warn("Could not auto-detect timezone.");
+        }
+    }
+  }, [scheduleEnabled, timezone]);
   
   const handleTestAlert = async () => {
     startTestTransition(async () => {
@@ -189,6 +209,18 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           </div>
 
           <div className={`space-y-6 pt-4 border-t border-border/50 transition-opacity duration-300 ${scheduleEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+              <div>
+                <Label htmlFor="timezone">Timezone for Schedule</Label>
+                <TimezoneSearch
+                  id="timezone"
+                  name="timezone"
+                  value={timezone}
+                  onValueChange={setTimezone}
+                  required={scheduleEnabled}
+                />
+                <p className="text-sm text-muted-foreground mt-1.5">Your schedule will be based on this timezone.</p>
+              </div>
+              
               <div>
                   <Label>Active Days of the Week</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">

@@ -146,6 +146,7 @@ export interface AlertPreferences {
   schedule?: AlertSchedule;
   notificationFrequency?: 'everyHour' | 'balanced' | 'oncePerDay';
   lastAlertSentTimestamp?: number;
+  timezone?: string; // IANA timezone string e.g., "America/New_York"
 }
 
 export interface IpApiLocationResponse {

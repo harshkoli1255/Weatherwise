@@ -20,6 +20,7 @@ export async function saveAlertPreferencesAction(
     city: z.string().optional(),
     alertsEnabled: z.boolean(),
     notificationFrequency: z.enum(['everyHour', 'balanced', 'oncePerDay']).default('balanced'),
+    timezone: z.string().optional(),
     schedule: z.object({
       enabled: z.boolean(),
       days: z.array(z.number().min(0).max(6)),
@@ -39,6 +40,17 @@ export async function saveAlertPreferencesAction(
       message: 'City is required when alerts are enabled.',
       path: ['city'],
     }
+  ).refine(
+    (data) => {
+      if (data.schedule.enabled && (!data.timezone || data.timezone.trim() === '')) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'A valid timezone is required when a custom schedule is enabled.',
+      path: ['timezone'],
+    }
   );
   
   const scheduleDays = [0, 1, 2, 3, 4, 5, 6]
@@ -49,6 +61,7 @@ export async function saveAlertPreferencesAction(
     city: formData.get('city') as string,
     alertsEnabled: formData.get('alertsEnabled') === 'on',
     notificationFrequency: formData.get('notificationFrequency'),
+    timezone: formData.get('timezone') as string,
     schedule: {
       enabled: formData.get('scheduleEnabled') === 'on',
       days: scheduleDays,
@@ -87,6 +100,7 @@ export async function saveAlertPreferencesAction(
       ...validatedFields.data,
       city: validatedFields.data.city || '',
       email,
+      timezone: validatedFields.data.timezone || '',
       // Reset timestamp if frequency changes, to allow immediate alerts on the new setting
       lastAlertSentTimestamp: existingPrefs.notificationFrequency !== validatedFields.data.notificationFrequency 
         ? 0 

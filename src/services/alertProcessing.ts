@@ -9,28 +9,54 @@ import { sendEmail } from '@/services/emailService';
 import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
 import { shouldSendWeatherAlert } from '@/ai/flows/alert-decision';
 
-function isTimeInSchedule(preferences: AlertPreferences, timezone: number): boolean {
+function isTimeInSchedule(preferences: AlertPreferences): boolean {
   const schedule = preferences.schedule;
   if (!schedule || !schedule.enabled) {
     return true; // Schedule is not enabled, so time is always valid.
   }
 
-  const now = new Date();
-  const localTime = new Date(now.getTime() + timezone * 1000);
-  const localDay = localTime.getUTCDay();
-  const localHour = localTime.getUTCHours();
-
-  if (!schedule.days.includes(localDay)) {
-    return false; // Not an active day.
+  const userTimezone = preferences.timezone;
+  if (!userTimezone) {
+      console.log(`[Alerts] User ${preferences.email} has schedule enabled but no timezone set. Bypassing schedule check.`);
+      return true; // Failsafe if timezone isn't set, though form validation should prevent this.
   }
 
-  const { startHour, endHour } = schedule;
-  if (startHour <= endHour) {
-    // Standard day schedule (e.g., 8 AM to 10 PM)
-    return localHour >= startHour && localHour <= endHour;
-  } else {
-    // Overnight schedule (e.g., 10 PM to 6 AM)
-    return localHour >= startHour || localHour <= endHour;
+  try {
+    const now = new Date();
+
+    const dayFormatter = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, weekday: 'long' });
+    const dayName = dayFormatter.format(now);
+    const daysMap: { [key: string]: number } = {
+        'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    };
+    const localDay = daysMap[dayName];
+
+    const hourFormatter = new Intl.DateTimeFormat('en-US', { timeZone: userTimezone, hour: 'numeric', hourCycle: 'h23' });
+    const localHour = parseInt(hourFormatter.format(now), 10);
+    
+    if (localDay === undefined || isNaN(localHour)) {
+        console.error(`[Alerts] Could not parse day/hour for timezone '${userTimezone}' (user: ${preferences.email}). Bypassing schedule check.`);
+        return true;
+    }
+    
+    console.log(`[Alerts] Schedule check for ${preferences.email}: Current time in ${userTimezone} is Day ${localDay}, Hour ${localHour}.`);
+
+    if (!schedule.days.includes(localDay)) {
+      console.log(`[Alerts] User ${preferences.email} is outside of active days.`);
+      return false; // Not an active day.
+    }
+
+    const { startHour, endHour } = schedule;
+    if (startHour <= endHour) {
+      // Standard day schedule (e.g., 8 AM to 10 PM)
+      return localHour >= startHour && localHour <= endHour;
+    } else {
+      // Overnight schedule (e.g., 10 PM to 6 AM)
+      return localHour >= startHour || localHour <= endHour;
+    }
+  } catch (err) {
+      console.error(`[Alerts] Invalid timezone '${userTimezone}' for user ${preferences.email}. Bypassing schedule check. Error:`, err);
+      return true; // Failsafe
   }
 }
 
@@ -81,7 +107,7 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
     console.log(`[Alerts] Weather fetched for ${preferences.city}: ${weatherData.temperature}°C, ${weatherData.description}.`);
 
     // Step 2: Check Custom Schedule
-    if (!isTimeInSchedule(preferences, weatherData.timezone)) {
+    if (!isTimeInSchedule(preferences)) {
       console.log(`[Alerts] Skipping user ${user.id}: Outside of defined schedule.`);
       return 0;
     }

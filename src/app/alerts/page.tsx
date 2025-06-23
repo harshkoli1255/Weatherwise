@@ -45,6 +45,7 @@ export default async function AlertsPage() {
     city: '',
     alertsEnabled: false,
     notificationFrequency: 'balanced', // Default to balanced
+    timezone: '', // Will be populated on the client
     schedule: {
       enabled: false,
       days: [0, 1, 2, 3, 4, 5, 6], // All days by default
@@ -64,6 +65,7 @@ export default async function AlertsPage() {
     ...defaultPreferences,
     ...savedPreferences,
     email: primaryEmail, // Always use the current primary email
+    timezone: savedPreferences?.timezone || '',
     schedule: {
       ...defaultPreferences.schedule,
       ...(savedPreferences?.schedule || {}),
