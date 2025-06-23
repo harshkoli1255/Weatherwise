@@ -20,6 +20,11 @@ export function generateWeatherAlertEmailHtml({
   };
   const fontFamily = "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
+  // --- Helper function to style strong tags for email clients ---
+  const styleStrongTags = (html: string) => {
+    if (!html) return '';
+    return html.replace(/<strong>/g, '<strong style="color: #0f172a; background-color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">').replace(/<\/strong>/g, '</strong>');
+  };
 
   // --- Reusable Components ---
   const renderDetailCard = (label: string, value: string) => `
@@ -81,7 +86,7 @@ export function generateWeatherAlertEmailHtml({
             <div style="background-color: rgba(30, 64, 175, 0.3); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px;">
               <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">This alert was sent for the following reason(s):</p>
               <ul style="font-size: 15px; color: ${colors.textBody}; margin: 12px 0 0 0; padding-left: 20px; line-height: 1.6;">
-                ${triggers.map(t => `<li style="margin-bottom: 8px;">${t}</li>`).join('')}
+                ${triggers.map(t => `<li style="margin-bottom: 8px;">${styleStrongTags(t)}</li>`).join('')}
               </ul>
             </div>
           </td>
@@ -185,9 +190,9 @@ export function generateWeatherAlertEmailHtml({
                             `)}
                             ` : ''}
                             <!-- AI Summary -->
-                            ${renderSection('💡', 'AI Weather Summary', weatherData.aiSummary.replace(/<strong>/g, '<strong style="color: #0f172a; background-color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">').replace(/<\/strong>/g, '</strong>'))}
+                            ${renderSection('💡', 'AI Weather Summary', styleStrongTags(weatherData.aiSummary))}
                             <!-- Activity Suggestion -->
-                            ${weatherData.activitySuggestion ? renderSection('🏃', 'Activity Suggestion', weatherData.activitySuggestion.replace(/<strong>/g, '<strong style="color: #0f172a; background-color: #facc15; padding: 2px 6px; border-radius: 4px; font-weight: 700;">').replace(/<\/strong>/g, '</strong>')) : ''}
+                            ${weatherData.activitySuggestion ? renderSection('🏃', 'Activity Suggestion', styleStrongTags(weatherData.activitySuggestion)) : ''}
                             
                              <!-- Footer -->
                              <tr>
