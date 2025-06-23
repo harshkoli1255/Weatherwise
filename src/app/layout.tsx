@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   title: 'Weatherwise',
   description: 'Get real-time weather updates and AI summaries.',
   icons: {
-    icon: '/favicon.png',
+    icon: '/favicon.ico',
     apple: '/apple-icon.png',
   },
 };
