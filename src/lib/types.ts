@@ -7,6 +7,9 @@ export interface HourlyForecastData {
   temp: number;
   iconCode: string;
   condition: string;
+  humidity: number;
+  windSpeed: number; // km/h
+  precipitationChance: number; // percentage
 }
 
 export interface WeatherData {

@@ -80,3 +80,25 @@
     background-size: 16px 16px;
   }
 }
+
+/* Custom styles for Clerk components */
+@layer components {
+  .cl-user-profile-root {
+    @apply shadow-none border-none w-full;
+  }
+  .cl-card {
+    @apply bg-transparent shadow-none w-full;
+  }
+  .cl-header-title, .cl-header-subtitle, .cl-form-field-label, .cl-profile-section-title-text, .cl-internal-b3fm6y, .cl-profile-section-primary-button {
+    @apply text-foreground;
+  }
+  .cl-form-button-primary {
+      @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  .cl-form-field-input {
+      @apply bg-input border-border text-foreground;
+  }
+  .cl-profile-section__active-devices .cl-card {
+      @apply border border-border;
+  }
+}

@@ -35,45 +35,16 @@ const initialState: WeatherPageState = {
   currentFetchedCityName: undefined,
 };
 
+const SAVED_CITY_STORAGE_KEY = 'weatherwise-saved-city';
+
 export default function WeatherPage() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true); // Used to check session storage on mount
+  const [isInitializing, setIsInitializing] = useState(true);
   const [isTransitionPending, startTransition] = useTransition();
+  const [savedCity, setSavedCity] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // On initial mount, try to load the last search result from session storage.
-  useEffect(() => {
-    try {
-      const cachedDataJSON = sessionStorage.getItem('lastWeatherResult');
-      if (cachedDataJSON) {
-        const parsedData: WeatherSummaryData = JSON.parse(cachedDataJSON);
-        setWeatherState(prev => ({
-          ...prev,
-          data: parsedData,
-          currentFetchedCityName: parsedData.city,
-        }));
-      }
-    } catch (error) {
-      console.error("Could not load weather data from session storage:", error);
-      sessionStorage.removeItem('lastWeatherResult'); // Clear potentially corrupt data
-    } finally {
-      setIsInitializing(false);
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount.
-
-
-  useEffect(() => {
-    // Show toasts for general errors, but not for "City Not Found" which has its own card.
-    if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: weatherState.error,
-      });
-    }
-  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound]);
-
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
       ? `Searching for ${params.city}...` 
@@ -95,19 +66,7 @@ export default function WeatherPage() {
           isLoading: false,
           error: 'An unexpected server error occurred. Please try again.',
         });
-        sessionStorage.removeItem('lastWeatherResult');
         return;
-      }
-
-      if (result.data) {
-        try {
-          sessionStorage.setItem('lastWeatherResult', JSON.stringify(result.data));
-        } catch (error) {
-          console.error("Could not save weather data to session storage:", error);
-        }
-      } else {
-        // Clear storage on error or if city not found
-        sessionStorage.removeItem('lastWeatherResult');
       }
       
       setWeatherState(prev => ({
@@ -121,11 +80,42 @@ export default function WeatherPage() {
     });
   }, [startTransition]);
 
+  // On initial mount, check for a saved city in localStorage.
+  useEffect(() => {
+    try {
+      const cityFromStorage = localStorage.getItem(SAVED_CITY_STORAGE_KEY);
+      if (cityFromStorage) {
+        setSavedCity(cityFromStorage);
+        toast({
+          title: `Welcome back!`,
+          description: `Loading weather for your saved city: ${cityFromStorage}.`,
+        });
+        performWeatherFetch({ city: cityFromStorage });
+      }
+    } catch (error) {
+      console.error("Could not access localStorage:", error);
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [performWeatherFetch, toast]);
+
+
+  useEffect(() => {
+    if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: weatherState.error,
+      });
+    }
+  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
+
+
   const handleLocate = useCallback(async () => {
     setIsLocating(true);
     setWeatherState(prev => ({
         ...initialState,
-        isLoading: true, // Use isLoading for the main spinner card
+        isLoading: true,
         loadingMessage: 'Detecting your location...',
     }));
 
@@ -169,7 +159,6 @@ export default function WeatherPage() {
                 error: `Location detection failed completely. ${ipError.message} Please use the search bar.`,
             });
             setIsLocating(false);
-            sessionStorage.removeItem('lastWeatherResult');
             return;
         }
     }
@@ -179,7 +168,6 @@ export default function WeatherPage() {
         performWeatherFetch(locationParams);
     } else {
          setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
-         sessionStorage.removeItem('lastWeatherResult');
     }
     setIsLocating(false);
   }, [performWeatherFetch, toast]);
@@ -197,7 +185,39 @@ export default function WeatherPage() {
     performWeatherFetch(params);
   }, [performWeatherFetch]);
 
+  const handleSaveCityToggle = useCallback(() => {
+    if (!weatherState.data) return;
+    const currentCity = weatherState.data.city;
+
+    try {
+      if (savedCity === currentCity) {
+        // Un-save the city
+        localStorage.removeItem(SAVED_CITY_STORAGE_KEY);
+        setSavedCity(null);
+        toast({
+          description: `Removed "${currentCity}" from your saved cities.`,
+        });
+      } else {
+        // Save the new city
+        localStorage.setItem(SAVED_CITY_STORAGE_KEY, currentCity);
+        setSavedCity(currentCity);
+        toast({
+          title: "City Saved!",
+          description: `"${currentCity}" will be loaded automatically next time.`,
+        });
+      }
+    } catch (error) {
+      console.error("Could not access localStorage to save city:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Could not save city',
+        description: 'Your browser may be blocking local storage.',
+      });
+    }
+  }, [weatherState.data, savedCity, toast]);
+
   const isLoadingDisplay = isInitializing || weatherState.isLoading || isTransitionPending;
+  const isCurrentCitySaved = !!(savedCity && weatherState.data && weatherState.data.city === savedCity);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
@@ -220,20 +240,24 @@ export default function WeatherPage() {
       </section>
 
       {isLoadingDisplay && (
-        <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl animate-in fade-in-50">
+        <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
           <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
             <WeatherLoadingAnimation className="h-20 w-20 sm:h-24 sm:w-24 text-primary" />
-            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{isInitializing ? 'Checking for previous searches...' : weatherState.loadingMessage || "Loading..."}</p>
+            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{isInitializing ? 'Checking for saved city...' : weatherState.loadingMessage || "Loading..."}</p>
           </CardContent>
         </Card>
       )}
 
       {!isLoadingDisplay && weatherState.data && (
-        <WeatherDisplay weatherData={weatherState.data} />
+        <WeatherDisplay
+          weatherData={weatherState.data}
+          isCitySaved={isCurrentCitySaved}
+          onSaveCityToggle={handleSaveCityToggle}
+        />
       )}
 
       {!isLoadingDisplay && !weatherState.data && weatherState.error && (
-           <Card className="w-full max-w-2xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl animate-in fade-in-50">
+           <Card className="w-full max-w-2xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
                     {weatherState.error.toLowerCase().includes("location") || weatherState.cityNotFound ?
@@ -257,7 +281,7 @@ export default function WeatherPage() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl animate-in fade-in-50">
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-primary/20 rounded-full mb-4 border border-primary/30">
                     <Compass className="h-12 w-12 text-primary drop-shadow-lg" />

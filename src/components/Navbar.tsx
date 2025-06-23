@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // Import usePathname
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu } from 'lucide-react';
+import { CloudSun, Menu, UserCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
@@ -95,6 +95,19 @@ export function Navbar() {
                                 </Link>
                             </SheetClose>
                         ))}
+                         <SignedIn>
+                            <SheetClose asChild>
+                                <Link
+                                    href="/profile"
+                                    className={cn(
+                                        "text-lg font-medium text-muted-foreground transition-colors hover:text-primary",
+                                        pathname === '/profile' && "text-primary"
+                                    )}
+                                >
+                                    Profile
+                                </Link>
+                            </SheetClose>
+                        </SignedIn>
                     </nav>
                     <div className="absolute bottom-6 left-6 right-6 space-y-4">
                         <div className="pt-6 border-t">
@@ -107,7 +120,7 @@ export function Navbar() {
                             </SignedOut>
                             <SignedIn>
                                 <div className="flex items-center justify-between">
-                                    <p className="text-lg font-medium text-foreground">Profile</p>
+                                    <p className="text-lg font-medium text-foreground">My Account</p>
                                     <UserButton />
                                 </div>
                             </SignedIn>

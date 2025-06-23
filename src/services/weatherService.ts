@@ -119,6 +119,9 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: 
         temp: Math.round(item.main.temp),
         iconCode: item.weather[0].icon,
         condition: item.weather[0].main,
+        humidity: item.main.humidity,
+        windSpeed: Math.round(item.wind.speed * 3.6), // m/s to km/h
+        precipitationChance: Math.round((item.pop || 0) * 100),
       };
     });
     return { data: forecastList, error: null, status: 200 };
