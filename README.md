@@ -10,7 +10,7 @@ Follow these steps to download the code, configure it, and run it on your local 
 
 ### 1. Download the Code
 
-**You own all of this code, and there is no cost to download it.** Your project is stored in a standard code repository. You can get it onto your computer in one of two ways:
+> **You own all of this code, and there is no cost to download it.** Your project is stored in a standard code repository. You can get it onto your computer in one of two ways:
 
 *   **Clone with Git (Recommended):** Open your terminal and use the `git clone` command with your repository's URL. You can find this URL in your Firebase Studio project settings.
     ```bash
@@ -21,7 +21,7 @@ Follow these steps to download the code, configure it, and run it on your local 
 
 ### 2. Configure Environment Variables
 
-This is the most important step. The application **will not start** without the required API keys.
+> **IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys.
 
 1.  In the root directory of your project, create a new file named `.env`.
 2.  Copy the contents of the list below and paste them into your `.env` file.
@@ -76,20 +76,6 @@ Your application should now be running at `http://localhost:3000`.
 
 ---
 
-## ☁️ Deployment
-
-This app is pre-configured for deployment with **Firebase App Hosting**.
-
-1.  **Set up the Firebase CLI** on your machine and log in.
-2.  From your project's root directory, run the deploy command:
-    ```bash
-    firebase deploy
-    ```
-
-**IMPORTANT:** Your local `.env` file is **not** uploaded during deployment for security reasons. You must configure all the same environment variables (from the list above) in the secret management section of your Firebase project settings in the Google Cloud console.
-
----
-
 ## ✨ Key Features
 
 *   **User Authentication:** Secure sign-up and sign-in functionality powered by Clerk.
@@ -100,6 +86,20 @@ This app is pre-configured for deployment with **Firebase App Hosting**.
 *   **Automatic Hourly Email Alerts:** Users can opt-in to receive hourly email alerts for significant weather in their chosen city, with customizable schedules and sensitivity.
 *   **Modern Email Templates:** Dark-themed email notifications with AI-generated subject lines and activity suggestions.
 *   **Theme Customization:** Switch between light and dark modes.
+
+---
+
+## ☁️ Deployment
+
+This app is pre-configured for deployment with **Firebase App Hosting**.
+
+1.  **Set up the Firebase CLI** on your machine and log in.
+2.  From your project's root directory, run the deploy command:
+    ```bash
+    firebase deploy
+    ```
+
+> **IMPORTANT:** Your local `.env` file is **not** uploaded during deployment for security reasons. You must configure all the same environment variables (from the list above) in the secret management section of your Firebase project settings in the Google Cloud console.
 
 ---
 
