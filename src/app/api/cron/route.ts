@@ -21,6 +21,11 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
+  // For verification: Log what the server is receiving.
+  // This helps debug if the external cron service is configured correctly.
+  console.log(`[CRON-AUTH-CHECK] Received Authorization Header: "${authHeader}"`);
+  console.log(`[CRON-AUTH-CHECK] Expected CRON_SECRET: "Bearer ${cronSecret}"`);
+
   // 1. Check if the CRON_SECRET is configured on the server
   if (!cronSecret) {
     console.error("CRON_SECRET is not set in environment variables. Cron job cannot run securely.");
