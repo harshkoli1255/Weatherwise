@@ -112,7 +112,7 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
       console.log(`Sending alert to ${email} for city ${preferences.city}. Triggers:`, alertTriggers.join(', '));
       
       const emailHtml = generateWeatherAlertEmailHtml({ weatherData, alertTriggers });
-      const emailSubject = `Weather Alert: ${weatherData.aiSubject}`;
+      const emailSubject = weatherData.aiSubject;
 
       const emailResult = await sendEmail({
         to: email,
