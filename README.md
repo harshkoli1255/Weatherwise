@@ -112,30 +112,48 @@ Your application should now be running at `http://localhost:3000`.
 
 ## ☁️ Deployment (Free Hosting)
 
-This app is pre-configured for deployment with **Firebase App Hosting**. Firebase offers a generous **free tier** that includes hosting, a global CDN, and an SSL certificate, making it an excellent choice for hosting this project at no cost. You can find more details on their [pricing page](https://firebase.google.com/pricing).
+This app is pre-configured for one-command deployment with **Firebase App Hosting**. Firebase offers a generous **free tier** that includes hosting, a global CDN, and an SSL certificate, making it an excellent choice for hosting this project at no cost. You can find more details on their [pricing page](https://firebase.google.com/pricing).
 
-1.  **Set up the Firebase CLI** on your machine and log in.
-2.  From your project's root directory, run the deploy command:
-    ```bash
-    firebase deploy
-    ```
-3. After deployment, Firebase will give you a public URL (e.g., `https://<your-project-id>.web.app`).
+#### 1. Set Up Firebase
+If you don't have them already, install the Firebase command-line tools and log in:
+```bash
+# Install the Firebase CLI globally
+npm install -g firebase-tools
 
-> **⚠️ IMPORTANT:** Your local `.env` file is **not** uploaded during deployment for security reasons. You must configure all the same environment variables in the secret management section of your Firebase project settings. The `NEXT_PUBLIC_BASE_URL` variable should be updated to your new public Firebase URL.
+# Log in to your Google account
+firebase login
+```
+You will also need to create a new project in the [Firebase Console](https://console.firebase.google.com/).
+
+#### 2. Deploy the App
+From your project's root directory, run the deploy command. The CLI will guide you to select your Firebase project.
+```bash
+firebase deploy
+```
+After deployment, Firebase will give you your public application URL (e.g., `https://<your-project-id>.web.app`).
+
+#### 3. Configure Server Secrets
+> **⚠️ CRITICAL STEP:** Your local `.env` file is **not** uploaded during deployment for security reasons. Your app **will not work** until you add your secrets to the Firebase environment.
+
+1.  Go to your project in the [Firebase Console](https://console.firebase.google.com/).
+2.  Navigate to the **App Hosting** section.
+3.  In your backend's settings, find the **Secret Manager** section and add all the same secret keys (e.g., `CLERK_SECRET_KEY`, `GEMINI_API_KEYS`, `CRON_SECRET`, etc.) that are in your local `.env` file.
+4.  **Important:** Update the `NEXT_PUBLIC_BASE_URL` variable to your new public Firebase URL.
 
 ---
 
 ## ⏰ Setting up Automatic Hourly Alerts (Cron Job)
 
-To enable automatic hourly alerts, you must set up a "cron job" that calls a secure API endpoint on your **deployed application**.
+To enable automatic hourly alerts, you must set up a "cron job" that calls a secure API endpoint on your **deployed application**. This requires your app to be hosted online first.
 
-1.  **Set `CRON_SECRET` in your deployment environment:** Ensure you have added a secure, random `CRON_SECRET` in your Firebase environment variables.
+1.  **Set `CRON_SECRET` in your deployment environment:** Ensure you have added a secure, random `CRON_SECRET` in your Firebase project's Secret Manager (see deployment steps above).
 2.  **Use a Scheduling Service:** Use a free external service like `cron-job.org`, `EasyCron`, or a similar scheduler.
 3.  **Configure the Job:** Create a new cron job with the following settings:
-    *   **URL / Endpoint:** `https://<YOUR_DEPLOYED_APP_URL>/api/cron` (Use your public Firebase URL here, not `localhost`).
+    *   **URL / Endpoint:** `https://<YOUR_DEPLOYED_APP_URL>/api/cron`
+        > **Note:** You must use your public Firebase URL here, not `localhost`. The cron service is on the internet and cannot access your local machine.
     *   **Schedule:** Set it to run **once every hour**.
     *   **HTTP Method:** `GET`
-    *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>`.
+    *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>`. This must exactly match the secret you configured in Firebase.
 
 ---
 
