@@ -110,29 +110,29 @@ Your application should now be running at `http://localhost:3000`.
 
 ---
 
-## ☁️ Deployment
+## ☁️ Deployment (Free Hosting)
 
-This app is pre-configured for deployment with **Firebase App Hosting**.
+This app is pre-configured for deployment with **Firebase App Hosting**. Firebase offers a generous **free tier** that includes hosting, a global CDN, and an SSL certificate, making it an excellent choice for hosting this project at no cost. You can find more details on their [pricing page](https://firebase.google.com/pricing).
 
 1.  **Set up the Firebase CLI** on your machine and log in.
 2.  From your project's root directory, run the deploy command:
     ```bash
     firebase deploy
     ```
+3. After deployment, Firebase will give you a public URL (e.g., `https://<your-project-id>.web.app`).
 
-> **IMPORTANT:** Your local `.env` file is **not** uploaded during deployment for security reasons. You must configure all the same environment variables in the secret management section of your Firebase project settings.
+> **⚠️ IMPORTANT:** Your local `.env` file is **not** uploaded during deployment for security reasons. You must configure all the same environment variables in the secret management section of your Firebase project settings. The `NEXT_PUBLIC_BASE_URL` variable should be updated to your new public Firebase URL.
 
 ---
 
 ## ⏰ Setting up Automatic Hourly Alerts (Cron Job)
 
-To enable automatic hourly alerts, you must set up a "cron job" that calls a secure API endpoint.
+To enable automatic hourly alerts, you must set up a "cron job" that calls a secure API endpoint on your **deployed application**.
 
-1.  **Set `CRON_SECRET` in your environment:** Ensure you have added a secure, random `CRON_SECRET` in your deployment environment.
+1.  **Set `CRON_SECRET` in your deployment environment:** Ensure you have added a secure, random `CRON_SECRET` in your Firebase environment variables.
 2.  **Use a Scheduling Service:** Use a free external service like `cron-job.org`, `EasyCron`, or a similar scheduler.
 3.  **Configure the Job:** Create a new cron job with the following settings:
-    *   **URL / Endpoint:** `https://<YOUR_DEPLOYED_APP_URL>/api/cron`
-        > **Note:** This must be your public, deployed application URL (e.g., the URL provided by Firebase App Hosting). A `localhost` address will not work, as the external cron service needs to be able to reach your app over the internet.
+    *   **URL / Endpoint:** `https://<YOUR_DEPLOYED_APP_URL>/api/cron` (Use your public Firebase URL here, not `localhost`).
     *   **Schedule:** Set it to run **once every hour**.
     *   **HTTP Method:** `GET`
     *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>`.
