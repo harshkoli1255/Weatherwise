@@ -72,7 +72,7 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
           model: 'googleai/gemini-1.5-pro-latest',
           temperature: 0.6,
           safetySettings: [
-              { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
               { category: 'SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
               { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
               { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -102,7 +102,7 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
     } catch (err: any) {
       lastError = err;
       const errorMessage = (err.message || '').toLowerCase();
-      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || err.status === 429;
+      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
       if (isQuotaError) {
         console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);

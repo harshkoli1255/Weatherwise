@@ -93,7 +93,7 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
     } catch (err: any) {
       lastError = err;
       const errorMessage = (err.message || '').toLowerCase();
-      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || err.status === 429;
+      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
       if (isQuotaError) {
         console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
