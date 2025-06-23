@@ -28,6 +28,7 @@ export async function fetchWeatherAndSummaryAction(
     let locationIdentifier: LocationIdentifier;
     let intendedCityName: string | undefined = params.city;
     let cacheKey: string | null = null;
+    let resolvedLat: number, resolvedLon: number;
 
     // --- Step 1: Determine the exact coordinates and a unique cache key ---
 
@@ -57,13 +58,17 @@ export async function fetchWeatherAndSummaryAction(
       }
 
       console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
-      locationIdentifier = { type: 'coords', lat: bestMatch.lat, lon: bestMatch.lon };
+      resolvedLat = bestMatch.lat;
+      resolvedLon = bestMatch.lon;
+      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
       intendedCityName = bestMatch.name;
       cacheKey = `weather-${bestMatch.lat.toFixed(4)}-${bestMatch.lon.toFixed(4)}`;
 
     } 
     else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
+      resolvedLat = params.lat;
+      resolvedLon = params.lon;
+      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
       cacheKey = `weather-${params.lat.toFixed(4)}-${params.lon.toFixed(4)}`;
     } 
     else {
@@ -187,7 +192,9 @@ export async function fetchWeatherAndSummaryAction(
     const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${currentWeatherData.city}`;
     
     const finalData: WeatherSummaryData = { 
-        ...currentWeatherData, 
+        ...currentWeatherData,
+        lat: resolvedLat,
+        lon: resolvedLon,
         aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.",
         aiSubject: aiSummaryOutput?.subjectLine || fallbackSubject,
         weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
@@ -275,7 +282,12 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         } catch (err) {
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
             console.error("AI city interpretation failed:", message);
-            return { suggestions: null, processedQuery, error: message };
+            // Don't block search if AI fails, just use original query
+            toast({
+              variant: 'destructive',
+              title: 'AI Search Error',
+              description: message,
+            });
         }
     }
 
@@ -405,4 +417,7 @@ export async function getCityFromCoordsAction(
     const message = error instanceof Error ? error.message : "An unknown server error occurred while getting city from coordinates.";
     return { city: null, error: message };
   }
+}
+function toast(arg0: { variant: string; title: string; description: string; }) {
+  throw new Error('Function not implemented.');
 }

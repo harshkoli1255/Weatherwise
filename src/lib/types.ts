@@ -26,6 +26,8 @@ export interface WeatherData {
 }
 
 export interface WeatherSummaryData extends WeatherData {
+  lat: number;
+  lon: number;
   aiSummary: string;
   aiSubject: string;
   hourlyForecast?: HourlyForecastData[];

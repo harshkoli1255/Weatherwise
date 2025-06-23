@@ -13,6 +13,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
+import { FavoriteCitiesDropdown } from './FavoriteCitiesDropdown';
 
 export function Navbar() {
   const pathname = usePathname(); // Get current path
@@ -51,7 +52,10 @@ export function Navbar() {
                 ))}
                 
                 <SignedIn>
-                    <UserButton />
+                    <div className="flex items-center gap-2">
+                        <FavoriteCitiesDropdown />
+                        <UserButton />
+                    </div>
                 </SignedIn>
                 <SignedOut>
                     <SignInButton mode="modal">
@@ -121,7 +125,10 @@ export function Navbar() {
                             <SignedIn>
                                 <div className="flex items-center justify-between">
                                     <p className="text-lg font-medium text-foreground">My Account</p>
-                                    <UserButton />
+                                    <div className="flex items-center gap-2">
+                                        <FavoriteCitiesDropdown />
+                                        <UserButton />
+                                    </div>
                                 </div>
                             </SignedIn>
                             <div className="flex items-center justify-between mt-6">

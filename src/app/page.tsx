@@ -1,15 +1,18 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
-import type { WeatherSummaryData } from '@/lib/types';
+import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useFavoriteCities } from '@/hooks/use-favorite-cities';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
+import { SignedIn } from '@clerk/nextjs';
 
 interface WeatherPageState {
   data: WeatherSummaryData | null;
@@ -29,22 +32,23 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: false,
-  loadingMessage: null,
+  isLoading: true,
+  loadingMessage: 'Initializing...',
   cityNotFound: false,
   currentFetchedCityName: undefined,
 };
 
-const SAVED_CITY_STORAGE_KEY = 'weatherwise-saved-city';
-
-export default function WeatherPage() {
+function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
   const [isTransitionPending, startTransition] = useTransition();
-  const [savedCity, setSavedCity] = useState<string | null>(null);
-  const { toast } = useToast();
   
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoriteCities();
+
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
       ? `Searching for ${params.city}...` 
@@ -78,39 +82,21 @@ export default function WeatherPage() {
         currentFetchedCityName: result.data ? result.data.city : undefined,
       }));
     });
-  }, [startTransition]);
+  }, []);
 
-  // On initial mount, check for a saved city in localStorage.
-  useEffect(() => {
-    try {
-      const cityFromStorage = localStorage.getItem(SAVED_CITY_STORAGE_KEY);
-      if (cityFromStorage) {
-        setSavedCity(cityFromStorage);
-        toast({
-          title: `Welcome back!`,
-          description: `Loading weather for your saved city: ${cityFromStorage}.`,
-        });
-        performWeatherFetch({ city: cityFromStorage });
-      }
-    } catch (error) {
-      console.error("Could not access localStorage:", error);
-    } finally {
-      setIsInitializing(false);
+  const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
+    if (!city || city.trim() === "") {
+      setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
+      return;
     }
-  }, [performWeatherFetch, toast]);
-
-
-  useEffect(() => {
-    if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: weatherState.error,
-      });
-    }
-  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
-
-
+    const params = new URLSearchParams();
+    params.set('city', city.trim());
+    if (typeof lat === 'number') params.set('lat', lat.toString());
+    if (typeof lon === 'number') params.set('lon', lon.toString());
+    
+    router.push(`/?${params.toString()}`, { scroll: false });
+  }, [router]);
+  
   const handleLocate = useCallback(async () => {
     setIsLocating(true);
     setWeatherState(prev => ({
@@ -150,7 +136,7 @@ export default function WeatherPage() {
             if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
                 throw new Error(ipResult.error || 'Could not determine location from IP.');
             }
-            locationParams = { lat: ipResult.lat, lon: ipResult.lon };
+            locationParams = { city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon };
             locationSource = 'IP lookup';
         } catch (ipError: any) {
             setWeatherState({
@@ -164,60 +150,64 @@ export default function WeatherPage() {
     }
 
     if (locationParams) {
-        setWeatherState(prev => ({ ...prev, loadingMessage: `Fetching weather using ${locationSource}...` }));
-        performWeatherFetch(locationParams);
+        if (locationParams.city) {
+            handleSearch(locationParams.city, locationParams.lat, locationParams.lon);
+        } else {
+            performWeatherFetch(locationParams);
+        }
     } else {
          setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
     }
     setIsLocating(false);
-  }, [performWeatherFetch, toast]);
+  }, [performWeatherFetch, toast, handleSearch]);
 
-  const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
-    if (!city || city.trim() === "") {
-      setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
-      return;
+  useEffect(() => {
+    const city = searchParams.get('city');
+    const lat = searchParams.get('lat');
+    const lon = searchParams.get('lon');
+
+    if (city) {
+      const params: ApiLocationParams = { city };
+      if (lat) params.lat = parseFloat(lat);
+      if (lon) params.lon = parseFloat(lon);
+      performWeatherFetch(params);
+    } else if (favorites.length > 0) {
+      const firstFav = favorites[0];
+      handleSearch(firstFav.name, firstFav.lat, firstFav.lon);
+    } else {
+      handleLocate();
     }
-    const params: ApiLocationParams = { city: city.trim() };
-    if (typeof lat === 'number' && typeof lon === 'number') {
-      params.lat = lat;
-      params.lon = lon;
+  }, [searchParams, favorites, handleLocate, performWeatherFetch, handleSearch]);
+
+  useEffect(() => {
+    if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: weatherState.error,
+      });
     }
-    performWeatherFetch(params);
-  }, [performWeatherFetch]);
+  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
 
   const handleSaveCityToggle = useCallback(() => {
     if (!weatherState.data) return;
-    const currentCity = weatherState.data.city;
 
-    try {
-      if (savedCity === currentCity) {
-        // Un-save the city
-        localStorage.removeItem(SAVED_CITY_STORAGE_KEY);
-        setSavedCity(null);
-        toast({
-          description: `Removed "${currentCity}" from your saved cities.`,
-        });
-      } else {
-        // Save the new city
-        localStorage.setItem(SAVED_CITY_STORAGE_KEY, currentCity);
-        setSavedCity(currentCity);
-        toast({
-          title: "City Saved!",
-          description: `"${currentCity}" will be loaded automatically next time.`,
-        });
-      }
-    } catch (error) {
-      console.error("Could not access localStorage to save city:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Could not save city',
-        description: 'Your browser may be blocking local storage.',
-      });
+    const cityData: CitySuggestion = {
+      name: weatherState.data.city,
+      country: weatherState.data.country,
+      lat: weatherState.data.lat,
+      lon: weatherState.data.lon,
+    };
+
+    if (isFavorite(cityData)) {
+      removeFavorite(cityData);
+    } else {
+      addFavorite(cityData);
     }
-  }, [weatherState.data, savedCity, toast]);
+  }, [weatherState.data, isFavorite, addFavorite, removeFavorite]);
 
-  const isLoadingDisplay = isInitializing || weatherState.isLoading || isTransitionPending;
-  const isCurrentCitySaved = !!(savedCity && weatherState.data && weatherState.data.city === savedCity);
+  const isCurrentCitySaved = weatherState.data ? isFavorite(weatherState.data) : false;
+  const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
@@ -243,17 +233,30 @@ export default function WeatherPage() {
         <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
           <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
             <WeatherLoadingAnimation className="h-20 w-20 sm:h-24 sm:w-24 text-primary" />
-            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{isInitializing ? 'Checking for saved city...' : weatherState.loadingMessage || "Loading..."}</p>
+            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
           </CardContent>
         </Card>
       )}
 
       {!isLoadingDisplay && weatherState.data && (
-        <WeatherDisplay
-          weatherData={weatherState.data}
-          isCitySaved={isCurrentCitySaved}
-          onSaveCityToggle={handleSaveCityToggle}
-        />
+        <SignedIn>
+            <WeatherDisplay
+            weatherData={weatherState.data}
+            isCitySaved={isCurrentCitySaved}
+            onSaveCityToggle={handleSaveCityToggle}
+            />
+        </SignedIn>
+      )}
+      
+      {!isLoadingDisplay && weatherState.data && (
+        // For signed-out users, show display without the save button
+        <SignedOut>
+             <WeatherDisplay
+                weatherData={weatherState.data}
+                isCitySaved={false}
+                onSaveCityToggle={() => toast({ title: "Sign in to save cities", description: "Create an account to save and manage your favorite cities."})}
+            />
+        </SignedOut>
       )}
 
       {!isLoadingDisplay && !weatherState.data && weatherState.error && (
@@ -298,4 +301,13 @@ export default function WeatherPage() {
       )}
     </div>
   );
+}
+
+
+export default function WeatherPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <WeatherPageContent />
+        </Suspense>
+    )
 }
