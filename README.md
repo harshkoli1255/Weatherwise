@@ -1,8 +1,8 @@
 
 # Weatherwise: Intelligent Weather & Alert Platform
 
-![Weatherwise Screenshot](https://placehold.co/1200x600.png)
-*A placeholder for a live screenshot of the application dashboard.*
+![Weatherwise Screenshot](https://storage.googleapis.com/aide-studio-enterprise-U5J9/d9ipy79c_1720516597926.png)
+*The Weatherwise dashboard showing real-time weather data for New York.*
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
 
