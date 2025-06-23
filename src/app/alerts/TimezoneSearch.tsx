@@ -86,6 +86,12 @@ const timezones: readonly string[] = [
   "Pacific/Wake", "Pacific/Wallis", "UTC"
 ];
 
+// Map for common deprecated timezone names to their canonical versions.
+const deprecatedTimezoneMap: { [key: string]: string } = {
+  'Asia/Calcutta': 'Asia/Kolkata',
+  // Other common aliases can be added here if needed
+};
+
 interface TimezoneSearchProps {
   value: string;
   onValueChange: (newValue: string) => void;
@@ -104,7 +110,11 @@ export function TimezoneSearch({ value, onValueChange, name, id, required }: Tim
 
   const handleUseCurrentTimezone = () => {
     try {
-      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Correct for deprecated names like 'Asia/Calcutta'
+      if (deprecatedTimezoneMap[detectedTimezone]) {
+        detectedTimezone = deprecatedTimezoneMap[detectedTimezone];
+      }
       onValueChange(detectedTimezone);
       toast({
         title: 'Timezone Detected',
