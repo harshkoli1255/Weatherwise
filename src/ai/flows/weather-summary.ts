@@ -5,6 +5,7 @@
  * @fileOverview A weather summary AI agent.
  * This flow includes logic to rotate Gemini API keys on quota failure
  * and dynamically fall back to a secondary model if the primary model is unavailable.
+ * It also uses a model availability cache to avoid retrying a known-failing model.
  *
  * - summarizeWeather - The primary exported function to call the AI flow.
  * - WeatherSummaryInput - The Zod schema for the input data.
@@ -19,7 +20,13 @@ import {
   WeatherSummaryOutputSchema,
   type WeatherSummaryOutput,
 } from '@/lib/types';
+import { modelAvailabilityService } from '@/services/modelAvailabilityService';
 
+// Define models in order of preference.
+const PREFERRED_MODELS = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+];
 
 const summaryPromptTemplate = `You are Weatherwise, a friendly and insightful AI weather assistant. Your task is to provide an enhanced, conversational summary for {{city}}, determine the weather sentiment, create an engaging email subject line, and provide a creative lifestyle activity suggestion.
 
@@ -51,10 +58,13 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
   
-  const modelsToTry = [
-    'googleai/gemini-1.5-pro-latest',
-    'googleai/gemini-1.5-flash-latest',
-  ];
+  let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
+  if (modelsToTry.length === 0) {
+      console.log("[AI] All preferred models for summary are currently cached as unavailable. Re-attempting all to check for quota reset.");
+      modelsToTry = [...PREFERRED_MODELS];
+  }
+  console.log(`[AI] Models to attempt for weather summary: ${modelsToTry.join(', ')}`);
+
   let lastError: any = new Error('All Gemini models and API keys failed.');
 
   for (const model of modelsToTry) {
@@ -119,7 +129,9 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
         }
       }
     }
-     console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
+     console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
+     // If we exhausted all keys for a model due to quota, report it as a failure.
+     modelAvailabilityService.reportFailure(model);
   }
   
   console.error(`[AI] All models and keys failed for weather summary.`);

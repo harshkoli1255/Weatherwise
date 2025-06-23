@@ -5,6 +5,7 @@
  * @fileOverview An AI flow to decide if a weather alert should be sent based on
  * current conditions. This flow includes logic to rotate Gemini API keys on quota failure
  * and dynamically fall back to a secondary model if the primary model is unavailable.
+ * It also uses a model availability cache to avoid retrying a known-failing model.
  *
  * - shouldSendWeatherAlert - The primary exported function to call the AI flow.
  * - AlertDecisionInput - The Zod schema for the input data.
@@ -19,7 +20,13 @@ import {
   AlertDecisionOutputSchema,
   type AlertDecisionOutput,
 } from '@/lib/types';
+import { modelAvailabilityService } from '@/services/modelAvailabilityService';
 
+// Define models in order of preference.
+const PREFERRED_MODELS = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+];
 
 const alertDecisionPromptTemplate = `You are an intelligent weather alert assistant. Your task is to decide if the current weather conditions are significant enough to warrant sending a notification to a user.
 
@@ -51,10 +58,13 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
     return { shouldSendAlert: false, reason: '' };
   }
 
-  const modelsToTry = [
-    'googleai/gemini-1.5-pro-latest',
-    'googleai/gemini-1.5-flash-latest',
-  ];
+  let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
+  if (modelsToTry.length === 0) {
+      console.log("[AI] All preferred models for alert decision are currently cached as unavailable. Re-attempting all to check for quota reset.");
+      modelsToTry = [...PREFERRED_MODELS];
+  }
+  console.log(`[AI] Models to attempt for alert decision: ${modelsToTry.join(', ')}`);
+
   let lastError: any = new Error('All Gemini models and API keys failed.');
 
   for (const model of modelsToTry) {
@@ -114,7 +124,9 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         }
       }
     }
-    console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
+    console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
+    // If we exhausted all keys for a model due to quota, report it as a failure.
+    modelAvailabilityService.reportFailure(model);
   }
 
   console.error('AI alert decision flow failed with all models and keys:', lastError);

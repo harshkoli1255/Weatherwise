@@ -5,6 +5,7 @@
  * @fileOverview An AI flow to correct misspelled city names.
  * This flow includes logic to rotate Gemini API keys on quota failure
  * and dynamically fall back to a secondary model if the primary model is unavailable.
+ * It also uses a model availability cache to avoid retrying a known-failing model.
  *
  * - correctCitySpelling - The primary exported function to call the AI flow.
  * - CityCorrectionInput - The Zod schema for the input data.
@@ -19,6 +20,13 @@ import {
   CityCorrectionOutputSchema,
   type CityCorrectionOutput,
 } from '@/lib/types';
+import { modelAvailabilityService } from '@/services/modelAvailabilityService';
+
+// Define models in order of preference.
+const PREFERRED_MODELS = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+];
 
 const correctionPromptTemplate = `You are an expert geographer and data cleaner. A user has provided a search query for a city. The query might contain typos, extra spaces, or non-alphabetic characters.
 
@@ -47,10 +55,13 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
     return { correctedQuery: '' };
   }
 
-  const modelsToTry = [
-    'googleai/gemini-1.5-pro-latest',
-    'googleai/gemini-1.5-flash-latest',
-  ];
+  let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
+  if (modelsToTry.length === 0) {
+      console.log("[AI] All preferred models for city correction are currently cached as unavailable. Re-attempting all to check for quota reset.");
+      modelsToTry = [...PREFERRED_MODELS];
+  }
+  console.log(`[AI] Models to attempt for city correction: ${modelsToTry.join(', ')}`);
+  
   let lastError: any = new Error('All Gemini models and API keys failed.');
 
   for (const model of modelsToTry) {
@@ -110,7 +121,9 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
         }
       }
     }
-     console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
+     console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
+     // If we exhausted all keys for a model due to quota, report it as a failure.
+     modelAvailabilityService.reportFailure(model);
   }
 
   console.error(`AI spelling correction failed with all models and keys:`, lastError);
