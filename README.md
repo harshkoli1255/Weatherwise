@@ -140,7 +140,7 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ## 💻 Recommended VS Code Extensions
 
-This project includes a `.vscode/extensions.json` file, so you should be prompted to install these automatically when you open the project in VS Code.
+This project includes a `.vscode/extensions.json` file. The first time you open this project in VS Code, it will automatically detect this file and prompt you to install these recommended extensions with one click. This works seamlessly on Windows, macOS, and Linux.
 
 *   **ESLint & Prettier:** For code quality and consistent formatting.
 *   **Tailwind CSS IntelliSense:** Essential for working with Tailwind classes.
