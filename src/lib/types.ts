@@ -180,20 +180,21 @@ export type LocationIdentifier =
   | { type: 'coords'; lat: number; lon: number };
 
 
-// AI Schema: City Correction
-export const CityCorrectionInputSchema = z.object({
-  query: z.string().describe('A potentially misspelled city name.'),
+// AI Schema: City Correction / Interpretation
+export const InterpretSearchQueryInputSchema = z.object({
+  query: z.string().describe('A natural language search query for a location.'),
 });
-export type CityCorrectionInput = z.infer<typeof CityCorrectionInputSchema>;
+export type InterpretSearchQueryInput = z.infer<typeof InterpretSearchQueryInputSchema>;
 
-export const CityCorrectionOutputSchema = z.object({
-  correctedQuery: z
+export const InterpretSearchQueryOutputSchema = z.object({
+  city: z
     .string()
     .describe(
-      'The corrected spelling of the city name. If the input was correct or unfixable, return the original query.'
+      'The identified city name from the query. For example, if the query is "capital of Spain", this should be "Madrid".'
     ),
 });
-export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
+export type InterpretSearchQueryOutput = z.infer<typeof InterpretSearchQueryOutputSchema>;
+
 
 // AI Schema: Weather Summary
 export const WeatherSummaryInputSchema = z.object({

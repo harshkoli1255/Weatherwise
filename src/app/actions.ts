@@ -12,7 +12,7 @@ import {
   type WeatherSummaryOutput
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
-import { correctCitySpelling } from '@/ai/flows/city-correction';
+import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
 
 function isAiConfigured() {
@@ -40,8 +40,8 @@ export async function fetchWeatherAndSummaryAction(
       }
       
       if (!suggestionsResult.suggestions || suggestionsResult.suggestions.length === 0) {
-        console.log(`No suggestions found for "${params.city}", even after AI correction.`);
-        const errorMessage = `City "${params.city}" not found. Please check the spelling or try a nearby city.`;
+        console.log(`No suggestions found for "${params.city}", even after AI interpretation.`);
+        const errorMessage = `City "${suggestionsResult.processedQuery}" not found. Please check the spelling or try a nearby city.`;
         return { data: null, error: errorMessage, cityNotFound: true };
       }
       
@@ -242,23 +242,23 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     let processedQuery = query.trim();
 
-    // Use AI to correct spelling and clean the query *before* calling the geocoding API.
+    // Use AI to interpret the natural language query *before* calling the geocoding API.
     if (isAiConfigured()) {
         try {
-            console.log(`Attempting AI correction for raw query: "${processedQuery}"`);
-            const correctionResult = await correctCitySpelling({ query: processedQuery });
-            const correctedQuery = correctionResult.correctedQuery;
+            console.log(`Attempting AI interpretation for raw query: "${processedQuery}"`);
+            const interpretationResult = await interpretSearchQuery({ query: processedQuery });
+            const interpretedCity = interpretationResult.city;
             
-            if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
-                console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
-                processedQuery = correctedQuery;
+            if (interpretedCity && interpretedCity.toLowerCase() !== processedQuery.toLowerCase()) {
+                console.log(`AI interpreted "${processedQuery}" as "${interpretedCity}".`);
+                processedQuery = interpretedCity;
             } else {
-                console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
+                console.log(`AI did not provide a different interpretation for "${processedQuery}". Using original.`);
             }
         } catch (err) {
-            // If AI correction fails (e.g., quota), return the error to the user.
+            // If AI interpretation fails (e.g., quota), return the error to the user.
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
-            console.error("AI city correction failed:", message);
+            console.error("AI city interpretation failed:", message);
             return { suggestions: null, processedQuery, error: message };
         }
     }
