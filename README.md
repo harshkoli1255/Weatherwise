@@ -10,13 +10,14 @@ Follow these steps to download the code, configure it, and run it on your local 
 
 ### 1. Download the Code
 
-Your code is in your project repository. You can get it onto your computer in one of two ways:
+**You own all of this code, and there is no cost to download it.** Your project is stored in a standard code repository. You can get it onto your computer in one of two ways:
 
-*   **Clone with Git (Recommended):** Open your terminal and use the `git clone` command with your repository's URL.
+*   **Clone with Git (Recommended):** Open your terminal and use the `git clone` command with your repository's URL. You can find this URL in your Firebase Studio project settings.
     ```bash
     git clone <YOUR_REPOSITORY_URL>
     ```
-*   **Download ZIP:** On your code hosting platform (like GitHub), look for a "Code" button and select "Download ZIP". Unzip the file on your computer.
+*   **Download ZIP:** Most code hosting platforms (like GitHub, which your project may be connected to) have a "Code" button that lets you download the entire project as a ZIP file. Unzip the file on your computer.
+
 
 ### 2. Configure Environment Variables
 
