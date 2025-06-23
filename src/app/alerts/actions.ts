@@ -5,6 +5,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
+import { processUserForAlerts } from '@/services/alertProcessing';
 
 export async function saveAlertPreferencesAction(
   prevState: SaveAlertsFormState,
@@ -104,5 +105,52 @@ export async function saveAlertPreferencesAction(
   } catch (error) {
     console.error('Failed to save alert preferences:', error);
     return { message: 'An unexpected error occurred while saving your preferences. Please try again later.', error: true };
+  }
+}
+
+export async function testAlertsAction(): Promise<{ message: string; error: boolean }> {
+  const { userId } = auth();
+  if (!userId) {
+    return { message: 'You must be signed in to test alerts.', error: true };
+  }
+
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const prefsRaw = user.privateMetadata?.alertPreferences;
+    if (!prefsRaw) {
+        return { message: 'Please save your alert preferences before sending a test.', error: true };
+    }
+    const preferences = JSON.parse(JSON.stringify(prefsRaw)) as AlertPreferences;
+    if (!preferences.alertsEnabled || !preferences.city) {
+        return { message: 'Please enable alerts and set a city before sending a test.', error: true };
+    }
+
+    const errors: string[] = [];
+    const alertsSentCount = await processUserForAlerts(user, errors);
+
+    if (errors.length > 0) {
+      // Check for specific, user-facing errors from email service
+      const emailError = errors.find(e => e.includes('Could not connect') || e.includes('Authentication failed'));
+      if (emailError) {
+         return { message: `Email sending failed. Please check your email configuration in the .env file. Details: ${emailError}`, error: true };
+      }
+      return { message: `Test failed with an unexpected error: ${errors[0]}`, error: true };
+    }
+
+    if (alertsSentCount > 0) {
+      return {
+        message: 'Test successful! An alert matching your criteria was sent to your email.',
+        error: false,
+      };
+    } else {
+      return {
+        message: 'Test complete. Your settings are working, but no significant weather conditions were met for your city right now.',
+        error: false,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to run test alert:', error);
+    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { message: `An unexpected error occurred while running the test: ${message}`, error: true };
   }
 }

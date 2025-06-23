@@ -37,13 +37,13 @@ function checkAlertConditions(weatherData: WeatherSummaryData): string[] {
   // Add specific, objective triggers based on thresholds.
   // These thresholds align with the AI prompt's definition of 'bad' weather.
   if (weatherData.temperature > 30) {
-    triggers.push(`High temperature: ${weatherData.temperature}°C`);
+    triggers.push(`High temperature: <strong>${weatherData.temperature}°C</strong>`);
   }
   if (weatherData.temperature < 5) {
-    triggers.push(`Low temperature: ${weatherData.temperature}°C`);
+    triggers.push(`Low temperature: <strong>${weatherData.temperature}°C</strong>`);
   }
   if (weatherData.windSpeed > 30) {
-    triggers.push(`High wind speed: ${weatherData.windSpeed} km/h`);
+    triggers.push(`High wind speed: <strong>${weatherData.windSpeed} km/h</strong>`);
   }
 
   // Also consider the AI's overall sentiment, if it's 'bad' and we haven't already added a specific trigger.
@@ -76,7 +76,7 @@ function shouldSendBasedOnFrequency(preferences: AlertPreferences): boolean {
   return true; // Default to sending
 }
 
-async function processUserForAlerts(user: User, errors: string[]): Promise<number> {
+export async function processUserForAlerts(user: User, errors: string[]): Promise<number> {
   let alertsSentCount = 0;
   try {
     const prefsRaw = user.privateMetadata?.alertPreferences;
@@ -134,7 +134,7 @@ async function processUserForAlerts(user: User, errors: string[]): Promise<numbe
       } else {
         const errorMsg = `Failed to send email to ${email}: ${emailResult.error}`;
         console.error(errorMsg);
-        errors.push(errorMsg);
+        errors.push(emailResult.error || 'Unknown email error');
       }
     }
     return alertsSentCount;

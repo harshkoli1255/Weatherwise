@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useTransition } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
-import { saveAlertPreferencesAction } from './actions';
+import { saveAlertPreferencesAction, testAlertsAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +59,9 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [scheduleEnabled, setScheduleEnabled] = useState(preferences.schedule?.enabled ?? false);
   const [selectedDays, setSelectedDays] = useState<number[]>(preferences.schedule?.days ?? []);
   
+  const [isTesting, startTestTransition] = useTransition();
+  const { pending: isSaving } = useFormStatus();
+
   useEffect(() => {
     if (saveState.message) {
       toast({
@@ -69,11 +72,29 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
     }
   }, [saveState, toast]);
   
+  const handleTestAlert = async () => {
+    startTestTransition(async () => {
+      toast({
+        title: 'Sending Test Alert...',
+        description: 'Checking your settings and the current weather.',
+      });
+      const result = await testAlertsAction();
+      toast({
+        title: result.error ? 'Test Failed' : 'Test Complete',
+        description: result.message,
+        variant: result.error ? 'destructive' : 'default',
+        duration: result.error ? 6000 : 9000,
+      });
+    });
+  };
+
   const handleDayChange = (dayId: number, checked: boolean) => {
     setSelectedDays(prev => 
       checked ? [...prev, dayId] : prev.filter(d => d !== dayId)
     );
   };
+  
+  const canTest = alertsEnabled && city.trim().length > 0;
 
   return (
     <form action={saveAction} className="space-y-8">
@@ -198,6 +219,17 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       
       <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
         <SubmitButton />
+         <Button
+            type="button"
+            variant="outline"
+            onClick={handleTestAlert}
+            disabled={!canTest || isTesting || isSaving}
+            title={!canTest ? "Please enable alerts and set a city to send a test." : "Send a test alert to your email"}
+          >
+            <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !isTesting })} />
+            {!isTesting && <MailQuestion className="mr-2 h-4 w-4" />}
+            {isTesting ? 'Testing...' : 'Send Test Alert'}
+          </Button>
       </div>
     </form>
   );
