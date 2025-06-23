@@ -6,29 +6,17 @@
  * This flow can handle simple city names, misspelled names, and complex queries like "capital of Italy".
  *
  * - interpretSearchQuery - The primary exported function to call the AI flow.
- * - InterpretSearchQueryInput - The Zod schema for the input data.
- * - InterpretSearchQueryOutput - The Zod schema for the output data.
  */
 
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { z } from 'zod';
+import {
+  InterpretSearchQueryInputSchema,
+  type InterpretSearchQueryInput,
+  InterpretSearchQueryOutputSchema,
+  type InterpretSearchQueryOutput,
+} from '@/lib/types';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
-
-export const InterpretSearchQueryInputSchema = z.object({
-  query: z.string().describe('A natural language search query for a location.'),
-});
-export type InterpretSearchQueryInput = z.infer<typeof InterpretSearchQueryInputSchema>;
-
-export const InterpretSearchQueryOutputSchema = z.object({
-  city: z
-    .string()
-    .describe(
-      'The identified city name from the query. For example, if the query is "capital of Spain", this should be "Madrid".'
-    ),
-});
-export type InterpretSearchQueryOutput = z.infer<typeof InterpretSearchQueryOutputSchema>;
-
 
 // Define models in order of preference.
 const PREFERRED_MODELS = [
