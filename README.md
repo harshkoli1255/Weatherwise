@@ -157,6 +157,21 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
     *   **HTTP Method:** `GET`
     *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>`. This must exactly match the secret you configured in Firebase.
 
+### How to Verify Your Cron Job is Working
+
+After you have set up your job on a service like `cron-job.org`:
+
+1.  **Wait for the job to run:** The service will run it at the next scheduled time (e.g., at the top of the next hour). Some services may have a "Test Run" button you can click.
+2.  **Check Your Application Logs:**
+    *   Go to your project in the [Firebase Console](https://console.firebase.google.com/).
+    *   Navigate to the **App Hosting** section.
+    *   Find the **Logs** tab for your backend.
+3.  **Look for the Proof:** Search your logs for the following message:
+    ```
+    [CRON-AUTH-SUCCESS] Cron job authorized successfully
+    ```
+    If you see this message, your cron job is set up correctly and is successfully communicating with your app! If you don't see it, check the logs for a `[CRON-AUTH-FAIL]` message, which will show you if the secret token was sent incorrectly.
+
 ---
 
 ## ❓ Frequently Asked Questions
@@ -182,7 +197,3 @@ This project includes a `.vscode/extensions.json` file. The first time you open 
 *   **Clerk & Google Cloud Code:** Official extensions for easier integration with our auth and AI services.
 *   **DotENV & GitLens:** Quality-of-life improvements for managing environment variables and Git history.
 *   **Lucide Icons:** Easily search and preview icons used in the project.
-
-    
-
-    

@@ -21,14 +21,9 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
-  // For verification: Log what the server is receiving.
-  // This helps debug if the external cron service is configured correctly.
-  console.log(`[CRON-AUTH-CHECK] Received Authorization Header: "${authHeader}"`);
-  console.log(`[CRON-AUTH-CHECK] Expected CRON_SECRET: "Bearer ${cronSecret}"`);
-
   // 1. Check if the CRON_SECRET is configured on the server
   if (!cronSecret) {
-    console.error("CRON_SECRET is not set in environment variables. Cron job cannot run securely.");
+    console.error("[CRON-SETUP-ERROR] CRON_SECRET is not set in environment variables. Cron job cannot run securely.");
     return NextResponse.json(
       { success: false, message: "CRON job is not configured on the server." }, 
       { status: 500 }
@@ -37,19 +32,20 @@ export async function GET(request: Request) {
 
   // 2. Check if the incoming request has the correct secret token
   if (authHeader !== `Bearer ${cronSecret}`) {
-    console.warn("Unauthorized attempt to access CRON endpoint.");
+    console.warn(`[CRON-AUTH-FAIL] Unauthorized attempt to access CRON endpoint. Received header: "${authHeader}"`);
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
-  console.log(`Hourly alert check initiated by scheduler at: ${new Date().toISOString()}`);
+  // THIS IS THE PROOF. If you see this log, the cron job is authenticated correctly.
+  console.log(`[CRON-AUTH-SUCCESS] Cron job authorized successfully at: ${new Date().toISOString()}`);
 
   // 3. Execute the alert processing logic
   try {
     const result = await checkAndSendAlerts();
-    console.log(`Hourly alert check finished successfully. Processed: ${result.processedUsers}, Eligible: ${result.eligibleUsers}, Sent: ${result.alertsSent}, Errors: ${result.errors.length}`);
+    console.log(`[CRON-EXECUTION-FINISH] Hourly alert check finished. Processed: ${result.processedUsers}, Eligible: ${result.eligibleUsers}, Sent: ${result.alertsSent}, Errors: ${result.errors.length}`);
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
-    console.error("A critical error occurred during the CRON job execution:", error);
+    console.error("[CRON-EXECUTION-ERROR] A critical error occurred during the CRON job execution:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { success: false, message: "Cron job failed", error: errorMessage }, 
