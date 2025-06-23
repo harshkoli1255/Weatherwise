@@ -17,7 +17,7 @@ function isTimeInSchedule(preferences: AlertPreferences, timezone: number): bool
   const now = new Date();
   const localTime = new Date(now.getTime() + timezone * 1000);
   const localDay = localTime.getUTCDay();
-  const localHour = localTime.getUTCHour();
+  const localHour = localTime.getUTCHours();
 
   if (!schedule.days.includes(localDay)) {
     return false;
