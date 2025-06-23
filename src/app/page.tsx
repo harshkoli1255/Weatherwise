@@ -72,7 +72,7 @@ export default function WeatherPage() {
         description: weatherState.error,
       });
     }
-  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
+  }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound]);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -119,7 +119,7 @@ export default function WeatherPage() {
         currentFetchedCityName: result.data ? result.data.city : undefined,
       }));
     });
-  }, []);
+  }, [startTransition]);
 
   const handleLocate = useCallback(async () => {
     setIsLocating(true);
@@ -184,7 +184,7 @@ export default function WeatherPage() {
     setIsLocating(false);
   }, [performWeatherFetch, toast]);
 
-  const handleSearch = (city: string, lat?: number, lon?: number) => {
+  const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
       setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
       return;
@@ -195,7 +195,7 @@ export default function WeatherPage() {
       params.lon = lon;
     }
     performWeatherFetch(params);
-  };
+  }, [performWeatherFetch]);
 
   const isLoadingDisplay = isInitializing || weatherState.isLoading || isTransitionPending;
 
