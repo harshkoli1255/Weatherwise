@@ -18,7 +18,7 @@
     *   **Adjustable Sensitivity:** Control alert frequency with "Maximum," "Balanced," or "Minimal" settings to prevent notification fatigue.
     *   **Secure Cron Job Integration:** A secure webhook endpoint allows for reliable, hourly alert checks triggered by an external scheduler.
 *   **Secure User Authentication:** Full sign-up, sign-in, and profile management powered by Clerk.
-*   **Modern, Responsive UI:** Built with Tailwind CSS and ShadCN UI, featuring light and dark modes and a focus on a clean user experience.
+*   **Modern, Responsive UI:** Built with a modern, responsive UI using Tailwind CSS and ShadCN UI, featuring light and dark modes and a focus on a clean user experience.
 
 ---
 
@@ -126,10 +126,12 @@ firebase login
 You will also need to create a new project in the [Firebase Console](https://console.firebase.google.com/).
 
 #### 2. Deploy the App
-From your project's root directory, run the deploy command. The CLI will guide you to select your Firebase project.
+From your project's root directory, run the deploy command.
 ```bash
 firebase deploy
 ```
+The first time you run this, the CLI will ask you to select a Firebase project to connect to. It will also create a `firebase.json` and `.firebaserc` file for you if they don't exist. Subsequent deploys will use this configuration automatically.
+
 After deployment, Firebase will give you your public application URL (e.g., `https://<your-project-id>.web.app`).
 
 #### 3. Configure Server Secrets
@@ -165,6 +167,10 @@ Yes. Firebase App Hosting keeps your website online 24/7. The hourly alerts depe
 
 On the free tier, if your app has no traffic for a while, it might "go to sleep" to save resources. The first request (from a user or the cron job) will wake it up automatically, which might take a few seconds. This is a normal "cold start" and won't affect the alert functionality.
 
+**If I close my computer, will the deployed app stop running?**
+
+No. Once you deploy your app with `firebase deploy`, it's running on Google's servers. It is completely independent of your local machine. You can safely close your terminal, editor, and even shut down your computer. The website and the alert system will continue to operate.
+
 ---
 
 ## 💻 Recommended VS Code Extensions
@@ -176,3 +182,5 @@ This project includes a `.vscode/extensions.json` file. The first time you open 
 *   **Clerk & Google Cloud Code:** Official extensions for easier integration with our auth and AI services.
 *   **DotENV & GitLens:** Quality-of-life improvements for managing environment variables and Git history.
 *   **Lucide Icons:** Easily search and preview icons used in the project.
+
+    
