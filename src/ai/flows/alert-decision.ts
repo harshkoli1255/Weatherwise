@@ -2,14 +2,15 @@
 
 /**
  * @fileOverview An AI flow to decide if a weather alert should be sent based on
- * current conditions.
+ * current conditions. This flow includes logic to rotate Gemini API keys on quota failure.
  *
  * - shouldSendWeatherAlert - The primary exported function to call the AI flow.
  * - AlertDecisionInput - The Zod schema for the input data.
  * - AlertDecisionOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {
   AlertDecisionInputSchema,
   type AlertDecisionInput,
@@ -18,13 +19,7 @@ import {
 } from '@/lib/types';
 
 
-// Define the reusable prompt for the alert decision.
-const alertDecisionPrompt = ai.definePrompt(
-  {
-    name: 'alertDecisionPrompt',
-    input: { schema: AlertDecisionInputSchema },
-    output: { schema: AlertDecisionOutputSchema },
-    prompt: `You are an intelligent weather alert assistant. Your task is to decide if the current weather conditions are significant enough to warrant sending a notification to a user.
+const alertDecisionPromptTemplate = `You are an intelligent weather alert assistant. Your task is to decide if the current weather conditions are significant enough to warrant sending a notification to a user.
 
 Analyze the following weather data for {{city}}:
 - Temperature: {{temperature}}°C
@@ -43,42 +38,75 @@ Decision Criteria:
 3.  **Be Helpful, Not Annoying:** Do not send alerts for normal, pleasant, or slightly overcast weather (e.g., 22°C and partly cloudy). The user expects alerts for weather that might impact their plans or require preparation.
 4.  **Generate a Reason:** If you decide to send an alert (\`shouldSendAlert: true\`), provide a concise, user-facing reason. The reason should be formatted with HTML strong tags for emphasis, for example: "High temperature: <strong>32°C</strong>" or "Strong winds at <strong>35 km/h</strong>.". If multiple conditions are met, you can combine them like "High temperature and strong winds."
 5.  **Final Output:** Your response must be only the JSON object in the specified format with \`shouldSendAlert\` (boolean) and \`reason\` (string). If \`shouldSendAlert\` is false, the \`reason\` must be an empty string. Do not add any other text or markdown formatting like \`\`\`json.
-`,
-    model: 'googleai/gemini-1.5-pro-latest',
-    temperature: 0.1, // Low temperature for deterministic decisions
-  }
-);
+`;
 
 
-// Define the main flow that uses the prompt.
-const alertDecisionFlow = ai.defineFlow(
-  {
-    name: 'alertDecisionFlow',
-    inputSchema: AlertDecisionInputSchema,
-    outputSchema: AlertDecisionOutputSchema,
-  },
-  async (input) => {
-    const { output } = await alertDecisionPrompt(input);
-    if (!output) {
-      console.error("Failed to get AI output for alert decision");
-      return { shouldSendAlert: false, reason: '' };
-    }
-    return output;
-  }
-);
-
-// Wrapper function to be called by other services
 export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise<AlertDecisionOutput> {
-  const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
-  if (!geminiApiKey) {
-    // If AI is not configured, we cannot make a decision. Failsafe.
+  const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+
+  if (geminiApiKeys.length === 0) {
     console.warn('AI alert decision skipped: Gemini API key missing.');
     return { shouldSendAlert: false, reason: '' };
   }
-  try {
-    return await alertDecisionFlow(input);
-  } catch (err) {
-    console.error('AI alert decision flow failed:', err);
-    return { shouldSendAlert: false, reason: '' }; // Failsafe
+
+  let lastError: any = new Error('All Gemini API keys failed.');
+
+  for (const [index, apiKey] of geminiApiKeys.entries()) {
+    try {
+      console.log(`[AI] Attempting alert decision with Gemini key ${index + 1}/${geminiApiKeys.length}.`);
+
+      const localAi = genkit({
+        plugins: [googleAI({ apiKey })],
+        logLevel: 'warn',
+        enableTracingAndMetrics: true,
+      });
+
+      const alertDecisionPrompt = localAi.definePrompt(
+        {
+          name: `alertDecisionPrompt_key${index}`,
+          input: { schema: AlertDecisionInputSchema },
+          output: { schema: AlertDecisionOutputSchema },
+          prompt: alertDecisionPromptTemplate,
+          model: 'googleai/gemini-1.5-pro-latest',
+          temperature: 0.1,
+        }
+      );
+
+      const alertDecisionFlow = localAi.defineFlow(
+        {
+          name: `alertDecisionFlow_key${index}`,
+          inputSchema: AlertDecisionInputSchema,
+          outputSchema: AlertDecisionOutputSchema,
+        },
+        async (flowInput) => {
+          const { output } = await alertDecisionPrompt(flowInput);
+          if (!output) {
+            console.error("Failed to get AI output for alert decision");
+            return { shouldSendAlert: false, reason: '' };
+          }
+          return output;
+        }
+      );
+      
+      const result = await alertDecisionFlow(input);
+      console.log(`[AI] Alert decision successful with Gemini key ${index + 1}.`);
+      return result;
+
+    } catch (err: any) {
+      lastError = err;
+      const errorMessage = (err.message || '').toLowerCase();
+      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || err.status === 429;
+
+      if (isQuotaError) {
+        console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
+        continue;
+      } else {
+        console.error(`[AI] Gemini key ${index + 1} failed with non-retryable error.`, err);
+        break;
+      }
+    }
   }
+
+  console.error('AI alert decision flow failed with all keys:', lastError);
+  return { shouldSendAlert: false, reason: '' }; // Failsafe
 }

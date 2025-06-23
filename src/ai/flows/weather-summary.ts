@@ -2,16 +2,15 @@
 
 /**
  * @fileOverview A weather summary AI agent.
- *
- * This file defines the AI flow for generating weather summaries, including
- * sentiment analysis, creative subject lines, and activity suggestions.
+ * This flow includes logic to rotate Gemini API keys on quota failure.
  *
  * - summarizeWeather - The primary exported function to call the AI flow.
  * - WeatherSummaryInput - The Zod schema for the input data.
  * - WeatherSummaryOutput - The Zod schema for the output data.
  */
 
-import { ai } from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {
   WeatherSummaryInputSchema,
   type WeatherSummaryInput,
@@ -19,13 +18,8 @@ import {
   type WeatherSummaryOutput,
 } from '@/lib/types';
 
-// Define the reusable prompt for summarizing weather.
-const summaryPrompt = ai.definePrompt(
-  {
-    name: 'weatherSummaryPrompt',
-    input: { schema: WeatherSummaryInputSchema },
-    output: { schema: WeatherSummaryOutputSchema },
-    prompt: `You are Weatherwise, a friendly and insightful AI weather assistant. Your task is to provide an enhanced, conversational summary for {{city}}, determine the weather sentiment, create an engaging email subject line, and provide a creative lifestyle activity suggestion.
+
+const summaryPromptTemplate = `You are Weatherwise, a friendly and insightful AI weather assistant. Your task is to provide an enhanced, conversational summary for {{city}}, determine the weather sentiment, create an engaging email subject line, and provide a creative lifestyle activity suggestion.
 
 Current weather data for {{city}}:
 - Temperature: {{temperature}}°C
@@ -45,61 +39,92 @@ Instructions:
 3.  **Craft an Enhanced Summary:** Write a conversational and helpful summary. Start with a friendly greeting. Explain the key weather points clearly. **You must highlight the most impactful piece of weather information using \`<strong>\` tags.** For example, you might highlight a significant "feels like" temperature difference, high winds, or precipitation. The highlight makes it easy for users to spot the most critical detail. Example: "While it's 10°C, a strong breeze makes it <strong>feel more like 6°C</strong>, so a good jacket is recommended." Use these highlights for only the most important 1-2 pieces of information to ensure they stand out.
 4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏃.
 5.  **Create a Creative Activity Suggestion:** Provide a creative and specific activity suggestion. Instead of generic advice, offer a concrete idea that fits the weather. For example, for a sunny day, suggest 'It's a perfect afternoon for a picnic in the park or reading a book on a coffee shop patio.' For a rainy day, suggest 'A great opportunity to visit a <strong>local museum</strong> or cozy up with a movie marathon at home.' Keep it to a single, encouraging sentence. You can use \`<strong>\` tags here as well to highlight a key part of the suggestion.
-`,
-    model: 'googleai/gemini-1.5-pro-latest',
-    temperature: 0.6,
-    safetySettings: [
-        { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-    ],
-  },
-);
+`;
 
-// Define the main flow that uses the prompt.
-const weatherSummaryFlow = ai.defineFlow(
-  {
-    name: 'weatherSummaryFlow',
-    inputSchema: WeatherSummaryInputSchema,
-    outputSchema: WeatherSummaryOutputSchema,
-  },
-  async (input) => {
-    const { output } = await summaryPrompt(input);
-    if (!output) {
-      throw new Error('AI summary generation failed to produce a valid output.');
-    }
-    return output;
-  }
-);
 
-// The primary exported function that server actions will call.
 export async function summarizeWeather(input: WeatherSummaryInput): Promise<WeatherSummaryOutput> {
-  const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
-  if (!geminiApiKey) {
+  const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+
+  if (geminiApiKeys.length === 0) {
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
 
-  try {
-    // Just call the flow directly. No more `runFlow`.
-    return await weatherSummaryFlow(input);
-  } catch (err: any) {
-    // Simplify error handling. Let the caller handle UI presentation.
-    console.error(`AI summary generation failed:`, err);
-    // Re-throw a more user-friendly error to be caught by the action.
-    const errorMessage = (err.message || '').toLowerCase();
-    if (
-        errorMessage.includes('api key not valid') ||
-        errorMessage.includes('permission denied') ||
-        errorMessage.includes('quota') ||
-        errorMessage.includes('billing') ||
-        errorMessage.includes('resource has been exhausted')
-    ) {
-        throw new Error('AI summary service unavailable. The configured Gemini API key may be invalid or have billing/quota issues.');
+  let lastError: any = new Error('All Gemini API keys failed.');
+
+  for (const [index, apiKey] of geminiApiKeys.entries()) {
+    try {
+      console.log(`[AI] Attempting weather summary with Gemini key ${index + 1}/${geminiApiKeys.length}.`);
+      
+      const localAi = genkit({
+        plugins: [googleAI({ apiKey })],
+        logLevel: 'warn',
+        enableTracingAndMetrics: true,
+      });
+
+      const summaryPrompt = localAi.definePrompt(
+        {
+          name: `weatherSummaryPrompt_key${index}`,
+          input: { schema: WeatherSummaryInputSchema },
+          output: { schema: WeatherSummaryOutputSchema },
+          prompt: summaryPromptTemplate,
+          model: 'googleai/gemini-1.5-pro-latest',
+          temperature: 0.6,
+          safetySettings: [
+              { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+              { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          ],
+        },
+      );
+
+      const weatherSummaryFlow = localAi.defineFlow(
+        {
+          name: `weatherSummaryFlow_key${index}`,
+          inputSchema: WeatherSummaryInputSchema,
+          outputSchema: WeatherSummaryOutputSchema,
+        },
+        async (flowInput) => {
+          const { output } = await summaryPrompt(flowInput);
+          if (!output) {
+            throw new Error('AI summary generation failed to produce a valid output.');
+          }
+          return output;
+        }
+      );
+      
+      const result = await weatherSummaryFlow(input);
+      console.log(`[AI] Weather summary successful with Gemini key ${index + 1}.`);
+      return result;
+
+    } catch (err: any) {
+      lastError = err;
+      const errorMessage = (err.message || '').toLowerCase();
+      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || err.status === 429;
+
+      if (isQuotaError) {
+        console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
+        continue;
+      } else {
+        console.error(`[AI] Gemini key ${index + 1} failed with non-retryable error.`, err);
+        break;
+      }
     }
-    if (errorMessage.includes('safety') || errorMessage.includes('recitation')) {
-        throw new Error('AI summary generation was blocked by content filters.');
-    }
-    throw new Error(`AI summary generation failed. Please check server logs for details.`);
   }
+  
+  console.error(`[AI] All Gemini API keys failed for weather summary.`);
+  const finalErrorMessage = (lastError.message || '').toLowerCase();
+  if (
+      finalErrorMessage.includes('api key not valid') ||
+      finalErrorMessage.includes('permission denied') ||
+      finalErrorMessage.includes('quota') ||
+      finalErrorMessage.includes('billing') ||
+      finalErrorMessage.includes('resource has been exhausted')
+  ) {
+      throw new Error('AI summary service unavailable. All configured Gemini API keys have failed, likely due to billing or quota issues.');
+  }
+  if (finalErrorMessage.includes('safety') || finalErrorMessage.includes('recitation')) {
+      throw new Error('AI summary generation was blocked by content filters.');
+  }
+  throw new Error(`AI summary generation failed. Please check server logs for details.`);
 }
