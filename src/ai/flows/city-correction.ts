@@ -3,7 +3,8 @@
 
 /**
  * @fileOverview An AI flow to correct misspelled city names.
- * This flow includes logic to rotate Gemini API keys on quota failure.
+ * This flow includes logic to rotate Gemini API keys on quota failure
+ * and dynamically fall back to a secondary model if the primary model is unavailable.
  *
  * - correctCitySpelling - The primary exported function to call the AI flow.
  * - CityCorrectionInput - The Zod schema for the input data.
@@ -46,63 +47,73 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
     return { correctedQuery: '' };
   }
 
-  let lastError: any = new Error('All Gemini API keys failed.');
+  const modelsToTry = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+  ];
+  let lastError: any = new Error('All Gemini models and API keys failed.');
 
-  for (const [index, apiKey] of geminiApiKeys.entries()) {
-    try {
-      console.log(`[AI] Attempting city correction with Gemini key ${index + 1}/${geminiApiKeys.length}.`);
+  for (const model of modelsToTry) {
+    console.log(`[AI] Attempting city correction with model: ${model}`);
 
-      const localAi = genkit({
-        plugins: [googleAI({ apiKey })],
-        logLevel: 'warn',
-        enableTracingAndMetrics: true,
-      });
+    for (const [index, apiKey] of geminiApiKeys.entries()) {
+      try {
+        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
 
-      const correctionPrompt = localAi.definePrompt({
-        name: `cityCorrectionPrompt_key${index}`,
-        input: { schema: CityCorrectionInputSchema },
-        output: { schema: CityCorrectionOutputSchema },
-        prompt: correctionPromptTemplate,
-        model: 'googleai/gemini-1.5-pro-latest',
-        temperature: 0.2,
-      });
+        const localAi = genkit({
+          plugins: [googleAI({ apiKey })],
+          logLevel: 'warn',
+          enableTracingAndMetrics: true,
+        });
 
-      const cityCorrectionFlow = localAi.defineFlow(
-        {
-          name: `cityCorrectionFlow_key${index}`,
-          inputSchema: CityCorrectionInputSchema,
-          outputSchema: CityCorrectionOutputSchema,
-        },
-        async (flowInput) => {
-          const { output } = await correctionPrompt(flowInput);
-          if (!output) {
-              console.error("Failed to get AI output for city correction");
-              return { correctedQuery: sanitizedQuery }; // Failsafe
+        const correctionPrompt = localAi.definePrompt({
+          name: `cityCorrectionPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          input: { schema: CityCorrectionInputSchema },
+          output: { schema: CityCorrectionOutputSchema },
+          prompt: correctionPromptTemplate,
+          model,
+          temperature: 0.2,
+        });
+
+        const cityCorrectionFlow = localAi.defineFlow(
+          {
+            name: `cityCorrectionFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            inputSchema: CityCorrectionInputSchema,
+            outputSchema: CityCorrectionOutputSchema,
+          },
+          async (flowInput) => {
+            const { output } = await correctionPrompt(flowInput);
+            if (!output) {
+                console.error("Failed to get AI output for city correction");
+                return { correctedQuery: sanitizedQuery }; // Failsafe
+            }
+            return output;
           }
-          return output;
+        );
+
+        const result = await cityCorrectionFlow({ query: sanitizedQuery });
+        console.log(`[AI] City correction successful with model ${model} and key ${index + 1}.`);
+        return result;
+        
+      } catch (err: any) {
+        lastError = err;
+        const errorMessage = (err.message || '').toLowerCase();
+        const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
+
+        if (isQuotaError) {
+          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          continue; // Continue to the next API key
+        } else {
+           // This is a non-quota, non-retryable error for this key. We should fail fast.
+          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
+          throw err;
         }
-      );
-
-      const result = await cityCorrectionFlow({ query: sanitizedQuery });
-      console.log(`[AI] City correction successful with Gemini key ${index + 1}.`);
-      return result;
-      
-    } catch (err: any) {
-      lastError = err;
-      const errorMessage = (err.message || '').toLowerCase();
-      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
-
-      if (isQuotaError) {
-        console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
-        continue;
-      } else {
-        console.error(`[AI] Gemini key ${index + 1} failed with non-retryable error.`, err);
-        break;
       }
     }
+     console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
   }
 
-  console.error(`AI spelling correction failed with all keys:`, lastError);
+  console.error(`AI spelling correction failed with all models and keys:`, lastError);
 
   const finalErrorMessage = (lastError.message || '').toLowerCase();
   const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');

@@ -3,7 +3,8 @@
 
 /**
  * @fileOverview A weather summary AI agent.
- * This flow includes logic to rotate Gemini API keys on quota failure.
+ * This flow includes logic to rotate Gemini API keys on quota failure
+ * and dynamically fall back to a secondary model if the primary model is unavailable.
  *
  * - summarizeWeather - The primary exported function to call the AI flow.
  * - WeatherSummaryInput - The Zod schema for the input data.
@@ -49,74 +50,84 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
   if (geminiApiKeys.length === 0) {
     throw new Error('AI summary service is not configured (Gemini API key missing).');
   }
+  
+  const modelsToTry = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+  ];
+  let lastError: any = new Error('All Gemini models and API keys failed.');
 
-  let lastError: any = new Error('All Gemini API keys failed.');
+  for (const model of modelsToTry) {
+    console.log(`[AI] Attempting weather summary with model: ${model}`);
 
-  for (const [index, apiKey] of geminiApiKeys.entries()) {
-    try {
-      console.log(`[AI] Attempting weather summary with Gemini key ${index + 1}/${geminiApiKeys.length}.`);
-      
-      const localAi = genkit({
-        plugins: [googleAI({ apiKey })],
-        logLevel: 'warn',
-        enableTracingAndMetrics: true,
-      });
+    for (const [index, apiKey] of geminiApiKeys.entries()) {
+      try {
+        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
+        
+        const localAi = genkit({
+          plugins: [googleAI({ apiKey })],
+          logLevel: 'warn',
+          enableTracingAndMetrics: true,
+        });
 
-      const summaryPrompt = localAi.definePrompt({
-        name: `weatherSummaryPrompt_key${index}`,
-        input: { schema: WeatherSummaryInputSchema },
-        output: { schema: WeatherSummaryOutputSchema },
-        prompt: summaryPromptTemplate,
-        model: 'googleai/gemini-1.5-pro-latest',
-        temperature: 0.6,
-        safetySettings: [
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        ],
-      });
+        const summaryPrompt = localAi.definePrompt({
+          name: `weatherSummaryPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          input: { schema: WeatherSummaryInputSchema },
+          output: { schema: WeatherSummaryOutputSchema },
+          prompt: summaryPromptTemplate,
+          model,
+          temperature: 0.6,
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          ],
+        });
 
-      const weatherSummaryFlow = localAi.defineFlow(
-        {
-          name: `weatherSummaryFlow_key${index}`,
-          inputSchema: WeatherSummaryInputSchema,
-          outputSchema: WeatherSummaryOutputSchema,
-        },
-        async (flowInput) => {
-          const { output } = await summaryPrompt(flowInput);
-          if (!output) {
-            throw new Error('AI summary generation failed to produce a valid output.');
+        const weatherSummaryFlow = localAi.defineFlow(
+          {
+            name: `weatherSummaryFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            inputSchema: WeatherSummaryInputSchema,
+            outputSchema: WeatherSummaryOutputSchema,
+          },
+          async (flowInput) => {
+            const { output } = await summaryPrompt(flowInput);
+            if (!output) {
+              throw new Error('AI summary generation failed to produce a valid output.');
+            }
+            return output;
           }
-          return output;
+        );
+        
+        const result = await weatherSummaryFlow(input);
+        console.log(`[AI] Weather summary successful with model ${model} and key ${index + 1}.`);
+        return result;
+
+      } catch (err: any) {
+        lastError = err;
+        const errorMessage = (err.message || '').toLowerCase();
+        const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
+
+        if (isQuotaError) {
+          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          continue; // Continue to the next API key
+        } else {
+          // This is a non-quota, non-retryable error for this key. We should fail fast.
+          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
+          throw err;
         }
-      );
-      
-      const result = await weatherSummaryFlow(input);
-      console.log(`[AI] Weather summary successful with Gemini key ${index + 1}.`);
-      return result;
-
-    } catch (err: any) {
-      lastError = err;
-      const errorMessage = (err.message || '').toLowerCase();
-      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
-
-      if (isQuotaError) {
-        console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
-        continue;
-      } else {
-        console.error(`[AI] Gemini key ${index + 1} failed with non-retryable error.`, err);
-        break;
       }
     }
+     console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
   }
   
-  console.error(`[AI] All Gemini API keys failed for weather summary.`);
+  console.error(`[AI] All models and keys failed for weather summary.`);
 
   const finalErrorMessage = (lastError.message || '').toLowerCase();
   const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
   if (isQuotaFailure) {
-    throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
+    throw new Error('AI features unavailable. All configured Gemini models have exceeded their free tier quota. Please wait or add new keys.');
   }
 
   if (finalErrorMessage.includes('safety') || finalErrorMessage.includes('recitation')) {

@@ -3,7 +3,8 @@
 
 /**
  * @fileOverview An AI flow to decide if a weather alert should be sent based on
- * current conditions. This flow includes logic to rotate Gemini API keys on quota failure.
+ * current conditions. This flow includes logic to rotate Gemini API keys on quota failure
+ * and dynamically fall back to a secondary model if the primary model is unavailable.
  *
  * - shouldSendWeatherAlert - The primary exported function to call the AI flow.
  * - AlertDecisionInput - The Zod schema for the input data.
@@ -50,63 +51,73 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
     return { shouldSendAlert: false, reason: '' };
   }
 
-  let lastError: any = new Error('All Gemini API keys failed.');
+  const modelsToTry = [
+    'googleai/gemini-1.5-pro-latest',
+    'googleai/gemini-1.5-flash-latest',
+  ];
+  let lastError: any = new Error('All Gemini models and API keys failed.');
 
-  for (const [index, apiKey] of geminiApiKeys.entries()) {
-    try {
-      console.log(`[AI] Attempting alert decision with Gemini key ${index + 1}/${geminiApiKeys.length}.`);
+  for (const model of modelsToTry) {
+    console.log(`[AI] Attempting alert decision with model: ${model}`);
 
-      const localAi = genkit({
-        plugins: [googleAI({ apiKey })],
-        logLevel: 'warn',
-        enableTracingAndMetrics: true,
-      });
+    for (const [index, apiKey] of geminiApiKeys.entries()) {
+      try {
+        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
 
-      const alertDecisionPrompt = localAi.definePrompt({
-        name: `alertDecisionPrompt_key${index}`,
-        input: { schema: AlertDecisionInputSchema },
-        output: { schema: AlertDecisionOutputSchema },
-        prompt: alertDecisionPromptTemplate,
-        model: 'googleai/gemini-1.5-pro-latest',
-        temperature: 0.1,
-      });
+        const localAi = genkit({
+          plugins: [googleAI({ apiKey })],
+          logLevel: 'warn',
+          enableTracingAndMetrics: true,
+        });
 
-      const alertDecisionFlow = localAi.defineFlow(
-        {
-          name: `alertDecisionFlow_key${index}`,
-          inputSchema: AlertDecisionInputSchema,
-          outputSchema: AlertDecisionOutputSchema,
-        },
-        async (flowInput) => {
-          const { output } = await alertDecisionPrompt(flowInput);
-          if (!output) {
-            console.error("Failed to get AI output for alert decision");
-            return { shouldSendAlert: false, reason: '' };
+        const alertDecisionPrompt = localAi.definePrompt({
+          name: `alertDecisionPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          input: { schema: AlertDecisionInputSchema },
+          output: { schema: AlertDecisionOutputSchema },
+          prompt: alertDecisionPromptTemplate,
+          model,
+          temperature: 0.1,
+        });
+
+        const alertDecisionFlow = localAi.defineFlow(
+          {
+            name: `alertDecisionFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            inputSchema: AlertDecisionInputSchema,
+            outputSchema: AlertDecisionOutputSchema,
+          },
+          async (flowInput) => {
+            const { output } = await alertDecisionPrompt(flowInput);
+            if (!output) {
+              console.error("Failed to get AI output for alert decision");
+              return { shouldSendAlert: false, reason: '' };
+            }
+            return output;
           }
-          return output;
+        );
+        
+        const result = await alertDecisionFlow(input);
+        console.log(`[AI] Alert decision successful with model ${model} and key ${index + 1}.`);
+        return result;
+
+      } catch (err: any) {
+        lastError = err;
+        const errorMessage = (err.message || '').toLowerCase();
+        const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
+
+        if (isQuotaError) {
+          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          continue; // Continue to the next API key
+        } else {
+          // This is a non-quota, non-retryable error for this key. We should fail fast.
+          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
+          throw err;
         }
-      );
-      
-      const result = await alertDecisionFlow(input);
-      console.log(`[AI] Alert decision successful with Gemini key ${index + 1}.`);
-      return result;
-
-    } catch (err: any) {
-      lastError = err;
-      const errorMessage = (err.message || '').toLowerCase();
-      const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
-
-      if (isQuotaError) {
-        console.warn(`[AI] Gemini key ${index + 1} failed with quota error. Retrying with next key...`);
-        continue;
-      } else {
-        console.error(`[AI] Gemini key ${index + 1} failed with non-retryable error.`, err);
-        break;
       }
     }
+    console.log(`[AI] All keys for model ${model} failed due to quota errors. Trying fallback model...`);
   }
 
-  console.error('AI alert decision flow failed with all keys:', lastError);
+  console.error('AI alert decision flow failed with all models and keys:', lastError);
   
   const finalErrorMessage = (lastError.message || '').toLowerCase();
   const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
@@ -114,5 +125,6 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
     throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
   }
 
-  return { shouldSendAlert: false, reason: '' }; // Failsafe for other errors
+  // Failsafe for other errors if we somehow get here without throwing earlier
+  return { shouldSendAlert: false, reason: '' };
 }
