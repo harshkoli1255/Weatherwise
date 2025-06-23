@@ -62,10 +62,9 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
 
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    const displayName = `${suggestion.name}${suggestion.state ? ` (${suggestion.state})` : ''}${suggestion.country ? `, ${suggestion.country}` : ''}`;
-    setInputValue(displayName);
+    setInputValue(suggestion.name); // Use the clean name in the input
     setIsSuggestionsOpen(false);
-    onSearch(suggestion.name, suggestion.lat, suggestion.lon);
+    onSearch(suggestion.name, suggestion.lat, suggestion.lon); // Search with precise coordinates
     inputRef.current?.blur();
   };
 

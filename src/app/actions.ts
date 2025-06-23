@@ -246,8 +246,9 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
               const seenKeys = new Set<string>();
 
               for (const item of data) {
-                  const key = `${item.name}|${item.country}|${item.state || 'NO_STATE'}|${(item.lat || 0).toFixed(2)}|${(item.lon || 0).toFixed(2)}`;
-                  if (!seenKeys.has(key)) {
+                  // A more robust key that ignores minor coordinate differences for the same named place.
+                  const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
+                  if (item.name && item.country && !seenKeys.has(key)) {
                       seenKeys.add(key);
                       uniqueSuggestions.push({
                           name: item.name,

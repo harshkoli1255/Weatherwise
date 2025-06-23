@@ -102,8 +102,7 @@ export function AlertsCitySearch({ value, onValueChange, name, id, required }: A
   }, [value, hasFocus, debouncedFetchSuggestions]);
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    const displayName = `${suggestion.name}${suggestion.state ? ` (${suggestion.state})` : ''}${suggestion.country ? `, ${suggestion.country}` : ''}`;
-    onValueChange(displayName);
+    onValueChange(suggestion.name); // Use the clean name
     setIsSuggestionsOpen(false);
     setSuggestions([]);
     inputRef.current?.blur();
