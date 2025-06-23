@@ -23,7 +23,7 @@ export async function fetchWeatherAndSummaryAction(
     let locationIdentifier: LocationIdentifier;
     let resolvedCityNameForError: string | undefined = params.city;
 
-    // If only a city name is provided, resolve it to coordinates first for a more robust search.
+    // If only a city name is provided (no lat/lon), resolve it to coordinates first for a more robust search.
     if (params.city && (typeof params.lat !== 'number' || typeof params.lon !== 'number')) {
       console.log(`Resolving city name "${params.city}" to coordinates.`);
       const suggestionsResult = await fetchCitySuggestionsAction(params.city);
@@ -39,10 +39,8 @@ export async function fetchWeatherAndSummaryAction(
         return { data: null, error: errorMessage, cityNotFound: true };
       }
       
-      // --- START: INTELLIGENT MATCH SELECTION ---
-      // The `correctCitySpelling` flow inside `fetchCitySuggestionsAction` already cleans the query.
-      // We perform a client-side cleaning here as well to find the best match from the suggestion list.
-      const cleanedQuery = params.city.toLowerCase().replace(/weather in|weather of|weather|forecast for|forecast in|forecast/gi, '').split(',')[0].trim();
+      // Use the cleaned query returned by the suggestion action for matching.
+      const cleanedQuery = suggestionsResult.processedQuery.toLowerCase();
 
       // Default to the first result provided by the API.
       let bestMatch = suggestionsResult.suggestions[0];
@@ -56,12 +54,13 @@ export async function fetchWeatherAndSummaryAction(
       } else {
           console.log(`No exact match for "${cleanedQuery}". Using the first suggestion: ${bestMatch.name}`);
       }
-      // --- END: INTELLIGENT MATCH SELECTION ---
 
       console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
       locationIdentifier = { type: 'coords', lat: bestMatch.lat, lon: bestMatch.lon };
       resolvedCityNameForError = bestMatch.name;
+
     } else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
+      // If precise coordinates are provided, use them directly. This happens when a user selects a suggestion.
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
     } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
@@ -218,17 +217,17 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
   }
 }
 
-export async function fetchCitySuggestionsAction(query: string): Promise<{ suggestions: CitySuggestion[] | null; error: string | null }> {
+export async function fetchCitySuggestionsAction(query: string): Promise<{ suggestions: CitySuggestion[] | null; processedQuery: string; error: string | null }> {
   try {
     if (!query || query.trim().length < 2) {
-      return { suggestions: [], error: null };
+      return { suggestions: [], processedQuery: query, error: null };
     }
 
     let processedQuery = query.trim();
 
-    // Use AI to correct spelling *before* calling the geocoding API.
+    // Use AI to correct spelling and clean the query *before* calling the geocoding API.
     if (hasGeminiConfig) {
-        console.log(`Attempting AI spelling correction for "${processedQuery}".`);
+        console.log(`Attempting AI correction for raw query: "${processedQuery}"`);
         const correctionResult = await correctCitySpelling({ query: processedQuery });
         const correctedQuery = correctionResult.correctedQuery;
         
@@ -236,7 +235,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
             console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
             processedQuery = correctedQuery;
         } else {
-            console.log(`AI did not provide a different correction for "${processedQuery}".`);
+            console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
         }
     }
 
@@ -244,12 +243,12 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
       console.error("[Server Config Error] OpenWeather API keys missing for suggestions.");
-      return { suggestions: null, error: "Server configuration error: Geocoding keys missing." };
+      return { suggestions: null, processedQuery, error: "Server configuration error: Geocoding keys missing." };
     }
     const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
     if (openWeatherApiKeys.length === 0) {
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
-      return { suggestions: null, error: "Server configuration error: No valid geocoding keys." };
+      return { suggestions: null, processedQuery, error: "Server configuration error: No valid geocoding keys." };
     }
     
     let lastTechnicalError: string | null = null;
@@ -268,7 +267,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
                     continue; 
                 }
                 console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastTechnicalError, url });
-                return { suggestions: null, error: "Geocoding service returned an error." };
+                return { suggestions: null, processedQuery, error: "Geocoding service returned an error." };
             }
 
             const data: any[] = await response.json();
@@ -290,11 +289,11 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
                     });
                 }
             }
-            return { suggestions: uniqueSuggestions, error: null };
+            return { suggestions: uniqueSuggestions, processedQuery, error: null };
         } catch (e) {
             lastTechnicalError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
             console.error("Error fetching city suggestions:", e);
-            return { suggestions: null, error: "Network error while fetching suggestions." };
+            return { suggestions: null, processedQuery, error: "Network error while fetching suggestions." };
         }
     }
     
@@ -302,12 +301,12 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     const serverError = lastTechnicalError || "Failed to fetch city suggestions with all available API keys.";
     console.error("[Service Error] All geocoding API keys failed.", { details: serverError });
     const userFacingError = "Could not retrieve city suggestions due to a server-side issue.";
-    return { suggestions: null, error: userFacingError };
+    return { suggestions: null, processedQuery, error: userFacingError };
 
   } catch (error) {
     console.error("An unexpected error occurred in fetchCitySuggestionsAction:", error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred while fetching suggestions.";
-    return { suggestions: null, error: message };
+    return { suggestions: null, processedQuery: query, error: message };
   }
 }
 
