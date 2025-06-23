@@ -201,7 +201,7 @@ export default function WeatherPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-      <section className="w-full max-w-3xl mb-8 sm:mb-10 text-center">
+      <section className="relative z-10 w-full max-w-3xl mb-8 sm:mb-10 text-center">
         <h1 className="text-4xl sm:text-6xl font-headline font-extrabold text-primary mb-4 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
           Weatherwise
         </h1>
