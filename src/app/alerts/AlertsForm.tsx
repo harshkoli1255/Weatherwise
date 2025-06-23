@@ -113,21 +113,21 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
             </div>
           </div>
           <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="space-y-2 pt-2">
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
               <RadioGroupItem value="everyHour" id="freq-max" />
               <div className="grid gap-1.5 leading-normal">
                 <Label htmlFor="freq-max" className="font-semibold cursor-pointer">Maximum</Label>
                 <p className="text-sm text-muted-foreground">Get an alert every hour that significant weather conditions are detected.</p>
               </div>
             </div>
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
               <RadioGroupItem value="balanced" id="freq-bal" />
               <div className="grid gap-1.5 leading-normal">
                 <Label htmlFor="freq-bal" className="font-semibold cursor-pointer">Balanced (Recommended)</Label>
                 <p className="text-sm text-muted-foreground">Get one alert when significant weather starts, then stay quiet for 4 hours to prevent noise.</p>
               </div>
             </div>
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 border border-transparent transition-colors">
+            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
               <RadioGroupItem value="oncePerDay" id="freq-min" />
               <div className="grid gap-1.5 leading-normal">
                 <Label htmlFor="freq-min" className="font-semibold cursor-pointer">Minimal</Label>

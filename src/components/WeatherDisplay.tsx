@@ -5,6 +5,7 @@ import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -26,21 +27,21 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
       </CardHeader>
       <CardContent className="space-y-8 p-4 sm:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
-          <div className="flex-shrink-0 order-2 sm:order-1">
+          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
             <div className="text-7xl sm:text-8xl font-bold text-primary drop-shadow-lg">
               {weatherData.temperature}°
               <span className="text-5xl sm:text-6xl text-primary/80">C</span>
             </div>
           </div>
-          <div className="flex justify-center items-center order-1 sm:order-2">
+          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
             <WeatherIcon iconCode={weatherData.iconCode} className={`h-28 w-28 sm:h-36 sm:w-36 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-orange-400" />
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-sky-400" />
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-cyan-400" />
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-orange-400" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-sky-400" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-cyan-400" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
@@ -53,8 +54,13 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
             </div>
             <ScrollArea className="w-full whitespace-nowrap rounded-lg">
               <div className="flex space-x-3 pb-3">
-                {weatherData.hourlyForecast.map((forecastItem) => (
-                  <HourlyForecastItem key={forecastItem.timestamp} forecast={forecastItem} />
+                {weatherData.hourlyForecast.map((forecastItem, index) => (
+                  <HourlyForecastItem 
+                    key={forecastItem.timestamp} 
+                    forecast={forecastItem} 
+                    className="animate-in fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  />
                 ))}
               </div>
               <ScrollBar orientation="horizontal" />
@@ -94,16 +100,16 @@ export function WeatherDisplay({ weatherData }: WeatherDisplayProps) {
   );
 }
 
-interface WeatherDetailItemProps {
+interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
   icon: React.ElementType;
   label: string;
   value: string;
   iconColor?: string;
 }
 
-function WeatherDetailItem({ icon: Icon, label, value, iconColor }: WeatherDetailItemProps) {
+function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105">
+    <div className={cn("flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105", className)} {...props}>
       <Icon className={cn("h-7 w-7 mb-2", iconColor || 'text-primary')} />
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>
@@ -111,11 +117,11 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor }: WeatherDetai
   );
 }
 
-interface HourlyForecastItemProps {
+interface HourlyForecastItemProps extends React.HTMLAttributes<HTMLDivElement> {
   forecast: HourlyForecastData;
 }
 
-function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
+function HourlyForecastItem({ forecast, className, ...props }: HourlyForecastItemProps) {
   const getIconColor = (iconCode: string): string => {
     const isDay = iconCode.endsWith('d');
     const code = iconCode.substring(0, 2);
@@ -145,7 +151,7 @@ function HourlyForecastItem({ forecast }: HourlyForecastItemProps) {
   const iconColor = getIconColor(forecast.iconCode);
 
   return (
-    <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-all duration-300 shadow-lg border border-border/30 w-[85px] flex-shrink-0 hover:shadow-xl hover:scale-105">
+    <div className={cn("flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-primary/10 transition-all duration-300 shadow-lg border border-border/30 w-[85px] flex-shrink-0 hover:shadow-xl hover:scale-105", className)} {...props}>
       <p className="text-sm font-medium text-muted-foreground mb-1.5">{forecast.time}</p>
       <WeatherIcon iconCode={forecast.iconCode} className={cn("h-9 w-9 drop-shadow-lg mb-1", iconColor)} />
       <p className="text-lg font-bold text-primary mt-1.5">{forecast.temp}°</p>
