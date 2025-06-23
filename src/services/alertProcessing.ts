@@ -32,11 +32,29 @@ function isTimeInSchedule(preferences: AlertPreferences, timezone: number): bool
 }
 
 function checkAlertConditions(weatherData: WeatherSummaryData): string[] {
-  if (weatherData.weatherSentiment === 'bad') {
-    return ['AI analysis determined that current weather conditions are significant. Please review the summary for details.'];
+  const triggers: string[] = [];
+
+  // Add specific, objective triggers based on thresholds.
+  // These thresholds align with the AI prompt's definition of 'bad' weather.
+  if (weatherData.temperature > 30) {
+    triggers.push(`High temperature: ${weatherData.temperature}°C`);
   }
-  return [];
+  if (weatherData.temperature < 5) {
+    triggers.push(`Low temperature: ${weatherData.temperature}°C`);
+  }
+  if (weatherData.windSpeed > 30) {
+    triggers.push(`High wind speed: ${weatherData.windSpeed} km/h`);
+  }
+
+  // Also consider the AI's overall sentiment, if it's 'bad' and we haven't already added a specific trigger.
+  // This acts as a fallback for complex "bad" conditions not captured by simple thresholds.
+  if (weatherData.weatherSentiment === 'bad' && triggers.length === 0) {
+    triggers.push('AI analysis determined that overall conditions are significant.');
+  }
+
+  return triggers;
 }
+
 
 function shouldSendBasedOnFrequency(preferences: AlertPreferences): boolean {
   const frequency = preferences.notificationFrequency ?? 'everyHour';
