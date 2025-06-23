@@ -14,6 +14,7 @@ import {
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
+import { cacheService } from '@/services/cacheService';
 
 function isAiConfigured() {
   const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
@@ -25,12 +26,11 @@ export async function fetchWeatherAndSummaryAction(
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
   try {
     let locationIdentifier: LocationIdentifier;
-    // This will hold the name we want to display to the user, regardless of what the API returns.
     let intendedCityName: string | undefined = params.city;
+    let cacheKey: string | null = null;
 
-    // --- Step 1: Determine the exact coordinates to search for ---
+    // --- Step 1: Determine the exact coordinates and a unique cache key ---
 
-    // Case A: User typed a city name (or selected a suggestion without lat/lon)
     if (params.city && (typeof params.lat !== 'number' || typeof params.lon !== 'number')) {
       console.log(`Resolving city name "${params.city}" to coordinates.`);
       const suggestionsResult = await fetchCitySuggestionsAction(params.city);
@@ -58,21 +58,33 @@ export async function fetchWeatherAndSummaryAction(
 
       console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
       locationIdentifier = { type: 'coords', lat: bestMatch.lat, lon: bestMatch.lon };
-      // CRITICAL: We set the intended display name to the name from our validated suggestion.
       intendedCityName = bestMatch.name;
+      cacheKey = `weather-${bestMatch.lat.toFixed(4)}-${bestMatch.lon.toFixed(4)}`;
 
     } 
-    // Case B: User clicked a suggestion with precise coordinates
     else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
-      // The intendedCityName is already correctly set to params.city from the initial assignment.
+      cacheKey = `weather-${params.lat.toFixed(4)}-${params.lon.toFixed(4)}`;
     } 
-    // Case C: Invalid input
     else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
 
-    // --- Step 2: Fetch weather data using the determined coordinates ---
+    // --- Step 1.5: Check for cached data before making API calls ---
+    if (cacheKey) {
+      const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
+      if (cachedData) {
+        // Handle case where user searches for a different name for the same coordinates
+        if (intendedCityName && cachedData.city !== intendedCityName) {
+          console.log(`[Cache] HIT, but correcting city name from "${cachedData.city}" to "${intendedCityName}".`);
+          cachedData.city = intendedCityName;
+        }
+        return { data: cachedData, error: null, cityNotFound: false };
+      }
+    }
+    console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
+
+    // --- Step 2: Fetch weather data using the determined coordinates (if no cache) ---
     
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
@@ -135,7 +147,6 @@ export async function fetchWeatherAndSummaryAction(
     
     // --- Step 3: Correct the city name and generate AI summary ---
 
-    // CRITICAL FIX: Always use the intendedCityName for display if it exists and differs from the API response.
     if (intendedCityName && currentWeatherData.city !== intendedCityName) {
       console.log(`Correcting API city name. API returned: "${currentWeatherData.city}", User intended: "${intendedCityName}".`);
       currentWeatherData.city = intendedCityName;
@@ -161,7 +172,6 @@ export async function fetchWeatherAndSummaryAction(
         } catch (err) {
             console.error("Error generating AI weather summary:", err);
             const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
-            // Make the UI message more direct and helpful
             if (errorMessage.toLowerCase().includes('quota')) {
                  aiError = "<strong>AI Summary Unavailable</strong>: All of your Gemini API keys have reached their free tier quota for this model. Please wait for the quota to reset, or add new keys to your .env file.";
             } else {
@@ -176,18 +186,26 @@ export async function fetchWeatherAndSummaryAction(
     
     const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${currentWeatherData.city}`;
     
-    return {
-      data: { 
+    const finalData: WeatherSummaryData = { 
         ...currentWeatherData, 
         aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.",
         aiSubject: aiSummaryOutput?.subjectLine || fallbackSubject,
         weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
         activitySuggestion: aiSummaryOutput?.activitySuggestion || "Check conditions before planning activities.",
         hourlyForecast: hourlyForecastData || [], 
-      },
+    };
+
+    // --- Step 4: Store the fresh data in the cache before returning ---
+    if (cacheKey) {
+      cacheService.set(cacheKey, finalData);
+    }
+    
+    return {
+      data: finalData,
       error: null, 
       cityNotFound: false
     };
+
   } catch (error) {
     console.error("An unexpected error occurred in fetchWeatherAndSummaryAction:", error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred.";
@@ -242,7 +260,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     let processedQuery = query.trim();
 
-    // Use AI to interpret the natural language query *before* calling the geocoding API.
     if (isAiConfigured()) {
         try {
             console.log(`Attempting AI interpretation for raw query: "${processedQuery}"`);
@@ -256,7 +273,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
                 console.log(`AI did not provide a different interpretation for "${processedQuery}". Using original.`);
             }
         } catch (err) {
-            // If AI interpretation fails (e.g., quota), return the error to the user.
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
             console.error("AI city interpretation failed:", message);
             return { suggestions: null, processedQuery, error: message };
@@ -300,7 +316,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
             const seenKeys = new Set<string>();
 
             for (const item of data) {
-                // A more robust key that ignores minor coordinate differences for the same named place.
                 const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
                 if (item.name && item.country && !seenKeys.has(key)) {
                     seenKeys.add(key);
@@ -321,7 +336,6 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         }
     }
     
-    // If all keys fail
     const serverError = lastTechnicalError || "Failed to fetch city suggestions with all available API keys.";
     console.error("[Service Error] All geocoding API keys failed.", { details: serverError });
     const userFacingError = "Could not retrieve city suggestions due to a server-side issue.";
@@ -368,7 +382,6 @@ export async function getCityFromCoordsAction(
         } else {
           const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
           lastTechnicalError = errorData.message || `Failed to fetch city name (status: ${response.status})`;
-          // Only retry on key-related errors
           if (![401, 403, 429].includes(response.status)) {
               break; 
           }
@@ -377,7 +390,6 @@ export async function getCityFromCoordsAction(
           if (e instanceof Error) {
             lastTechnicalError = e.message;
           }
-          // Don't break on fetch errors, could be network hiccup. Let it try next key.
       }
     }
 
