@@ -25,6 +25,10 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Weatherwise',
   description: 'Get real-time weather updates and AI summaries.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({
