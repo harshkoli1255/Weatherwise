@@ -10,7 +10,13 @@ Follow these steps to download the code, configure it, and run it on your local 
 
 ### 1. Download the Code
 
-Your code is in your project repository. You can clone it using `git` or download it as a ZIP file to get started.
+Your code is in your project repository. You can get it onto your computer in one of two ways:
+
+*   **Clone with Git (Recommended):** Open your terminal and use the `git clone` command with your repository's URL.
+    ```bash
+    git clone <YOUR_REPOSITORY_URL>
+    ```
+*   **Download ZIP:** On your code hosting platform (like GitHub), look for a "Code" button and select "Download ZIP". Unzip the file on your computer.
 
 ### 2. Configure Environment Variables
 
