@@ -67,7 +67,7 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         input: { schema: AlertDecisionInputSchema },
         output: { schema: AlertDecisionOutputSchema },
         prompt: alertDecisionPromptTemplate,
-        model: 'googleai/gemini-1.5-flash-latest',
+        model: 'googleai/gemini-1.5-pro-latest',
         temperature: 0.1,
       });
 
