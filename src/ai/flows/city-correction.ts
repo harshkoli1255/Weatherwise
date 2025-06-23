@@ -63,6 +63,8 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
           input: { schema: CityCorrectionInputSchema },
           output: { schema: CityCorrectionOutputSchema },
           prompt: correctionPromptTemplate,
+        },
+        {
           model: 'googleai/gemini-1.5-pro-latest',
           temperature: 0.2,
         }
@@ -104,5 +106,12 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
   }
 
   console.error(`AI spelling correction failed with all keys:`, lastError);
-  return { correctedQuery: input.query }; // Failsafe
+
+  const finalErrorMessage = (lastError.message || '').toLowerCase();
+  const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
+  if (isQuotaFailure) {
+    throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
+  }
+
+  return { correctedQuery: input.query }; // Failsafe for other errors
 }

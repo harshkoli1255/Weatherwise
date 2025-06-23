@@ -238,15 +238,22 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     // Use AI to correct spelling and clean the query *before* calling the geocoding API.
     if (isAiConfigured()) {
-        console.log(`Attempting AI correction for raw query: "${processedQuery}"`);
-        const correctionResult = await correctCitySpelling({ query: processedQuery });
-        const correctedQuery = correctionResult.correctedQuery;
-        
-        if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
-            console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
-            processedQuery = correctedQuery;
-        } else {
-            console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
+        try {
+            console.log(`Attempting AI correction for raw query: "${processedQuery}"`);
+            const correctionResult = await correctCitySpelling({ query: processedQuery });
+            const correctedQuery = correctionResult.correctedQuery;
+            
+            if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
+                console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
+                processedQuery = correctedQuery;
+            } else {
+                console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
+            }
+        } catch (err) {
+            // If AI correction fails (e.g., quota), return the error to the user.
+            const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
+            console.error("AI city correction failed:", message);
+            return { suggestions: null, processedQuery, error: message };
         }
     }
 

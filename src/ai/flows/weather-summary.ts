@@ -67,6 +67,8 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
           input: { schema: WeatherSummaryInputSchema },
           output: { schema: WeatherSummaryOutputSchema },
           prompt: summaryPromptTemplate,
+        },
+        {
           model: 'googleai/gemini-1.5-pro-latest',
           temperature: 0.6,
           safetySettings: [
@@ -75,7 +77,7 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
               { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
               { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
           ],
-        },
+        }
       );
 
       const weatherSummaryFlow = localAi.defineFlow(
@@ -113,18 +115,16 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
   }
   
   console.error(`[AI] All Gemini API keys failed for weather summary.`);
+
   const finalErrorMessage = (lastError.message || '').toLowerCase();
-  if (
-      finalErrorMessage.includes('api key not valid') ||
-      finalErrorMessage.includes('permission denied') ||
-      finalErrorMessage.includes('quota') ||
-      finalErrorMessage.includes('billing') ||
-      finalErrorMessage.includes('resource has been exhausted')
-  ) {
-      throw new Error('AI summary service unavailable. All configured Gemini API keys have failed, likely due to billing or quota issues.');
+  const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
+  if (isQuotaFailure) {
+    throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
   }
+
   if (finalErrorMessage.includes('safety') || finalErrorMessage.includes('recitation')) {
       throw new Error('AI summary generation was blocked by content filters.');
   }
+  
   throw new Error(`AI summary generation failed. Please check server logs for details.`);
 }

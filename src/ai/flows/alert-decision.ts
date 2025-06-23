@@ -67,6 +67,8 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
           input: { schema: AlertDecisionInputSchema },
           output: { schema: AlertDecisionOutputSchema },
           prompt: alertDecisionPromptTemplate,
+        },
+        {
           model: 'googleai/gemini-1.5-pro-latest',
           temperature: 0.1,
         }
@@ -108,5 +110,12 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
   }
 
   console.error('AI alert decision flow failed with all keys:', lastError);
-  return { shouldSendAlert: false, reason: '' }; // Failsafe
+  
+  const finalErrorMessage = (lastError.message || '').toLowerCase();
+  const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
+  if (isQuotaFailure) {
+    throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
+  }
+
+  return { shouldSendAlert: false, reason: '' }; // Failsafe for other errors
 }
