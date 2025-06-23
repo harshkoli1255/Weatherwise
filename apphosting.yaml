@@ -2,6 +2,12 @@
 # https://firebase.google.com/docs/app-hosting/configure
 
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
+  # This sets the maximum number of server instances that can run at once.
+  # For the free tier, this is typically limited. Increasing this can handle more
+  # concurrent traffic but may incur costs on a paid plan.
   maxInstances: 1
+  
+  # By default on the free tier, minInstances is 0. This means if your app
+  # has no traffic, it will "scale to zero" or "go to sleep" to save resources.
+  # The first request will trigger a "cold start," which may take a few seconds.
+  # This is normal and ideal for cost-effective hosting.

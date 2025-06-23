@@ -157,6 +157,16 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ---
 
+## ❓ Frequently Asked Questions
+
+**Will the app and alerts run 24/7 on Firebase?**
+
+Yes. Firebase App Hosting keeps your website online 24/7. The hourly alerts depend on the external cron job service you set up. As long as that service calls your app's `/api/cron` URL every hour, your alerts will be checked around the clock.
+
+On the free tier, if your app has no traffic for a while, it might "go to sleep" to save resources. The first request (from a user or the cron job) will wake it up automatically, which might take a few seconds. This is a normal "cold start" and won't affect the alert functionality.
+
+---
+
 ## 💻 Recommended VS Code Extensions
 
 This project includes a `.vscode/extensions.json` file. The first time you open this project in VS Code, it will automatically detect this file and prompt you to install these recommended extensions with one click. This works seamlessly on Windows, macOS, and Linux.
