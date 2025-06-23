@@ -155,7 +155,16 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
         > **Note:** You must use your public Firebase URL here, not `localhost`. The cron service is on the internet and cannot access your local machine.
     *   **Schedule:** Set it to run **once every hour**.
     *   **HTTP Method:** `GET`
-    *   **Custom Headers:** Add an `Authorization` header with the value `Bearer <YOUR_CRON_SECRET>`. This must exactly match the secret you configured in Firebase.
+    *   **Custom Headers:**
+        > **⚠️ This is the most common point of failure. Please follow these instructions exactly.**
+        > On `cron-job.org` or a similar service, find the section for "Custom Headers" or "HTTP Headers". You must add **one** header:
+        > - Header Name: `Authorization`
+        > - Header Value: `Bearer <YOUR_CRON_SECRET>`
+        >
+        > **Important:**
+        > - Replace `<YOUR_CRON_SECRET>` with the actual secret password you created.
+        > - The value **must** start with the word `Bearer` followed by a space, and then your secret. For example: `Bearer mySuperSecretPassword123`
+        > - The header name is `Authorization`, with a capital 'A'.
 
 ### How to Verify Your Cron Job is Working
 
@@ -170,7 +179,10 @@ After you have set up your job on a service like `cron-job.org`:
     ```
     [CRON-AUTH-SUCCESS] Cron job authorized successfully
     ```
-    If you see this message, your cron job is set up correctly and is successfully communicating with your app! If you don't see it, check the logs for a `[CRON-AUTH-FAIL]` message, which will show you if the secret token was sent incorrectly.
+    If you see this message, your cron job is set up correctly and is successfully communicating with your app! If you don't see it, check the logs for a `[CRON-AUTH-FAIL]` message, which will show you what went wrong.
+
+    > **Troubleshooting "Unauthorized" Errors:**
+    > If your log shows `[CRON-AUTH-FAIL] ... Received header: "null"`, it means the `Authorization` header was **not sent at all**. Double-check that you have correctly added the custom header in your cron service settings and that the header name is spelled `Authorization` exactly.
 
 ---
 

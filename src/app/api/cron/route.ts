@@ -20,6 +20,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
+  const expectedHeader = `Bearer ${cronSecret}`;
 
   // 1. Check if the CRON_SECRET is configured on the server
   if (!cronSecret) {
@@ -31,8 +32,9 @@ export async function GET(request: Request) {
   }
 
   // 2. Check if the incoming request has the correct secret token
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    console.warn(`[CRON-AUTH-FAIL] Unauthorized attempt to access CRON endpoint. Received header: "${authHeader}"`);
+  if (authHeader !== expectedHeader) {
+    // This warning is crucial for debugging. It shows what header was actually received vs what was expected.
+    console.warn(`[CRON-AUTH-FAIL] Unauthorized attempt to access CRON endpoint. Received header: "${authHeader}". Expected: "${expectedHeader}"`);
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
