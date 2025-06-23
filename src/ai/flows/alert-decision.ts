@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -11,7 +10,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/googleai';
 import {
   AlertDecisionInputSchema,
   type AlertDecisionInput,
@@ -46,7 +44,7 @@ Decision Criteria:
 4.  **Generate a Reason:** If you decide to send an alert (\`shouldSendAlert: true\`), provide a concise, user-facing reason. The reason should be formatted with HTML strong tags for emphasis, for example: "High temperature: <strong>32°C</strong>" or "Strong winds at <strong>35 km/h</strong>.". If multiple conditions are met, you can combine them like "High temperature and strong winds."
 5.  **Final Output:** Your response must be only the JSON object in the specified format with \`shouldSendAlert\` (boolean) and \`reason\` (string). If \`shouldSendAlert\` is false, the \`reason\` must be an empty string. Do not add any other text or markdown formatting like \`\`\`json.
 `,
-    model: geminiPro,
+    model: 'googleai/gemini-pro',
     temperature: 0.1, // Low temperature for deterministic decisions
   }
 );

@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -13,7 +12,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/googleai';
 import {
   CityCorrectionInputSchema,
   type CityCorrectionInput,
@@ -39,7 +37,7 @@ Instructions:
 3.  **Correct Spelling:** Based on the simplified and sanitized text, identify the most likely city the user intended to search for. Fix any obvious spelling mistakes. For example, "Lodon" becomes "London", "PAris" becomes "Paris", and "New Yrok" becomes "New York". For a jumbled query like "reirbge", a plausible correction could be "Freiburg".
 4.  **Output:** Return *only* the JSON object with the corrected city name in the 'correctedQuery' field. If you are absolutely unable to make a sensible correction from the input, return the original, simplified and sanitized query. Do not add any explanations or markdown formatting like \`\`\`json.
 `,
-    model: geminiPro,
+    model: 'googleai/gemini-pro',
     temperature: 0.2, // Keep temperature low for deterministic corrections
   }
 );
