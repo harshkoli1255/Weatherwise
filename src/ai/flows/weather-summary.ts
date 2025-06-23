@@ -13,6 +13,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { geminiPro } from '@genkit-ai/googleai';
 import {
   WeatherSummaryInputSchema,
   type WeatherSummaryInput,
@@ -47,16 +48,14 @@ Instructions:
 4.  **Generate the Subject Line:** Create a detailed and engaging email subject line. It must start with one or more relevant weather emojis (e.g., "☀️ Clear Skies & 22°C in London"). You can also include an emoji that hints at the activity suggestion, like 💡 or 🏃.
 5.  **Create a Creative Activity Suggestion:** Provide a creative and specific activity suggestion. Instead of generic advice, offer a concrete idea that fits the weather. For example, for a sunny day, suggest 'It's a perfect afternoon for a picnic in the park or reading a book on a coffee shop patio.' For a rainy day, suggest 'A great opportunity to visit a <strong>local museum</strong> or cozy up with a movie marathon at home.' Keep it to a single, encouraging sentence. You can use \`<strong>\` tags here as well to highlight a key part of the suggestion.
 `,
-    config: {
-        model: 'googleai/gemini-pro',
-        temperature: 0.6,
-        safetySettings: [
-            { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-        ],
-    },
+    model: geminiPro,
+    temperature: 0.6,
+    safetySettings: [
+        { category: 'HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        { category: 'DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+    ],
   },
 );
 
