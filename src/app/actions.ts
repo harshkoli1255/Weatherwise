@@ -160,7 +160,13 @@ export async function fetchWeatherAndSummaryAction(
             console.log("AI summary and subject successfully generated.");
         } catch (err) {
             console.error("Error generating AI weather summary:", err);
-            aiError = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
+            const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
+            // Make the UI message more direct and helpful
+            if (errorMessage.toLowerCase().includes('quota')) {
+                 aiError = "<strong>AI Summary Unavailable</strong>: All of your Gemini API keys have reached their free tier quota for this model. Please wait for the quota to reset, or add new keys to your .env file.";
+            } else {
+                aiError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
+            }
             console.log("Assigned AI Error message:", aiError);
         }
     } else {
