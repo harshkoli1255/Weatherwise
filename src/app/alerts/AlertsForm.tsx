@@ -13,9 +13,10 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, MailQuestion } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion, Info } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -129,7 +130,24 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <div className="flex items-center gap-3 mb-1">
             <Zap className="h-6 w-6 text-primary" />
             <div className="space-y-0.5">
-              <h4 className="font-medium">Alert Sensitivity</h4>
+              <div className="flex items-center gap-2">
+                 <h4 className="font-medium">Alert Sensitivity</h4>
+                 <TooltipProvider>
+                  <Tooltip delayDuration={100}>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs" side="top">
+                      <p className="font-bold">Maximum:</p>
+                      <p className="mb-2 text-sm text-muted-foreground">Sends an alert every hour if significant weather continues.</p>
+                      <p className="font-bold">Balanced:</p>
+                      <p className="mb-2 text-sm text-muted-foreground">Sends one alert, then waits 4 hours before sending another for the same conditions.</p>
+                      <p className="font-bold">Minimal:</p>
+                      <p className="text-sm text-muted-foreground">Sends a maximum of one alert per day.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <p className="text-sm text-muted-foreground">Control how often you receive alerts for significant weather.</p>
             </div>
           </div>
