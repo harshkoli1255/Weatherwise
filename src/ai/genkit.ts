@@ -2,15 +2,13 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 
-// This is the new, correct way to initialize Genkit as of v1.x.
-// The `configureGenkit` function has been removed, which caused the error.
-
-const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
+const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
 
 const plugins = [];
-if (geminiApiKey) {
-  console.log(`Initializing Genkit with a configured Gemini API key.`);
-  plugins.push(googleAI({ apiKey: geminiApiKey }));
+if (geminiApiKeys.length > 0) {
+  console.log(`Initializing Genkit with ${geminiApiKeys.length} configured Gemini API key(s) for automatic rotation.`);
+  // The googleAI plugin natively supports an array of keys for rotation.
+  plugins.push(googleAI({ apiKey: geminiApiKeys }));
 } else {
   console.warn(
     'GEMINI_API_KEYS is not set in the .env file. AI features requiring Gemini will not work.'

@@ -3,14 +3,14 @@
 
 /**
  * @fileOverview A centralized service for making resilient calls to the Gemini API.
- * This service encapsulates the logic for model fallback and API key rotation,
- * ensuring that AI generation requests are robust and efficient.
+ * This service encapsulates the logic for model fallback, ensuring that
+ * AI generation requests are robust and efficient. API key rotation is handled
+ * natively by the configured Genkit googleAI plugin.
  */
 
-import { genkit, GenerateOptions } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
+import { GenerateOptions } from 'genkit';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
-import { apiKeyManager } from '@/services/apiKeyManager';
 import { z } from 'zod';
 
 const PREFERRED_MODELS = [
@@ -30,9 +30,8 @@ interface GenerationParams<I extends z.ZodType, O extends z.ZodType> extends Omi
 }
 
 /**
- * Makes a call to the Gemini API using an intelligent fallback strategy.
- * It iterates through preferred models and available API keys, handling quota errors
- * and other failures gracefully.
+ * Makes a call to the Gemini API using an intelligent model fallback strategy.
+ * It iterates through preferred models, handling quota errors and other failures gracefully.
  *
  * @param params The generation parameters, including prompt, input, and output schema.
  * @returns A promise that resolves with the generated output.
@@ -56,13 +55,6 @@ export async function generateWithFallback<I extends z.ZodType, O extends z.ZodT
 
     const finalPrompt = renderPrompt(promptTemplate, input);
     
-    const keysToTry = apiKeyManager.getKeysToTry();
-    if (keysToTry.length === 0) {
-        const errorMsg = 'AI service is not configured or no keys are available.';
-        console.warn(`[AI/${source}] Skipped: ${errorMsg}`);
-        throw new Error(errorMsg);
-    }
-
     let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
     if (modelsToTry.length === 0) {
         console.log(`[AI/${source}] All preferred models are currently cached as unavailable. Re-attempting all.`);
@@ -73,53 +65,44 @@ export async function generateWithFallback<I extends z.ZodType, O extends z.ZodT
     let lastError: any = new Error('All Gemini models and API keys failed.');
 
     for (const model of modelsToTry) {
-        console.log(`[AI/${source}] Attempting with model: ${model}`);
+        try {
+            console.log(`[AI/${source}] Attempting with model: ${model}`);
+            
+            const { output: generatedOutput } = await ai.generate({
+                model,
+                prompt: finalPrompt,
+                output: {
+                    ...output,
+                    format: 'json',
+                },
+                ...restOfConfig
+            });
+            
+            if (!generatedOutput) {
+                throw new Error(`AI generation for ${source} failed to produce a valid output.`);
+            }
+            
+            console.log(`[AI/${source}] Successful with model ${model}.`);
+            return generatedOutput;
 
-        for (const { key: apiKey, index: keyIndex } of keysToTry) {
-            try {
-                console.log(`[AI/${source}] Using Gemini API key with index ${keyIndex} for model ${model}.`);
+        } catch (err: any) {
+            lastError = err;
+            const errorMessage = (err.message || '').toLowerCase();
+            const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
-                const localAi = genkit({
-                    plugins: [googleAI({ apiKey })],
-                    logLevel: 'warn',
-                    enableTracingAndMetrics: true,
-                });
-                
-                const { output: generatedOutput } = await localAi.generate({
-                    model,
-                    prompt: finalPrompt,
-                    output: {
-                        ...output,
-                        format: 'json',
-                    },
-                    ...restOfConfig
-                });
-                
-                if (!generatedOutput) {
-                    throw new Error(`AI generation for ${source} failed to produce a valid output.`);
-                }
-                
-                console.log(`[AI/${source}] Successful with model ${model} and key index ${keyIndex}.`);
-                apiKeyManager.reportSuccess(keyIndex);
-                return generatedOutput;
-
-            } catch (err: any) {
-                lastError = err;
-                const errorMessage = (err.message || '').toLowerCase();
-                const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
-
-                if (isQuotaError) {
-                    console.warn(`[AI/${source}] Key index ${keyIndex} for model ${model} failed with quota error. Trying next key...`);
-                    apiKeyManager.reportFailure(keyIndex);
-                    continue; // Continue to the next API key
-                } else {
-                    console.error(`[AI/${source}] A non-retryable error occurred with model ${model} and key index ${keyIndex}. Failing fast for this model.`, err);
-                    break; // Break from the key loop and try the next model
-                }
+            if (isQuotaError) {
+                console.warn(`[AI/${source}] Model ${model} failed with quota error. Trying next model...`);
+                // Mark this model as unavailable for a while.
+                modelAvailabilityService.reportFailure(model);
+                // The underlying googleAI plugin will handle trying the next key automatically.
+                // If all keys for this model fail, we'll hit this catch block, and then try the next model.
+                continue; 
+            } else {
+                console.error(`[AI/${source}] A non-retryable error occurred with model ${model}.`, err);
+                modelAvailabilityService.reportFailure(model);
+                continue; // Still try the next model, as it might be a model-specific issue.
             }
         }
-        console.log(`[AI/${source}] All available keys for model ${model} failed. Reporting model as unavailable.`);
-        modelAvailabilityService.reportFailure(model);
     }
 
     console.error(`[AI/${source}] Flow failed with all models and keys:`, lastError);
