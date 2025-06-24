@@ -6,8 +6,7 @@ export default function ProfilePage() {
   return (
     <div className="flex justify-center items-start container mx-auto px-4 py-8 sm:py-10 md:py-12">
       <div className="w-full max-w-4xl">
-        <UserProfile 
-            path="/profile" 
+        <UserProfile
             routing="hash"
             appearance={{
                 elements: {
