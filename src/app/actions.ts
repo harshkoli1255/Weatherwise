@@ -77,7 +77,7 @@ export async function fetchWeatherAndSummaryAction(
     
     if (!weatherResult.data || !weatherResult.rawResponse) {
       const isNotFound = weatherResult.status === 404;
-      const originalQuery = location.type === 'city' ? location.city : `${location.lat}, ${location.lon}`;
+      const originalQuery = locationIdentifier.type === 'city' ? locationIdentifier.city : `${locationIdentifier.lat}, ${locationIdentifier.lon}`;
       const errorMessage = isNotFound 
         ? `Could not find a valid location for "${originalQuery}". Please try a different search.`
         : weatherResult.error;
@@ -88,8 +88,13 @@ export async function fetchWeatherAndSummaryAction(
     const resolvedLat = weatherResult.rawResponse.coord.lat;
     const resolvedLon = weatherResult.rawResponse.coord.lon;
 
+    // --- FIX: Preserve user-selected city name ---
+    // When searching by coordinates (often from a suggestion), the API might return the name of a
+    // nearby, larger city. We prioritize the name the user actually searched for or selected.
+    const finalCityName = params.city || currentWeatherData.city;
+
     const aiInput: WeatherSummaryInput = {
-      city: currentWeatherData.city,
+      city: finalCityName, // Use the preserved name
       temperature: currentWeatherData.temperature,
       feelsLike: currentWeatherData.feelsLike,
       humidity: currentWeatherData.humidity,
@@ -114,10 +119,11 @@ export async function fetchWeatherAndSummaryAction(
 
     const hourlyForecastData = hourlyForecastResult.data ?? [];
     
-    const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${currentWeatherData.city}`;
+    const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${finalCityName}`;
     
     const finalData: WeatherSummaryData = { 
         ...currentWeatherData,
+        city: finalCityName, // CRITICAL: Override the city name here.
         lat: resolvedLat,
         lon: resolvedLon,
         aiSummary: aiResult.summary || aiResult.error || "AI summary not available.",
@@ -386,5 +392,6 @@ export async function fetchWeatherForFavoritesAction(
 
   return results;
 }
+    
 
     
