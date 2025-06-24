@@ -1,6 +1,3 @@
-
-'use server';
-
 /**
  * @fileOverview A service to manage and rotate API keys intelligently.
  * This service helps improve performance and resilience by:
