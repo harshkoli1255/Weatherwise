@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useFavoriteCities } from '@/hooks/use-favorite-cities';
+import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,

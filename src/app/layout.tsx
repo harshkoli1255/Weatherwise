@@ -8,7 +8,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Inter, Poppins } from 'next/font/google';
 import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
-import { FavoritesProvider } from '@/hooks/use-favorite-cities';
+import { FavoritesProvider } from '@/hooks/useFavorites';
 
 const inter = Inter({
   subsets: ['latin'],
