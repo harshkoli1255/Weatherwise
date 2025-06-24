@@ -110,7 +110,9 @@ export async function fetchWeatherAndSummaryAction(
             console.error("Error generating AI weather summary:", err);
             const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
             const userFacingError = errorMessage.toLowerCase().includes('quota')
-              ? "<strong>AI Summary Unavailable</strong>: The free tier quota has been reached. Please wait or add new API keys."
+              ? "<strong>AI Summary Unavailable</strong>: The free tier quota for AI services has been reached."
+              : errorMessage.toLowerCase().includes('invalid')
+              ? "<strong>AI Summary Error</strong>: The AI service API keys appear to be invalid. Please check configuration."
               : `<strong>AI Summary Error</strong>: ${errorMessage}`;
             return { summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, error: userFacingError };
           })

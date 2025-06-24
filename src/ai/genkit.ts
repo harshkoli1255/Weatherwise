@@ -2,13 +2,14 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 
-const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+// Provide only the first key for default initialization.
+// The custom aiGenerationService will override this with specific keys for each call.
+const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
 
 const plugins = [];
-if (geminiApiKeys.length > 0) {
-  console.log(`Initializing Genkit with ${geminiApiKeys.length} configured Gemini API key(s) for automatic rotation.`);
-  // The googleAI plugin natively supports an array of keys for rotation.
-  plugins.push(googleAI({ apiKey: geminiApiKeys }));
+if (geminiApiKey) {
+  console.log(`Initializing Genkit with the first available Gemini API key as a default.`);
+  plugins.push(googleAI({ apiKey: geminiApiKey }));
 } else {
   console.warn(
     'GEMINI_API_KEYS is not set in the .env file. AI features requiring Gemini will not work.'
