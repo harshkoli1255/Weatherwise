@@ -3,32 +3,20 @@
 
 /**
  * @fileOverview An AI flow to decide if a weather alert should be sent based on
- * current conditions. This flow includes logic to rotate Gemini API keys on quota failure
- * and dynamically fall back to a secondary model if the primary model is unavailable.
- * It also uses a model availability cache to avoid retrying a known-failing model.
+ * current conditions.
  *
  * - shouldSendWeatherAlert - The primary exported function to call the AI flow.
  * - AlertDecisionInput - The Zod schema for the input data.
  * - AlertDecisionOutput - The Zod schema for the output data.
  */
 
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import {
   AlertDecisionInputSchema,
   type AlertDecisionInput,
   AlertDecisionOutputSchema,
   type AlertDecisionOutput,
 } from '@/lib/types';
-import { modelAvailabilityService } from '@/services/modelAvailabilityService';
-import { apiKeyManager } from '@/services/apiKeyManager';
-import { fill } from 'genkit/cohere';
-
-// Define models in order of preference.
-const PREFERRED_MODELS = [
-    'googleai/gemini-1.5-pro-latest',
-    'googleai/gemini-1.5-flash-latest',
-];
+import { generateWithFallback } from '@/services/aiGenerationService';
 
 const alertDecisionPromptTemplate = `You are an intelligent weather alert assistant. Your task is to decide if the current weather conditions are significant enough to warrant sending a notification to a user.
 
@@ -53,82 +41,19 @@ Decision Criteria:
 
 
 export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise<AlertDecisionOutput> {
-  const keysToTry = apiKeyManager.getKeysToTry();
-
-  if (keysToTry.length === 0) {
-    console.warn('AI alert decision skipped: No configured or available Gemini API keys.');
+  try {
+    return await generateWithFallback({
+      prompt: alertDecisionPromptTemplate,
+      input,
+      output: {
+        schema: AlertDecisionOutputSchema,
+      },
+      temperature: 0.1,
+      source: 'alert-decision',
+    });
+  } catch (err) {
+    console.error(`[AI] Alert decision failed, returning failsafe 'false'. Error:`, err);
+    // Failsafe for any errors during generation
     return { shouldSendAlert: false, reason: '' };
   }
-
-  let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
-  if (modelsToTry.length === 0) {
-      console.log("[AI] All preferred models for alert decision are currently cached as unavailable. Re-attempting all to check for quota reset.");
-      modelsToTry = [...PREFERRED_MODELS];
-  }
-  console.log(`[AI] Models to attempt for alert decision: ${modelsToTry.join(', ')}`);
-
-  let lastError: any = new Error('All Gemini models and API keys failed.');
-
-  for (const model of modelsToTry) {
-    console.log(`[AI] Attempting alert decision with model: ${model}`);
-
-    for (const { key: apiKey, index: keyIndex } of keysToTry) {
-      try {
-        console.log(`[AI] Using Gemini API key with index ${keyIndex} for model ${model}.`);
-
-        const localAi = genkit({
-          plugins: [googleAI({ apiKey })],
-          logLevel: 'warn',
-          enableTracingAndMetrics: true,
-        });
-        
-        const { output } = await localAi.generate({
-          model,
-          prompt: alertDecisionPromptTemplate,
-          input: input,
-          output: {
-            schema: AlertDecisionOutputSchema,
-          },
-          temperature: 0.1,
-        });
-        
-        if (!output) {
-            throw new Error("AI alert decision generation failed to produce a valid output.");
-        }
-        
-        console.log(`[AI] Alert decision successful with model ${model} and key index ${keyIndex}.`);
-        apiKeyManager.reportSuccess(keyIndex);
-        return output;
-
-      } catch (err: any) {
-        lastError = err;
-        const errorMessage = (err.message || '').toLowerCase();
-        const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
-
-        if (isQuotaError) {
-          console.warn(`[AI] Key index ${keyIndex} for model ${model} failed with quota error. Reporting failure and trying next key...`);
-          apiKeyManager.reportFailure(keyIndex);
-          continue; // Continue to the next API key
-        } else {
-          // This is a non-quota, non-retryable error for this key with this model.
-          console.error(`[AI] A non-retryable error occurred with model ${model} and key index ${keyIndex}. Failing fast for this model.`, err);
-          break; // Break from the key loop and try the next model
-        }
-      }
-    }
-    // If we're here, all available keys failed for this model.
-    console.log(`[AI] All available keys for model ${model} failed. Reporting model as unavailable.`);
-    modelAvailabilityService.reportFailure(model);
-  }
-
-  console.error('AI alert decision flow failed with all models and keys:', lastError);
-  
-  const finalErrorMessage = (lastError.message || '').toLowerCase();
-  const isQuotaFailure = finalErrorMessage.includes('quota') || finalErrorMessage.includes('billing') || finalErrorMessage.includes('resource has been exhausted');
-  if (isQuotaFailure) {
-    throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
-  }
-
-  // Failsafe for other errors
-  return { shouldSendAlert: false, reason: '' };
 }
