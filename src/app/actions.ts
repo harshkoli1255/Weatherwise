@@ -9,7 +9,8 @@ import {
   type LocationIdentifier, 
   type OpenWeatherCurrentAPIResponse,
   type WeatherSummaryInput,
-  type WeatherSummaryOutput
+  type WeatherSummaryOutput,
+  type WeatherData,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
@@ -25,72 +26,6 @@ export async function fetchWeatherAndSummaryAction(
   params: { city?: string; lat?: number; lon?: number }
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
   try {
-    let locationIdentifier: LocationIdentifier;
-    let intendedCityName: string | undefined = params.city;
-    let cacheKey: string | null = null;
-    let resolvedLat: number, resolvedLon: number;
-
-    // --- Step 1: Determine the exact coordinates and a unique cache key ---
-
-    if (params.city && (typeof params.lat !== 'number' || typeof params.lon !== 'number')) {
-      console.log(`Resolving city name "${params.city}" to coordinates.`);
-      const suggestionsResult = await fetchCitySuggestionsAction(params.city);
-      
-      if (suggestionsResult.error) {
-        return { data: null, error: suggestionsResult.error, cityNotFound: false };
-      }
-      
-      if (!suggestionsResult.suggestions || suggestionsResult.suggestions.length === 0) {
-        console.log(`No suggestions found for "${params.city}", even after AI interpretation.`);
-        const errorMessage = `City "${suggestionsResult.processedQuery}" not found. Please check the spelling or try a nearby city.`;
-        return { data: null, error: errorMessage, cityNotFound: true };
-      }
-      
-      const cleanedQuery = suggestionsResult.processedQuery.toLowerCase();
-      let bestMatch = suggestionsResult.suggestions[0];
-      const exactMatch = suggestionsResult.suggestions.find(s => s.name.toLowerCase() === cleanedQuery);
-      
-      if (exactMatch) {
-          console.log(`Found an exact match for "${cleanedQuery}": ${exactMatch.name}`);
-          bestMatch = exactMatch;
-      } else {
-          console.log(`No exact match for "${cleanedQuery}". Using the first suggestion: ${bestMatch.name}`);
-      }
-
-      console.log(`Found best match for "${params.city}": ${bestMatch.name}, ${bestMatch.country} at ${bestMatch.lat}, ${bestMatch.lon}`);
-      resolvedLat = bestMatch.lat;
-      resolvedLon = bestMatch.lon;
-      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
-      intendedCityName = bestMatch.name;
-      cacheKey = `weather-${bestMatch.lat.toFixed(4)}-${bestMatch.lon.toFixed(4)}`;
-
-    } 
-    else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      resolvedLat = params.lat;
-      resolvedLon = params.lon;
-      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
-      cacheKey = `weather-${params.lat.toFixed(4)}-${params.lon.toFixed(4)}`;
-    } 
-    else {
-      return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
-    }
-
-    // --- Step 1.5: Check for cached data before making API calls ---
-    if (cacheKey) {
-      const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
-      if (cachedData) {
-        // Handle case where user searches for a different name for the same coordinates
-        if (intendedCityName && cachedData.city !== intendedCityName) {
-          console.log(`[Cache] HIT, but correcting city name from "${cachedData.city}" to "${intendedCityName}".`);
-          cachedData.city = intendedCityName;
-        }
-        return { data: cachedData, error: null, cityNotFound: false };
-      }
-    }
-    console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
-
-    // --- Step 2: Fetch weather data using the determined coordinates (if no cache) ---
-    
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
       console.error("[Server Config Error] OpenWeather API keys are not set (NEXT_PUBLIC_OPENWEATHER_API_KEYS).");
@@ -101,60 +36,98 @@ export async function fetchWeatherAndSummaryAction(
       console.error("[Server Config Error] No valid OpenWeather API keys found in NEXT_PUBLIC_OPENWEATHER_API_KEYS.");
       return { data: null, error: "Server configuration error: No valid weather service keys. Please contact support.", cityNotFound: false };
     }
-    
-    if (!isAiConfigured()) {
-      console.warn("Gemini API key(s) (GEMINI_API_KEYS) are not set or are empty. AI summaries will not be available.");
-    }
+    const apiKey = openWeatherApiKeys[0]; // Use the first available key for this optimized flow
 
-    let currentWeatherData: any | null = null;
-    let hourlyForecastData: HourlyForecastData[] | null = null;
-    let lastTechnicalError: string | null = null;
-    let successWithKey = false;
-    let currentKeyIndex = 0;
+    let locationIdentifier: LocationIdentifier;
+    let weatherApiResponse: OpenWeatherCurrentAPIResponse | undefined;
+    let resolvedLat: number;
+    let resolvedLon: number;
 
-    for (const apiKey of openWeatherApiKeys) {
-      currentKeyIndex++;
-      console.log(`Attempting OpenWeatherMap API with key ${currentKeyIndex} of ${openWeatherApiKeys.length}.`);
-      
-      const [currentWeatherResult, hourlyForecastResult] = await Promise.all([
-        fetchCurrentWeather(locationIdentifier, apiKey),
-        fetchHourlyForecast(locationIdentifier, apiKey),
-      ]);
+    // --- Step 1: Resolve location to coordinates ---
 
-      if (currentWeatherResult.status === 404) {
-        const dataUnavailableError = `Weather data is not available for "${intendedCityName || 'the selected location'}". Please try a different nearby city.`;
-        return { data: null, error: dataUnavailableError, cityNotFound: true };
-      }
+    if (params.city) {
+      // Fast path: Try direct API call with the raw query first.
+      console.log(`[Perf] Attempting direct search for "${params.city}"`);
+      const directResult = await fetchCurrentWeather({ type: 'city', city: params.city }, apiKey);
 
-      const isKeyError = [401, 403, 429].includes(currentWeatherResult.status ?? 0) || [401, 403, 429].includes(hourlyForecastResult.status ?? 0);
-
-      if (currentWeatherResult.data) {
-        currentWeatherData = currentWeatherResult.data;
-        hourlyForecastData = hourlyForecastResult.data ?? []; 
-        successWithKey = true;
-        lastTechnicalError = null;
-        break; 
-      } else {
-        lastTechnicalError = `API failure on key ${currentKeyIndex}. Current: "${currentWeatherResult.error}". Forecast: "${hourlyForecastResult.error}".`;
-        if (!isKeyError) {
-          break; 
+      if (directResult.data && directResult.rawResponse) {
+        console.log(`[Perf] Direct search successful for "${params.city}".`);
+        weatherApiResponse = directResult.rawResponse;
+      } else if (directResult.status === 404) {
+        // Slow path: Fallback to AI if direct search fails.
+        console.log(`[Perf] Direct search failed. Attempting AI interpretation for "${params.city}".`);
+        if (!isAiConfigured()) {
+          return { data: null, error: `City "${params.city}" not found.`, cityNotFound: true };
         }
+        try {
+          const interpretation = await interpretSearchQuery({ query: params.city });
+          const interpretedCity = interpretation.city;
+          console.log(`[Perf] AI interpreted as "${interpretedCity}". Retrying search.`);
+          const interpretedResult = await fetchCurrentWeather({ type: 'city', city: interpretedCity }, apiKey);
+          if (interpretedResult.data && interpretedResult.rawResponse) {
+            weatherApiResponse = interpretedResult.rawResponse;
+          } else {
+            return { data: null, error: `Could not find a valid location for "${params.city}".`, cityNotFound: true };
+          }
+        } catch (aiError) {
+          console.error("AI city interpretation failed:", aiError);
+          const message = aiError instanceof Error ? aiError.message : "An unknown AI error occurred.";
+          return { data: null, error: `Could not find city "${params.city}". The AI interpreter failed: ${message}`, cityNotFound: true };
+        }
+      } else {
+        // Direct search failed for a non-404 reason (e.g., API key, network issue).
+        return { data: null, error: directResult.error, cityNotFound: false };
       }
+      
+      resolvedLat = weatherApiResponse.coord.lat;
+      resolvedLon = weatherApiResponse.coord.lon;
+      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
+    } else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
+      resolvedLat = params.lat;
+      resolvedLon = params.lon;
+      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
+    } else {
+      return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
 
-    if (!successWithKey || !currentWeatherData) {
-      const serverError = lastTechnicalError || "Failed to fetch weather data with all available API keys.";
-      console.error("[Service Error] All OpenWeatherMap API keys failed or a non-retriable error occurred.", { details: serverError });
-      const userFacingError = "The weather service is temporarily unavailable. This could be due to a server configuration issue or a problem with the external provider. Please try again later.";
-      const cityNotFound = serverError.toLowerCase().includes("not found");
-      return { data: null, error: userFacingError, cityNotFound };
+    // --- Step 2: Check cache using resolved coordinates ---
+    const cacheKey = `weather-${resolvedLat.toFixed(4)}-${resolvedLon.toFixed(4)}`;
+    const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
+    if (cachedData) {
+      if (params.city && cachedData.city !== params.city) {
+          const apiCityName = cachedData.city;
+          const userQuery = params.city;
+          if (userQuery.length > apiCityName.length || !userQuery.toLowerCase().includes(apiCityName.toLowerCase().substring(0, 4))) {
+              cachedData.city = userQuery;
+          }
+      }
+      return { data: cachedData, error: null, cityNotFound: false };
     }
-    
-    // --- Step 3: Correct the city name and generate AI summary ---
+    console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
 
-    if (intendedCityName && currentWeatherData.city !== intendedCityName) {
-      console.log(`Correcting API city name. API returned: "${currentWeatherData.city}", User intended: "${intendedCityName}".`);
-      currentWeatherData.city = intendedCityName;
+    // --- Step 3: Fetch all data if not in cache ---
+    let currentWeatherData: WeatherData;
+    if (weatherApiResponse) {
+      // If we got the response earlier, just map it.
+      currentWeatherData = {
+        city: weatherApiResponse.name,
+        country: weatherApiResponse.sys.country,
+        temperature: Math.round(weatherApiResponse.main.temp),
+        feelsLike: Math.round(weatherApiResponse.main.feels_like),
+        humidity: weatherApiResponse.main.humidity,
+        windSpeed: Math.round(weatherApiResponse.wind.speed * 3.6),
+        condition: weatherApiResponse.weather[0].main,
+        description: weatherApiResponse.weather[0].description,
+        iconCode: weatherApiResponse.weather[0].icon,
+        timezone: weatherApiResponse.timezone,
+      };
+    } else {
+      // This path is for coordinate-based searches that missed the cache.
+      const weatherResult = await fetchCurrentWeather(locationIdentifier, apiKey);
+      if (!weatherResult.data) {
+        return { data: null, error: weatherResult.error, cityNotFound: true };
+      }
+      currentWeatherData = weatherResult.data;
     }
 
     const aiInput: WeatherSummaryInput = {
@@ -165,29 +138,23 @@ export async function fetchWeatherAndSummaryAction(
       windSpeed: currentWeatherData.windSpeed,
       condition: currentWeatherData.description,
     };
-
-    let aiSummaryOutput: WeatherSummaryOutput | null = null;
-    let aiError: string | null = null;
-
-    if (isAiConfigured()) {
-        try {
-            console.log("Attempting to generate AI weather summary for:", aiInput.city);
-            aiSummaryOutput = await summarizeWeather(aiInput);
-            console.log("AI summary and subject successfully generated.");
-        } catch (err) {
+    
+    // Fetch forecast and AI summary in parallel
+    const [hourlyForecastResult, aiResult] = await Promise.all([
+      fetchHourlyForecast(locationIdentifier, apiKey),
+      isAiConfigured()
+        ? summarizeWeather(aiInput).then(res => ({ ...res, error: null })).catch(err => {
             console.error("Error generating AI weather summary:", err);
             const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred with the AI summary service.";
-            if (errorMessage.toLowerCase().includes('quota')) {
-                 aiError = "<strong>AI Summary Unavailable</strong>: All of your Gemini API keys have reached their free tier quota for this model. Please wait for the quota to reset, or add new keys to your .env file.";
-            } else {
-                aiError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
-            }
-            console.log("Assigned AI Error message:", aiError);
-        }
-    } else {
-        aiError = "AI summary service is not configured (Gemini API key missing).";
-        console.log(aiError);
-    }
+            const userFacingError = errorMessage.toLowerCase().includes('quota')
+              ? "<strong>AI Summary Unavailable</strong>: The free tier quota has been reached. Please wait or add new API keys."
+              : `<strong>AI Summary Error</strong>: ${errorMessage}`;
+            return { summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, error: userFacingError };
+          })
+        : Promise.resolve({ summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, error: "AI summary service is not configured (Gemini API key missing)." })
+    ]);
+
+    const hourlyForecastData = hourlyForecastResult.data ?? [];
     
     const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${currentWeatherData.city}`;
     
@@ -195,17 +162,15 @@ export async function fetchWeatherAndSummaryAction(
         ...currentWeatherData,
         lat: resolvedLat,
         lon: resolvedLon,
-        aiSummary: aiSummaryOutput?.summary || aiError || "AI summary not available.",
-        aiSubject: aiSummaryOutput?.subjectLine || fallbackSubject,
-        weatherSentiment: aiSummaryOutput?.weatherSentiment || 'neutral',
-        activitySuggestion: aiSummaryOutput?.activitySuggestion || "Check conditions before planning activities.",
-        hourlyForecast: hourlyForecastData || [], 
+        aiSummary: aiResult.summary || aiResult.error || "AI summary not available.",
+        aiSubject: aiResult.subjectLine || fallbackSubject,
+        weatherSentiment: aiResult.weatherSentiment || 'neutral',
+        activitySuggestion: aiResult.activitySuggestion || "Check conditions before planning activities.",
+        hourlyForecast: hourlyForecastData, 
     };
 
     // --- Step 4: Store the fresh data in the cache before returning ---
-    if (cacheKey) {
-      cacheService.set(cacheKey, finalData);
-    }
+    cacheService.set(cacheKey, finalData);
     
     return {
       data: finalData,
