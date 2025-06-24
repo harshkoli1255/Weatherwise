@@ -24,20 +24,19 @@ const PREFERRED_MODELS = [
     'googleai/gemini-1.5-flash-latest',
 ];
 
-const interpretationPromptTemplate = `You are a master geographer and data extraction specialist. Your task is to analyze a user's search query and extract the specific city they are interested in. The query could be a simple city name, a misspelled name, or a natural language question.
+const interpretationPromptTemplate = `You are a master geographer and data extraction specialist. Your task is to analyze a user's search query and extract the specific city they are interested in. The query could be a simple city name, a misspelled name, a conversational phrase, or a natural language question.
 
 User's query: "{{query}}"
 
 Instructions:
 1.  **Analyze the Query:** Understand the user's intent. Are they asking for a capital city, the largest city in a region, or just providing a name?
-2.  **Identify the Core Location:** Extract the most specific city name possible.
-    *   If the query is "weather for London", the city is "London".
+2.  **Simplify First:** Remove any conversational words or phrases that are not part of the location name itself. For example, "weather of Rudrapur" must become "Rudrapur", and "Weather Mumbai" must become "Mumbai". Other examples to remove include "weather in", "what is the forecast for", "weather", "forecast".
+3.  **Correct Spelling:** Fix any obvious spelling mistakes in the remaining text. "Lodon" becomes "London". "New Yrok" becomes "New York".
+4.  **Identify the Core Location:** After simplifying and correcting, extract the most specific city name possible.
     *   If the query is "what's the forecast in the capital of France", the city is "Paris".
     *   If the query is "the biggest city in california", the city is "Los Angeles".
-3.  **Correct Spelling:** Fix any spelling errors. "New Yrok" becomes "New York".
-4.  **Handle Ambiguity:** If a query is ambiguous (e.g., "Springfield"), return the most well-known one (e.g., "Springfield, Illinois"). Our geocoding service will handle further disambiguation.
-5.  **Direct Names:** If the query is already a clean city name (e.g., "Tokyo"), simply return that name.
-6.  **Final Output:** Your response MUST be ONLY the JSON object with the identified city name in the 'city' field. Do not add any explanations, apologies, or markdown formatting like \`\`\`json.
+5.  **Handle Ambiguity:** If a query is ambiguous (e.g., "Springfield"), return the most well-known one (e.g., "Springfield, Illinois"). Our geocoding service will handle further disambiguation.
+6.  **Final Output:** Your response MUST be ONLY the JSON object with the identified city name in the 'city' field. Do not add any explanations, apologies, or markdown formatting like \`\`\`json. If you cannot determine a city, return the original simplified query.
 `;
 
 

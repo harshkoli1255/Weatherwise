@@ -41,96 +41,61 @@ export async function fetchWeatherAndSummaryAction(
     const apiKey = openWeatherApiKeys[0]; // Use the first available key for this optimized flow
 
     let locationIdentifier: LocationIdentifier;
-    let weatherApiResponse: OpenWeatherCurrentAPIResponse | undefined;
-    let resolvedLat: number;
-    let resolvedLon: number;
 
-    // --- Step 1: Resolve location to coordinates ---
-
-    if (params.city) {
-      // Fast path: Try direct API call with the raw query first.
-      console.log(`[Perf] Attempting direct search for "${params.city}"`);
-      const directResult = await fetchCurrentWeather({ type: 'city', city: params.city }, apiKey);
-
-      if (directResult.data && directResult.rawResponse) {
-        console.log(`[Perf] Direct search successful for "${params.city}".`);
-        weatherApiResponse = directResult.rawResponse;
-      } else if (directResult.status === 404) {
-        // Slow path: Fallback to AI if direct search fails.
-        console.log(`[Perf] Direct search failed. Attempting AI interpretation for "${params.city}".`);
-        if (!isAiConfigured()) {
-          return { data: null, error: `City "${params.city}" not found.`, cityNotFound: true };
-        }
+    // --- Step 1: Resolve location ---
+    
+    // PRIORITY 1: Precise coordinates are always best.
+    if (typeof params.lat === 'number' && typeof params.lon === 'number') {
+      locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
+      console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
+    } 
+    // PRIORITY 2: Text-based search.
+    else if (params.city) {
+      let interpretedCity = params.city;
+      if (isAiConfigured()) {
         try {
+          console.log(`[Perf] AI interpreting search query: "${params.city}"`);
           const interpretation = await interpretSearchQuery({ query: params.city });
-          const interpretedCity = interpretation.city;
-          console.log(`[Perf] AI interpreted as "${interpretedCity}". Retrying search.`);
-          const interpretedResult = await fetchCurrentWeather({ type: 'city', city: interpretedCity }, apiKey);
-          if (interpretedResult.data && interpretedResult.rawResponse) {
-            weatherApiResponse = interpretedResult.rawResponse;
-          } else {
-            return { data: null, error: `Could not find a valid location for "${params.city}".`, cityNotFound: true };
-          }
+          interpretedCity = interpretation.city;
+          console.log(`[Perf] AI interpreted as: "${interpretedCity}"`);
         } catch (aiError) {
-          console.error("AI city interpretation failed:", aiError);
           const message = aiError instanceof Error ? aiError.message : "An unknown AI error occurred.";
-          return { data: null, error: `Could not find city "${params.city}". The AI interpreter failed: ${message}`, cityNotFound: true };
+          console.error("AI city interpretation failed, proceeding with original query.", message);
+          // Don't fail the whole request, just proceed with the user's query and let OpenWeather handle it.
         }
-      } else {
-        // Direct search failed for a non-404 reason (e.g., API key, network issue).
-        return { data: null, error: directResult.error, cityNotFound: false };
       }
-      
-      resolvedLat = weatherApiResponse.coord.lat;
-      resolvedLon = weatherApiResponse.coord.lon;
-      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
-    } else if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      resolvedLat = params.lat;
-      resolvedLon = params.lon;
-      locationIdentifier = { type: 'coords', lat: resolvedLat, lon: resolvedLon };
-    } else {
+      locationIdentifier = { type: 'city', city: interpretedCity };
+    } 
+    // No valid parameters.
+    else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
 
-    // --- Step 2: Check cache using resolved coordinates ---
-    const cacheKey = `weather-${resolvedLat.toFixed(4)}-${resolvedLon.toFixed(4)}`;
+    // --- Step 2: Check cache using the most reliable identifier ---
+    const cacheKey = locationIdentifier.type === 'coords'
+      ? `weather-${locationIdentifier.lat.toFixed(4)}-${locationIdentifier.lon.toFixed(4)}`
+      : `weather-city-${locationIdentifier.city.toLowerCase().replace(/\s/g, '_')}`;
+    
     const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
     if (cachedData) {
-      if (params.city && cachedData.city !== params.city) {
-          const apiCityName = cachedData.city;
-          const userQuery = params.city;
-          if (userQuery.length > apiCityName.length || !userQuery.toLowerCase().includes(apiCityName.toLowerCase().substring(0, 4))) {
-              cachedData.city = userQuery;
-          }
-      }
       return { data: cachedData, error: null, cityNotFound: false };
     }
     console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
 
-    // --- Step 3: Fetch all data if not in cache ---
-    let currentWeatherData: WeatherData;
-    if (weatherApiResponse) {
-      // If we got the response earlier, just map it.
-      currentWeatherData = {
-        city: weatherApiResponse.name,
-        country: weatherApiResponse.sys.country,
-        temperature: Math.round(weatherApiResponse.main.temp),
-        feelsLike: Math.round(weatherApiResponse.main.feels_like),
-        humidity: weatherApiResponse.main.humidity,
-        windSpeed: Math.round(weatherApiResponse.wind.speed * 3.6),
-        condition: weatherApiResponse.weather[0].main,
-        description: weatherApiResponse.weather[0].description,
-        iconCode: weatherApiResponse.weather[0].icon,
-        timezone: weatherApiResponse.timezone,
-      };
-    } else {
-      // This path is for coordinate-based searches that missed the cache.
-      const weatherResult = await fetchCurrentWeather(locationIdentifier, apiKey);
-      if (!weatherResult.data) {
-        return { data: null, error: weatherResult.error, cityNotFound: true };
-      }
-      currentWeatherData = weatherResult.data;
+    // --- Step 3: Fetch all data ---
+    const weatherResult = await fetchCurrentWeather(locationIdentifier, apiKey);
+    
+    if (!weatherResult.data || !weatherResult.rawResponse) {
+      const isNotFound = weatherResult.status === 404;
+      const errorMessage = isNotFound 
+        ? `Could not find a valid location for "${params.city}". Please try a different search.`
+        : weatherResult.error;
+      return { data: null, error: errorMessage, cityNotFound: isNotFound };
     }
+
+    const currentWeatherData = weatherResult.data;
+    const resolvedLat = weatherResult.rawResponse.coord.lat;
+    const resolvedLon = weatherResult.rawResponse.coord.lon;
 
     const aiInput: WeatherSummaryInput = {
       city: currentWeatherData.city,
@@ -143,7 +108,7 @@ export async function fetchWeatherAndSummaryAction(
     
     // Fetch forecast and AI summary in parallel
     const [hourlyForecastResult, aiResult] = await Promise.all([
-      fetchHourlyForecast(locationIdentifier, apiKey),
+      fetchHourlyForecast({ type: 'coords', lat: resolvedLat, lon: resolvedLon }, apiKey),
       isAiConfigured()
         ? summarizeWeather(aiInput).then(res => ({ ...res, error: null })).catch(err => {
             console.error("Error generating AI weather summary:", err);
@@ -172,7 +137,14 @@ export async function fetchWeatherAndSummaryAction(
     };
 
     // --- Step 4: Store the fresh data in the cache before returning ---
-    cacheService.set(cacheKey, finalData);
+    // Use the *new* cache key based on the coordinates returned by the API for consistency
+    const finalCoordsCacheKey = `weather-${resolvedLat.toFixed(4)}-${resolvedLon.toFixed(4)}`;
+    cacheService.set(finalCoordsCacheKey, finalData);
+    
+    // Also cache by the original city name key if that was the query type
+    if (locationIdentifier.type === 'city') {
+        cacheService.set(cacheKey, finalData);
+    }
     
     return {
       data: finalData,
