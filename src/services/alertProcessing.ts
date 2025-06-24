@@ -195,10 +195,9 @@ export async function checkAndSendAlerts(): Promise<{
   while(hasMore) {
     try {
       console.log(`[CRON] Fetching users from Clerk API with offset: ${offset}`);
-      const userListResponse = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
+      // The Clerk SDK returns an array of users, not an object.
+      const usersInPage = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
 
-      // The user list is the response itself, which is an array of User objects.
-      const usersInPage = userListResponse;
       const fetchedCount = usersInPage.length;
       totalProcessedUsers += fetchedCount;
 
