@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -65,6 +64,12 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [isTesting, startTestTransition] = useTransition();
   const { pending: isSaving } = useFormStatus();
 
+  // State to prevent hydration mismatch from client-side only logic
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   useEffect(() => {
     if (saveState.message) {
       toast({
@@ -76,6 +81,9 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   }, [saveState, toast]);
 
   useEffect(() => {
+    // Wait until component has mounted on the client to run this effect
+    if (!hasMounted) return;
+
     // On the client, if schedule is enabled but no timezone is set, auto-detect it.
     if (scheduleEnabled && !timezone) {
         try {
@@ -91,7 +99,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
             console.warn("Could not auto-detect timezone.");
         }
     }
-  }, [scheduleEnabled, timezone]);
+  }, [scheduleEnabled, timezone, hasMounted, toast]);
   
   const handleTestAlert = async () => {
     startTestTransition(async () => {
