@@ -8,6 +8,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Inter, Poppins } from 'next/font/google';
 import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
+import { FavoritesProvider } from '@/hooks/use-favorite-cities';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -53,16 +54,18 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
-              <Navbar />
-              <main className="flex-grow">
-                <PageTransitionWrapper>{children}</PageTransitionWrapper>
-              </main>
-              <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
-                © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
-              </footer>
-            </div>
-            <Toaster />
+            <FavoritesProvider>
+              <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
+                <Navbar />
+                <main className="flex-grow">
+                  <PageTransitionWrapper>{children}</PageTransitionWrapper>
+                </main>
+                <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
+                  © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
+                </footer>
+              </div>
+              <Toaster />
+            </FavoritesProvider>
           </ThemeProvider>
         </body>
       </html>
