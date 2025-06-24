@@ -88,7 +88,10 @@ export async function generateWithFallback<I extends z.ZodType, O extends z.ZodT
                 const { output: generatedOutput } = await localAi.generate({
                     model,
                     prompt: finalPrompt,
-                    output,
+                    output: {
+                        ...output,
+                        format: 'json',
+                    },
                     ...restOfConfig
                 });
                 
