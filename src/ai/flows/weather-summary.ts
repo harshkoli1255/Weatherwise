@@ -81,42 +81,31 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
           enableTracingAndMetrics: true,
         });
 
-        const uniqueName = `weatherSummary_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
-
-        const summaryPrompt = localAi.definePrompt({
-          name: `${uniqueName}_prompt`,
-          input: { schema: WeatherSummaryInputSchema },
-          output: { schema: WeatherSummaryOutputSchema },
-          prompt: summaryPromptTemplate,
-          model,
-          temperature: 0.6,
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          ],
+        const { output } = await localAi.generate({
+            model,
+            prompt: summaryPromptTemplate,
+            input: input,
+            output: {
+                schema: WeatherSummaryOutputSchema,
+            },
+            temperature: 0.6,
+            config: {
+                safetySettings: [
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+                ],
+            }
         });
 
-        const weatherSummaryFlow = localAi.defineFlow(
-          {
-            name: `${uniqueName}_flow`,
-            inputSchema: WeatherSummaryInputSchema,
-            outputSchema: WeatherSummaryOutputSchema,
-          },
-          async (flowInput) => {
-            const { output } = await summaryPrompt(flowInput);
-            if (!output) {
-              throw new Error('AI summary generation failed to produce a valid output.');
-            }
-            return output;
-          }
-        );
+        if (!output) {
+            throw new Error('AI summary generation failed to produce a valid output.');
+        }
         
-        const result = await weatherSummaryFlow(input);
         console.log(`[AI] Weather summary successful with model ${model} and key index ${keyIndex}.`);
         apiKeyManager.reportSuccess(keyIndex);
-        return result;
+        return output;
 
       } catch (err: any) {
         lastError = err;

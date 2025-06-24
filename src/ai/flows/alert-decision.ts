@@ -22,6 +22,7 @@ import {
 } from '@/lib/types';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
 import { apiKeyManager } from '@/services/apiKeyManager';
+import { fill } from 'genkit/cohere';
 
 // Define models in order of preference.
 const PREFERRED_MODELS = [
@@ -80,38 +81,24 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
           logLevel: 'warn',
           enableTracingAndMetrics: true,
         });
-
-        const uniqueName = `alertDecision_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
-
-        const alertDecisionPrompt = localAi.definePrompt({
-          name: `${uniqueName}_prompt`,
-          input: { schema: AlertDecisionInputSchema },
-          output: { schema: AlertDecisionOutputSchema },
-          prompt: alertDecisionPromptTemplate,
+        
+        const { output } = await localAi.generate({
           model,
+          prompt: alertDecisionPromptTemplate,
+          input: input,
+          output: {
+            schema: AlertDecisionOutputSchema,
+          },
           temperature: 0.1,
         });
-
-        const alertDecisionFlow = localAi.defineFlow(
-          {
-            name: `${uniqueName}_flow`,
-            inputSchema: AlertDecisionInputSchema,
-            outputSchema: AlertDecisionOutputSchema,
-          },
-          async (flowInput) => {
-            const { output } = await alertDecisionPrompt(flowInput);
-            if (!output) {
-              console.error("Failed to get AI output for alert decision");
-              return { shouldSendAlert: false, reason: '' };
-            }
-            return output;
-          }
-        );
         
-        const result = await alertDecisionFlow(input);
+        if (!output) {
+            throw new Error("AI alert decision generation failed to produce a valid output.");
+        }
+        
         console.log(`[AI] Alert decision successful with model ${model} and key index ${keyIndex}.`);
         apiKeyManager.reportSuccess(keyIndex);
-        return result;
+        return output;
 
       } catch (err: any) {
         lastError = err;

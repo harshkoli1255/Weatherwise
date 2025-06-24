@@ -78,37 +78,23 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
           enableTracingAndMetrics: true,
         });
 
-        const uniqueName = `cityCorrection_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
-
-        const correctionPrompt = localAi.definePrompt({
-          name: `${uniqueName}_prompt`,
-          input: { schema: CityCorrectionInputSchema },
-          output: { schema: CityCorrectionOutputSchema },
-          prompt: correctionPromptTemplate,
-          model,
-          temperature: 0.2,
+        const { output } = await localAi.generate({
+            model,
+            prompt: correctionPromptTemplate,
+            input: { query: sanitizedQuery },
+            output: {
+                schema: CityCorrectionOutputSchema
+            },
+            temperature: 0.2,
         });
 
-        const cityCorrectionFlow = localAi.defineFlow(
-          {
-            name: `${uniqueName}_flow`,
-            inputSchema: CityCorrectionInputSchema,
-            outputSchema: CityCorrectionOutputSchema,
-          },
-          async (flowInput) => {
-            const { output } = await correctionPrompt(flowInput);
-            if (!output) {
-                console.error("Failed to get AI output for city correction");
-                return { correctedQuery: sanitizedQuery }; // Failsafe
-            }
-            return output;
-          }
-        );
-
-        const result = await cityCorrectionFlow({ query: sanitizedQuery });
+        if (!output) {
+            throw new Error("AI city correction failed to produce a valid output.");
+        }
+        
         console.log(`[AI] City correction successful with model ${model} and key index ${keyIndex}.`);
         apiKeyManager.reportSuccess(keyIndex);
-        return result;
+        return output;
         
       } catch (err: any) {
         lastError = err;

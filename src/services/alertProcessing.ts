@@ -197,8 +197,8 @@ export async function checkAndSendAlerts(): Promise<{
       console.log(`[CRON] Fetching users from Clerk API with offset: ${offset}`);
       const userListResponse = await clerkClient().users.getUserList({ limit: pageSize, offset: offset });
 
-      // The user list is in the 'data' property of the response object.
-      const usersInPage = userListResponse.data;
+      // The user list is the response itself, which is an array of User objects.
+      const usersInPage = userListResponse;
       const fetchedCount = usersInPage.length;
       totalProcessedUsers += fetchedCount;
 
