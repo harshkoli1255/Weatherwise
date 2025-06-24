@@ -30,17 +30,20 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
     <Dialog open={!!selectedForecast} onOpenChange={(isOpen) => !isOpen && setSelectedForecast(null)}>
       <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
         <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-2">
             <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={onSaveCityToggle}
-              aria-label={isCitySaved ? 'Remove saved city' : 'Save city'}
-              className="h-10 w-10 text-yellow-400 hover:text-yellow-300 rounded-full"
-              title={isCitySaved ? `Remove ${weatherData.city} from saved` : `Save ${weatherData.city}`}
+              aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
+              className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary"
+              title={isCitySaved ? `Remove ${weatherData.city} from favorites` : `Save ${weatherData.city}`}
             >
-              <Star className={cn("h-8 w-8 transition-all duration-300", isCitySaved ? 'fill-current' : 'fill-transparent')} />
+              <Star className={cn(
+                  "h-7 w-7 transition-all duration-300",
+                  isCitySaved && "fill-primary text-primary"
+              )} />
             </Button>
           </div>
           <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
