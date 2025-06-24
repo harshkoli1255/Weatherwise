@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'; // Import usePathname
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu, UserCircle } from 'lucide-react';
+import { CloudSun, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
@@ -26,7 +26,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo & Main Nav */}
         <div className="flex items-center gap-4">
@@ -57,7 +57,9 @@ export function Navbar() {
             {/* Desktop User Actions */}
             <div className="hidden md:flex items-center gap-2">
               <SignedIn>
-                  <UserButton />
+                  <div className="ml-2">
+                    <UserButton />
+                  </div>
               </SignedIn>
               <SignedOut>
                   <SignInButton mode="modal">
