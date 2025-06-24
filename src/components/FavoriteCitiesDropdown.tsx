@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -24,16 +24,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Star, Trash2, MapPin, Inbox } from 'lucide-react';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Star, Trash2, MapPin, Inbox, RefreshCw, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import type { CitySuggestion } from '@/lib/types';
+import type { CitySuggestion, FavoritesWeatherMap, FavoriteCityWeatherResult } from '@/lib/types';
 import { SignedIn } from '@clerk/nextjs';
+import { fetchWeatherForFavoritesAction } from '@/app/actions';
+import { WeatherIcon } from './WeatherIcon';
+import { Skeleton } from './ui/skeleton';
+
+const FavoriteItemSkeleton = () => (
+  <div className="flex items-center justify-between p-2 m-1">
+    <div className="flex items-center min-w-0 gap-3">
+      <Skeleton className="h-4 w-4 rounded-md flex-shrink-0" />
+      <div className="flex flex-col gap-1.5 w-full">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+    <div className="ml-auto flex items-center gap-3">
+      <Skeleton className="h-5 w-12" />
+    </div>
+  </div>
+);
+
 
 export function FavoriteCitiesDropdown() {
   const { favorites, removeMultipleFavorites } = useFavoriteCities();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
+  const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadFavoritesWeather = useCallback(async () => {
+    if (favorites.length === 0) return;
+    setIsLoading(true);
+    const data = await fetchWeatherForFavoritesAction(favorites);
+    setWeatherData(data);
+    setIsLoading(false);
+  }, [favorites]);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      loadFavoritesWeather();
+    } else if (!isAlertOpen) {
+      setSelectedCities([]);
+    }
+  };
 
   const handleSelectionChange = (city: CitySuggestion, isChecked: boolean) => {
     setSelectedCities(prev => {
@@ -70,12 +108,7 @@ export function FavoriteCitiesDropdown() {
   
   return (
     <SignedIn>
-        <DropdownMenu onOpenChange={(isOpen) => {
-            // Deselect cities when closing the dropdown, unless the alert dialog is opening
-            if (!isOpen && !isAlertOpen) {
-                setSelectedCities([]);
-            }
-        }}>
+        <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
                 <Star className={cn("h-5 w-5 transition-colors", favorites.length > 0 && "text-primary fill-primary")} />
@@ -85,15 +118,29 @@ export function FavoriteCitiesDropdown() {
             <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between p-3">
                 <span className="font-bold text-base">Favorite Cities</span>
-                {selectedCities.length > 0 && (
-                <Button variant="destructive" size="sm" className="h-7 rounded-md" onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAlertOpen(true);
-                }}>
-                    <Trash2 className="h-4 w-4 mr-1.5" />
-                    Delete ({selectedCities.length})
-                </Button>
-                )}
+                <div className="flex items-center gap-1">
+                    {selectedCities.length > 0 && (
+                    <Button variant="destructive" size="sm" className="h-7 rounded-md" onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAlertOpen(true);
+                    }}>
+                        <Trash2 className="h-4 w-4 mr-1.5" />
+                        Delete ({selectedCities.length})
+                    </Button>
+                    )}
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={loadFavoritesWeather} disabled={isLoading}>
+                                    <RefreshCw className={cn("h-4 w-4 text-muted-foreground", isLoading && "animate-spin")} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Refresh Weather</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
@@ -126,41 +173,66 @@ export function FavoriteCitiesDropdown() {
                             </label>
                         </div>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
 
                     <ScrollArea className="h-[250px]">
                         <DropdownMenuGroup className="p-1">
-                        {favorites.map((city) => {
-                            const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
-                            const isSelected = selectedCities.some(c => `${c.lat.toFixed(4)},${c.lon.toFixed(4)}` === cityKey);
+                        {isLoading ? (
+                            Array.from({ length: Math.min(favorites.length, 5) }).map((_, i) => <FavoriteItemSkeleton key={i} />)
+                        ) : (
+                            favorites.map((city) => {
+                                const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
+                                const weather = weatherData[cityKey];
+                                const isSelected = selectedCities.some(c => `${c.lat.toFixed(4)},${c.lon.toFixed(4)}` === cityKey);
 
-                            return (
-                            <DropdownMenuItem
-                                key={cityKey}
-                                className={cn(
-                                    "flex justify-between items-center p-2 cursor-pointer transition-colors focus:bg-accent rounded-md m-1",
-                                    isSelected && "bg-primary/10"
-                                )}
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  handleCityClick(city);
-                                }}
-                            >
-                                <div className="flex items-center min-w-0 gap-3">
-                                    <Checkbox
-                                        checked={isSelected}
-                                        onCheckedChange={(checked) => handleSelectionChange(city, !!checked)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        aria-label={`Select ${city.name}`}
-                                    />
-                                    <div className="flex flex-col truncate">
-                                        <span className="font-medium text-foreground truncate">{city.name}</span>
-                                        <span className="text-xs text-muted-foreground truncate">{city.country}</span>
+                                return (
+                                <DropdownMenuItem
+                                    key={cityKey}
+                                    className={cn(
+                                        "flex justify-between items-center p-2 cursor-pointer transition-colors focus:bg-accent rounded-md m-1",
+                                        isSelected && "bg-primary/10"
+                                    )}
+                                    onSelect={(e) => {
+                                    e.preventDefault();
+                                    handleCityClick(city);
+                                    }}
+                                >
+                                    <div className="flex items-center min-w-0 gap-3">
+                                        <Checkbox
+                                            checked={isSelected}
+                                            onCheckedChange={(checked) => handleSelectionChange(city, !!checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            aria-label={`Select ${city.name}`}
+                                        />
+                                        <div className="flex flex-col truncate">
+                                            <span className="font-medium text-foreground truncate">{city.name}</span>
+                                            <span className="text-xs text-muted-foreground truncate">{city.country}</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <MapPin className="h-5 w-5 text-muted-foreground/70 flex-shrink-0" />
-                            </DropdownMenuItem>
-                            );
-                        })}
+                                    <div className="ml-auto flex items-center gap-3 text-sm flex-shrink-0">
+                                      {weather && 'temperature' in weather && (
+                                          <>
+                                              <span className="font-medium text-foreground">{weather.temperature}°C</span>
+                                              <WeatherIcon iconCode={weather.iconCode} className="h-5 w-5 text-muted-foreground" />
+                                          </>
+                                      )}
+                                      {weather && 'error' in weather && (
+                                          <TooltipProvider>
+                                              <Tooltip>
+                                                  <TooltipTrigger asChild>
+                                                      <AlertCircle className="h-5 w-5 text-destructive" />
+                                                  </TooltipTrigger>
+                                                  <TooltipContent>
+                                                      <p>{weather.error}</p>
+                                                  </TooltipContent>
+                                              </Tooltip>
+                                          </TooltipProvider>
+                                      )}
+                                    </div>
+                                </DropdownMenuItem>
+                                );
+                            })
+                        )}
                         </DropdownMenuGroup>
                     </ScrollArea>
                 </>

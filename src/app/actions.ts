@@ -11,6 +11,8 @@ import {
   type WeatherSummaryInput,
   type WeatherSummaryOutput,
   type WeatherData,
+  type FavoritesWeatherMap,
+  type FavoriteCityWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
@@ -377,4 +379,47 @@ export async function getCityFromCoordsAction(
     const message = error instanceof Error ? error.message : "An unknown server error occurred while getting city from coordinates.";
     return { city: null, error: message };
   }
+}
+
+
+export async function fetchWeatherForFavoritesAction(
+  cities: CitySuggestion[]
+): Promise<FavoritesWeatherMap> {
+  const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
+  const results: FavoritesWeatherMap = {};
+
+  if (!apiKey) {
+    console.error("[Server Config Error] OpenWeather API keys are not set for favorites action.");
+    for (const city of cities) {
+      const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
+      results[key] = { error: "Server not configured" };
+    }
+    return results;
+  }
+
+  const weatherPromises = cities.map(city => 
+    fetchCurrentWeather({ type: 'coords', lat: city.lat, lon: city.lon }, apiKey)
+      .then(weatherResult => {
+        const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
+        const result: { key: string; value: FavoriteCityWeatherResult } = {
+          key,
+          value: weatherResult.data ? weatherResult.data : { error: weatherResult.error || 'Failed to load' }
+        };
+        return result;
+      })
+  );
+
+  const settledPromises = await Promise.allSettled(weatherPromises);
+  
+  settledPromises.forEach(result => {
+    if (result.status === 'fulfilled') {
+      results[result.value.key] = result.value.value;
+    } else {
+      // This case is less likely because fetchCurrentWeather catches its own errors,
+      // but it's good practice to handle promise rejections.
+      console.error("A weather promise was unexpectedly rejected:", result.reason);
+    }
+  });
+
+  return results;
 }

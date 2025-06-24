@@ -247,3 +247,6 @@ export interface EmailTemplatePayload {
   weatherData: WeatherSummaryData;
   alertTriggers?: string[];
 }
+
+export type FavoriteCityWeatherResult = WeatherData | { error: string };
+export type FavoritesWeatherMap = Record<string, FavoriteCityWeatherResult>;
