@@ -182,7 +182,7 @@ function WeatherPageContent() {
             if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
                 throw new Error(ipResult.error || 'Could not determine location from IP.');
             }
-            locationParams = { city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon };
+            locationParams = { city: ipResult.city ?? undefined, lat: ipResult.lat, lon: ipResult.lon };
         } catch (ipError: any) {
             setWeatherState({
                 ...initialState,

@@ -1,3 +1,4 @@
+
 'use client'; // Required for state management (pathname, sheet)
 
 import Link from 'next/link';
@@ -25,26 +26,20 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Left Side: Logo */}
-        <div className="flex items-center">
+        {/* Left Side: Logo & Main Nav */}
+        <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center space-x-2.5 group">
                 <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
                 <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
                     Weatherwise
                 </span>
             </Link>
-        </div>
-
-        {/* Right Side: Links & Actions */}
-        <div className="flex items-center">
-            {/* Desktop Links & User Actions */}
-            <div className="hidden md:flex items-center gap-4">
+             <div className="hidden md:flex items-center gap-2">
                 <SignedIn>
                     <FavoriteCitiesDropdown />
                 </SignedIn>
-
                 {navItems.map((item) => (
                     <Button 
                         key={item.href}
@@ -54,22 +49,24 @@ export function Navbar() {
                         <Link href={item.href}>{item.label}</Link>
                     </Button>
                 ))}
-                
-                <div className="flex-grow"></div>
+             </div>
+        </div>
 
-                <div className="flex items-center gap-2">
-                  <SignedIn>
-                      <UserButton />
-                  </SignedIn>
-                  <SignedOut>
-                      <SignInButton mode="modal">
-                          <Button variant="outline">Sign In</Button>
-                      </SignInButton>
-                  </SignedOut>
-                  <div className="ml-2">
-                    <ThemeToggle />
-                  </div>
-                </div>
+        {/* Right Side: User Actions */}
+        <div className="flex items-center">
+            {/* Desktop User Actions */}
+            <div className="hidden md:flex items-center gap-2">
+              <SignedIn>
+                  <UserButton />
+              </SignedIn>
+              <SignedOut>
+                  <SignInButton mode="modal">
+                      <Button variant="outline">Sign In</Button>
+                  </SignInButton>
+              </SignedOut>
+              <div className="ml-2">
+                <ThemeToggle />
+              </div>
             </div>
 
             {/* Mobile navigation menu */}
