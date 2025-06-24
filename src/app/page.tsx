@@ -57,10 +57,11 @@ function WeatherPageContent() {
       : 'Fetching weather for your location...';
       
     setWeatherState(prev => ({
-      ...initialState,
+      ...prev, // Keep previous data while loading to prevent flicker
       isLoading: true,
       loadingMessage,
-      currentFetchedCityName: prev.currentFetchedCityName,
+      error: null, // Clear previous errors on a new search
+      cityNotFound: false,
     }));
 
     startTransition(async () => {
@@ -89,14 +90,14 @@ function WeatherPageContent() {
         }
       }
       
-      setWeatherState(prev => ({
+      setWeatherState({
         data: result.data,
         error: result.error,
         isLoading: false,
         loadingMessage: null,
         cityNotFound: result.cityNotFound,
         currentFetchedCityName: result.data ? result.data.city : undefined,
-      }));
+      });
     });
   }, []);
 
@@ -116,7 +117,7 @@ function WeatherPageContent() {
   const handleLocate = useCallback(async () => {
     setIsLocating(true);
     setWeatherState(prev => ({
-        ...initialState,
+        ...prev,
         isLoading: true,
         loadingMessage: 'Detecting your location...',
     }));
@@ -131,13 +132,11 @@ function WeatherPageContent() {
     };
 
     let locationParams: ApiLocationParams | null = null;
-    let locationSource = '';
 
     try {
         setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
         const position = await getPosition();
         locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
-        locationSource = 'geolocation';
     } catch (geoError: any) {
         console.warn(`Geolocation error: ${geoError.message}. Falling back to IP.`);
         toast({
@@ -153,7 +152,6 @@ function WeatherPageContent() {
                 throw new Error(ipResult.error || 'Could not determine location from IP.');
             }
             locationParams = { city: ipResult.city, lat: ipResult.lat, lon: ipResult.lon };
-            locationSource = 'IP lookup';
         } catch (ipError: any) {
             setWeatherState({
                 ...initialState,
@@ -186,6 +184,12 @@ function WeatherPageContent() {
 
     if (city) {
       // If a city is in the URL, fetch its weather. This is the primary logic.
+      if (city === weatherState.data?.city && !weatherState.error) {
+        // Data for this city is already loaded and there's no error, no need to re-fetch.
+        // This is a key part of breaking the fetch loops.
+        setWeatherState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
       isInitialLoad.current = false;
       const lat = searchParams.get('lat');
       const lon = searchParams.get('lon');
@@ -216,7 +220,7 @@ function WeatherPageContent() {
         handleLocate();
       }
     }
-  }, [searchParams, favorites, isTransitionPending, isLocating, handleSearch, handleLocate, performWeatherFetch]);
+  }, [searchParams, favorites, isTransitionPending, isLocating, handleSearch, handleLocate, performWeatherFetch, weatherState.data?.city, weatherState.error]);
   
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
