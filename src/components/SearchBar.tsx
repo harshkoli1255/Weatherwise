@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useTransition, useRef } from '
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIconLucide, Loader2, MapPin, LocateFixed } from 'lucide-react';
+import { Search as SearchIconLucide, MapPin, LocateFixed } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -150,9 +150,12 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     aria-label="Use current location"
                 >
                     {isLocating ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                      </span>
                     ) : (
-                    <LocateFixed className="h-5 w-5" />
+                      <LocateFixed className="h-5 w-5" />
                     )}
                 </Button>
                 <Button
@@ -163,8 +166,11 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 >
                     {isSearchingWeather ? (
                         <>
-                        <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                        Searching
+                          <span className="relative flex h-3 w-3 mr-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground/75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-foreground"></span>
+                          </span>
+                          <span>Searching</span>
                         </>
                     ) : (
                         'Search'
@@ -176,7 +182,11 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading suggestions...
+                <span className="relative flex h-3 w-3 mr-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                </span>
+                 Loading suggestions...
             </div>
             )}
             {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length > 0 && (
