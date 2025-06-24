@@ -1,10 +1,37 @@
 
 # Weatherwise: Intelligent Weather & Alert Platform
 
-![Weatherwise Screenshot](./public/weatherwise-screenshot.png)
-*The Weatherwise dashboard showing real-time weather data for New York.*
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Genkit](https://img.shields.io/badge/Genkit-F4B400?style=for-the-badge&logo=google&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)
+
+</div>
+
+<br/>
+
+<p align="center">
+  <img src="./public/weatherwise-screenshot.png" alt="The Weatherwise dashboard showing real-time weather data for New York." style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+</p>
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
+
+---
+
+## 📚 Table of Contents
+
+- [Core Features](#-core-features)
+- [Tech Stack & Architecture](#-tech-stack--architecture)
+- [Running Locally](#-running-locally)
+- [Deployment (Free Hosting)](#️-deployment-free-hosting)
+- [Setting up Automatic Hourly Alerts](#-setting-up-automatic-hourly-alerts-cron-job)
+- [Frequently Asked Questions](#-frequently-asked-questions)
+- [Recommended VS Code Extensions](#-recommended-vs-code-extensions)
 
 ---
 
@@ -22,15 +49,7 @@
 
 ---
 
-## 🌐 Live Demo
-
-You can try the live application here:
-
-[https://9000-firebase-studio-1750300058345.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev/](https://9000-firebase-studio-1750300058345.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev/)
-
----
-
-## 🛠️ Architectural Highlights & Tech Stack
+## 🛠️ Tech Stack & Architecture
 
 This project was built with a focus on modern, scalable web architecture. The choices below reflect a commitment to performance, type safety, and maintainability.
 
