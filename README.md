@@ -26,7 +26,8 @@
 ## 📚 Table of Contents
 
 - [✨ Core Features](#-core-features)
-- [🛠️ Tech Stack & Architecture](#️-tech-stack--architecture)
+- [🧠 Key Architectural Decisions](#-key-architectural-decisions)
+- [🛠️ Tech Stack](#️-tech-stack)
 - [📂 Project Structure](#-project-structure)
 - [🚀 Running Locally](#-running-locally)
 - [☁️ Deployment (Free Hosting)](#️-deployment-free-hosting)
@@ -50,9 +51,29 @@
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🧠 Key Architectural Decisions
 
-This project was built with a focus on modern, scalable web architecture. The choices below reflect a commitment to performance, type safety, and maintainability.
+This project was designed with specific architectural patterns to ensure it is performant, resilient, and maintainable.
+
+*   **Server-First Approach with Next.js App Router:**
+    *   **Why:** By using **Server Components** and **Server Actions** as the default, we minimize the amount of JavaScript sent to the client. This results in faster initial page loads and a snappier user experience, as the heavy lifting is done on the server.
+    *   **Example:** The primary `fetchWeatherAndSummaryAction` is a Server Action, allowing the client to call server-side logic without needing to define a separate API endpoint.
+
+*   **Resilient, Multi-Key API Services:**
+    *   **Why:** Services like OpenWeatherMap and Google Gemini often have free tiers with rate limits. To prevent a single exhausted API key from taking down the entire application, the backend services for both are designed to accept multiple API keys.
+    *   **How:** If a call with one key fails due to a quota or invalid key error, the service automatically and transparently retries the request with the next available key. Failing keys are temporarily put in a "penalty box" to improve performance.
+
+*   **Secure User Data with Clerk Private Metadata:**
+    *   **Why:** A user's alert preferences (city, schedule, frequency) are sensitive and should not be stored in a place the client can easily read or manipulate, like `localStorage`.
+    *   **How:** We leverage Clerk's `privateMetadata` field, a secure, server-side storage location associated with each user. This keeps their preferences safe and ensures they are only accessed and modified through secure Server Actions.
+
+*   **Decoupled Alert Triggering with Cron Jobs:**
+    *   **Why:** The system needs to check for alerts for all users every hour, regardless of whether they are using the app. Relying on client-side timers is unreliable.
+    *   **How:** We expose a secure API endpoint (`/api/cron`) that is protected by a secret key. This endpoint is designed to be called by an external, reliable scheduling service (a "cron job"). This decouples the alert-checking logic from the main application's user-facing parts and ensures it runs consistently.
+
+---
+
+## 🛠️ Tech Stack
 
 | Category      | Technology                                                                                                                              | Rationale & Key Usage                                                                                                                                                           |
 | :------------ | :-------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
