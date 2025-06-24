@@ -1,3 +1,4 @@
+
 'use client'; // Required for state management (pathname, sheet)
 
 import Link from 'next/link';
@@ -27,7 +28,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Left Side: Logo & Main Nav */}
+        {/* Left Side: Logo */}
         <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center space-x-2.5 group">
                 <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
@@ -35,23 +36,25 @@ export function Navbar() {
                     Weatherwise
                 </span>
             </Link>
-             <div className="hidden md:flex items-center gap-2">
-                {navItems.map((item) => (
-                    <Button 
-                        key={item.href}
-                        variant={pathname === item.href ? 'secondary' : 'ghost'} 
-                        asChild
-                    >
-                        <Link href={item.href}>{item.label}</Link>
-                    </Button>
-                ))}
-             </div>
+        </div>
+
+        {/* Center: Main Nav */}
+        <div className="hidden md:flex items-center gap-2">
+            {navItems.map((item) => (
+                <Button 
+                    key={item.href}
+                    variant={pathname === item.href ? 'secondary' : 'ghost'} 
+                    asChild
+                >
+                    <Link href={item.href}>{item.label}</Link>
+                </Button>
+            ))}
         </div>
 
         {/* Right Side: User Actions */}
         <div className="flex items-center">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
               <SignedIn>
                 <FavoriteCitiesDropdown />
                 <UserButton />
@@ -61,7 +64,9 @@ export function Navbar() {
                       <Button variant="outline">Sign In</Button>
                   </SignInButton>
               </SignedOut>
-              <ThemeToggle />
+              <div className="ml-2">
+                <ThemeToggle />
+              </div>
             </div>
 
             {/* Mobile navigation menu */}
