@@ -21,6 +21,7 @@ import {
   type AlertDecisionOutput,
 } from '@/lib/types';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
+import { apiKeyManager } from '@/services/apiKeyManager';
 
 // Define models in order of preference.
 const PREFERRED_MODELS = [
@@ -51,10 +52,10 @@ Decision Criteria:
 
 
 export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise<AlertDecisionOutput> {
-  const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+  const keysToTry = apiKeyManager.getKeysToTry();
 
-  if (geminiApiKeys.length === 0) {
-    console.warn('AI alert decision skipped: Gemini API key missing.');
+  if (keysToTry.length === 0) {
+    console.warn('AI alert decision skipped: No configured or available Gemini API keys.');
     return { shouldSendAlert: false, reason: '' };
   }
 
@@ -70,9 +71,9 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
   for (const model of modelsToTry) {
     console.log(`[AI] Attempting alert decision with model: ${model}`);
 
-    for (const [index, apiKey] of geminiApiKeys.entries()) {
+    for (const { key: apiKey, index: keyIndex } of keysToTry) {
       try {
-        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
+        console.log(`[AI] Using Gemini API key with index ${keyIndex} for model ${model}.`);
 
         const localAi = genkit({
           plugins: [googleAI({ apiKey })],
@@ -80,8 +81,10 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
           enableTracingAndMetrics: true,
         });
 
+        const uniqueName = `alertDecision_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
+
         const alertDecisionPrompt = localAi.definePrompt({
-          name: `alertDecisionPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          name: `${uniqueName}_prompt`,
           input: { schema: AlertDecisionInputSchema },
           output: { schema: AlertDecisionOutputSchema },
           prompt: alertDecisionPromptTemplate,
@@ -91,7 +94,7 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
 
         const alertDecisionFlow = localAi.defineFlow(
           {
-            name: `alertDecisionFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            name: `${uniqueName}_flow`,
             inputSchema: AlertDecisionInputSchema,
             outputSchema: AlertDecisionOutputSchema,
           },
@@ -106,7 +109,8 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         );
         
         const result = await alertDecisionFlow(input);
-        console.log(`[AI] Alert decision successful with model ${model} and key ${index + 1}.`);
+        console.log(`[AI] Alert decision successful with model ${model} and key index ${keyIndex}.`);
+        apiKeyManager.reportSuccess(keyIndex);
         return result;
 
       } catch (err: any) {
@@ -115,17 +119,18 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
         if (isQuotaError) {
-          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          console.warn(`[AI] Key index ${keyIndex} for model ${model} failed with quota error. Reporting failure and trying next key...`);
+          apiKeyManager.reportFailure(keyIndex);
           continue; // Continue to the next API key
         } else {
-          // This is a non-quota, non-retryable error for this key. We should fail fast.
-          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
-          throw err;
+          // This is a non-quota, non-retryable error for this key with this model.
+          console.error(`[AI] A non-retryable error occurred with model ${model} and key index ${keyIndex}. Failing fast for this model.`, err);
+          break; // Break from the key loop and try the next model
         }
       }
     }
-    console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
-    // If we exhausted all keys for a model due to quota, report it as a failure.
+    // If we're here, all available keys failed for this model.
+    console.log(`[AI] All available keys for model ${model} failed. Reporting model as unavailable.`);
     modelAvailabilityService.reportFailure(model);
   }
 
@@ -137,6 +142,6 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
     throw new Error('AI features unavailable. All configured Gemini API keys have exceeded their free tier quota. Please wait or add new keys.');
   }
 
-  // Failsafe for other errors if we somehow get here without throwing earlier
+  // Failsafe for other errors
   return { shouldSendAlert: false, reason: '' };
 }

@@ -21,6 +21,7 @@ import {
   type CityCorrectionOutput,
 } from '@/lib/types';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
+import { apiKeyManager } from '@/services/apiKeyManager';
 
 // Define models in order of preference.
 const PREFERRED_MODELS = [
@@ -43,10 +44,10 @@ Instructions:
 
 
 export async function correctCitySpelling(input: CityCorrectionInput): Promise<CityCorrectionOutput> {
-  const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
-
-  if (geminiApiKeys.length === 0) {
-    console.warn('AI spelling correction skipped: Gemini API key missing.');
+  const keysToTry = apiKeyManager.getKeysToTry();
+  
+  if (keysToTry.length === 0) {
+    console.warn('AI spelling correction skipped: No configured or available Gemini API keys.');
     return { correctedQuery: input.query };
   }
   
@@ -67,9 +68,9 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
   for (const model of modelsToTry) {
     console.log(`[AI] Attempting city correction with model: ${model}`);
 
-    for (const [index, apiKey] of geminiApiKeys.entries()) {
+    for (const { key: apiKey, index: keyIndex } of keysToTry) {
       try {
-        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
+        console.log(`[AI] Using Gemini API key with index ${keyIndex} for model ${model}.`);
 
         const localAi = genkit({
           plugins: [googleAI({ apiKey })],
@@ -77,8 +78,10 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
           enableTracingAndMetrics: true,
         });
 
+        const uniqueName = `cityCorrection_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
+
         const correctionPrompt = localAi.definePrompt({
-          name: `cityCorrectionPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          name: `${uniqueName}_prompt`,
           input: { schema: CityCorrectionInputSchema },
           output: { schema: CityCorrectionOutputSchema },
           prompt: correctionPromptTemplate,
@@ -88,7 +91,7 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
 
         const cityCorrectionFlow = localAi.defineFlow(
           {
-            name: `cityCorrectionFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            name: `${uniqueName}_flow`,
             inputSchema: CityCorrectionInputSchema,
             outputSchema: CityCorrectionOutputSchema,
           },
@@ -103,7 +106,8 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
         );
 
         const result = await cityCorrectionFlow({ query: sanitizedQuery });
-        console.log(`[AI] City correction successful with model ${model} and key ${index + 1}.`);
+        console.log(`[AI] City correction successful with model ${model} and key index ${keyIndex}.`);
+        apiKeyManager.reportSuccess(keyIndex);
         return result;
         
       } catch (err: any) {
@@ -112,17 +116,17 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
         const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
         if (isQuotaError) {
-          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          console.warn(`[AI] Key index ${keyIndex} for model ${model} failed with quota error. Reporting failure and trying next key...`);
+          apiKeyManager.reportFailure(keyIndex);
           continue; // Continue to the next API key
         } else {
-           // This is a non-quota, non-retryable error for this key. We should fail fast.
-          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
-          throw err;
+          // This is a non-quota, non-retryable error for this key with this model.
+          console.error(`[AI] A non-retryable error occurred with model ${model} and key index ${keyIndex}. Failing fast for this model.`, err);
+          break; // Break from the key loop and try the next model
         }
       }
     }
-     console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
-     // If we exhausted all keys for a model due to quota, report it as a failure.
+     console.log(`[AI] All available keys for model ${model} failed. Reporting model as unavailable.`);
      modelAvailabilityService.reportFailure(model);
   }
 
@@ -136,5 +140,3 @@ export async function correctCitySpelling(input: CityCorrectionInput): Promise<C
 
   return { correctedQuery: input.query }; // Failsafe for other errors
 }
-
-    

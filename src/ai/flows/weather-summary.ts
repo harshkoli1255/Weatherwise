@@ -21,6 +21,7 @@ import {
   type WeatherSummaryOutput,
 } from '@/lib/types';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
+import { apiKeyManager } from '@/services/apiKeyManager';
 
 // Define models in order of preference.
 const PREFERRED_MODELS = [
@@ -52,10 +53,10 @@ Instructions:
 
 
 export async function summarizeWeather(input: WeatherSummaryInput): Promise<WeatherSummaryOutput> {
-  const geminiApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+  const keysToTry = apiKeyManager.getKeysToTry();
 
-  if (geminiApiKeys.length === 0) {
-    throw new Error('AI summary service is not configured (Gemini API key missing).');
+  if (keysToTry.length === 0) {
+    throw new Error('AI summary service is not configured or no keys are available.');
   }
   
   let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
@@ -70,9 +71,9 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
   for (const model of modelsToTry) {
     console.log(`[AI] Attempting weather summary with model: ${model}`);
 
-    for (const [index, apiKey] of geminiApiKeys.entries()) {
+    for (const { key: apiKey, index: keyIndex } of keysToTry) {
       try {
-        console.log(`[AI] Using Gemini key ${index + 1}/${geminiApiKeys.length} for model ${model}.`);
+        console.log(`[AI] Using Gemini API key with index ${keyIndex} for model ${model}.`);
         
         const localAi = genkit({
           plugins: [googleAI({ apiKey })],
@@ -80,8 +81,10 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
           enableTracingAndMetrics: true,
         });
 
+        const uniqueName = `weatherSummary_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${keyIndex}`;
+
         const summaryPrompt = localAi.definePrompt({
-          name: `weatherSummaryPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+          name: `${uniqueName}_prompt`,
           input: { schema: WeatherSummaryInputSchema },
           output: { schema: WeatherSummaryOutputSchema },
           prompt: summaryPromptTemplate,
@@ -97,7 +100,7 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
 
         const weatherSummaryFlow = localAi.defineFlow(
           {
-            name: `weatherSummaryFlow_${model.replace(/[^a-zA-Z0-9]/g, '_')}_key${index}`,
+            name: `${uniqueName}_flow`,
             inputSchema: WeatherSummaryInputSchema,
             outputSchema: WeatherSummaryOutputSchema,
           },
@@ -111,7 +114,8 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
         );
         
         const result = await weatherSummaryFlow(input);
-        console.log(`[AI] Weather summary successful with model ${model} and key ${index + 1}.`);
+        console.log(`[AI] Weather summary successful with model ${model} and key index ${keyIndex}.`);
+        apiKeyManager.reportSuccess(keyIndex);
         return result;
 
       } catch (err: any) {
@@ -120,17 +124,17 @@ export async function summarizeWeather(input: WeatherSummaryInput): Promise<Weat
         const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429') || (err as any).status === 429;
 
         if (isQuotaError) {
-          console.warn(`[AI] Key ${index + 1} for model ${model} failed with quota error. Trying next key...`);
+          console.warn(`[AI] Key index ${keyIndex} for model ${model} failed with quota error. Reporting failure and trying next key...`);
+          apiKeyManager.reportFailure(keyIndex);
           continue; // Continue to the next API key
         } else {
-          // This is a non-quota, non-retryable error for this key. We should fail fast.
-          console.error(`[AI] A non-retryable error occurred with model ${model}. Failing fast.`, err);
-          throw err;
+          // This is a non-quota, non-retryable error for this key with this model.
+          console.error(`[AI] A non-retryable error occurred with model ${model} and key index ${keyIndex}. Failing fast for this model.`, err);
+          break; // Break from the key loop and try the next model
         }
       }
     }
-     console.log(`[AI] All keys for model ${model} failed due to quota errors. Reporting model as unavailable.`);
-     // If we exhausted all keys for a model due to quota, report it as a failure.
+     console.log(`[AI] All available keys for model ${model} failed. Reporting model as unavailable.`);
      modelAvailabilityService.reportFailure(model);
   }
   
