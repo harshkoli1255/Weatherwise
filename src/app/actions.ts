@@ -15,7 +15,7 @@ import {
   type FavoriteCityWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
-import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
+import { correctCitySpelling } from '@/ai/flows/city-correction';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 
@@ -51,20 +51,10 @@ export async function fetchWeatherAndSummaryAction(
     } 
     // PRIORITY 2: Text-based search.
     else if (params.city) {
-      let interpretedCity = params.city;
-      if (isAiConfigured()) {
-        try {
-          console.log(`[Perf] AI interpreting search query: "${params.city}"`);
-          const interpretation = await interpretSearchQuery({ query: params.city });
-          interpretedCity = interpretation.city;
-          console.log(`[Perf] AI interpreted as: "${interpretedCity}"`);
-        } catch (aiError) {
-          const message = aiError instanceof Error ? aiError.message : "An unknown AI error occurred.";
-          console.error("AI city interpretation failed, proceeding with original query.", message);
-          // Don't fail the whole request, just proceed with the user's query and let OpenWeather handle it.
-        }
-      }
-      locationIdentifier = { type: 'city', city: interpretedCity };
+      // AI interpretation has been removed from this primary action for speed and accuracy.
+      // The city name is now passed directly to the weather service, which has its own robust parsing.
+      // Smarter AI logic is now scoped to the suggestion generation.
+      locationIdentifier = { type: 'city', city: params.city };
     } 
     // No valid parameters.
     else {
@@ -87,8 +77,9 @@ export async function fetchWeatherAndSummaryAction(
     
     if (!weatherResult.data || !weatherResult.rawResponse) {
       const isNotFound = weatherResult.status === 404;
+      const originalQuery = location.type === 'city' ? location.city : `${location.lat}, ${location.lon}`;
       const errorMessage = isNotFound 
-        ? `Could not find a valid location for "${params.city}". Please try a different search.`
+        ? `Could not find a valid location for "${originalQuery}". Please try a different search.`
         : weatherResult.error;
       return { data: null, error: errorMessage, cityNotFound: isNotFound };
     }
@@ -208,19 +199,19 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     if (isAiConfigured()) {
         try {
-            console.log(`Attempting AI interpretation for raw query: "${processedQuery}"`);
-            const interpretationResult = await interpretSearchQuery({ query: processedQuery });
-            const interpretedCity = interpretationResult.city;
+            console.log(`Attempting AI spelling correction for raw query: "${processedQuery}"`);
+            const correctionResult = await correctCitySpelling({ query: processedQuery });
+            const correctedQuery = correctionResult.correctedQuery;
             
-            if (interpretedCity && interpretedCity.toLowerCase() !== processedQuery.toLowerCase()) {
-                console.log(`AI interpreted "${processedQuery}" as "${interpretedCity}".`);
-                processedQuery = interpretedCity;
+            if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
+                console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
+                processedQuery = correctedQuery;
             } else {
-                console.log(`AI did not provide a different interpretation for "${processedQuery}". Using original.`);
+                console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
-            console.error("AI city interpretation failed:", message);
+            console.error("AI city correction failed:", message);
             // Don't block search if AI fails, just use original query and log the error.
         }
     }
@@ -395,3 +386,5 @@ export async function fetchWeatherForFavoritesAction(
 
   return results;
 }
+
+    

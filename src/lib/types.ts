@@ -182,20 +182,20 @@ export type LocationIdentifier =
   | { type: 'coords'; lat: number; lon: number };
 
 
-// AI Schema: City Correction / Interpretation
-export const InterpretSearchQueryInputSchema = z.object({
-  query: z.string().describe('A natural language search query for a location.'),
+// AI Schema: City Spelling Correction
+export const CityCorrectionInputSchema = z.object({
+  query: z.string().describe('A search query for a city that may contain typos or conversational language.'),
 });
-export type InterpretSearchQueryInput = z.infer<typeof InterpretSearchQueryInputSchema>;
+export type CityCorrectionInput = z.infer<typeof CityCorrectionInputSchema>;
 
-export const InterpretSearchQueryOutputSchema = z.object({
-  city: z
+export const CityCorrectionOutputSchema = z.object({
+  correctedQuery: z
     .string()
     .describe(
-      'The identified city name from the query. For example, if the query is "capital of Spain", this should be "Madrid".'
+      'The corrected and simplified city name. For example, "Lodon" becomes "London" and "weather in Paris" becomes "Paris".'
     ),
 });
-export type InterpretSearchQueryOutput = z.infer<typeof InterpretSearchQueryOutputSchema>;
+export type CityCorrectionOutput = z.infer<typeof CityCorrectionOutputSchema>;
 
 
 // AI Schema: Weather Summary
@@ -250,3 +250,5 @@ export interface EmailTemplatePayload {
 
 export type FavoriteCityWeatherResult = WeatherData | { error: string };
 export type FavoritesWeatherMap = Record<string, FavoriteCityWeatherResult>;
+
+    
