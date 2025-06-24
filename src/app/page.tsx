@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback, Suspense, useRef } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, Suspense } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
@@ -36,6 +36,7 @@ const initialState: WeatherPageState = {
 };
 
 const LAST_SEARCH_KEY = 'weatherwise-last-search';
+const LAST_RESULT_KEY = 'weatherwise-last-result';
 
 function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
@@ -46,32 +47,39 @@ function WeatherPageContent() {
   const { toast } = useToast();
   const { addFavorite, removeFavorite, isFavorite } = useFavoriteCities();
 
-  // This effect runs only once on mount to pre-fill the search bar.
-  // It does NOT trigger a search.
+  // This effect runs only once on mount to restore the last session.
   useEffect(() => {
     try {
+      const savedResult = localStorage.getItem(LAST_RESULT_KEY);
+      if (savedResult) {
+        const lastData: WeatherSummaryData = JSON.parse(savedResult);
+        setWeatherState(prevState => ({ ...prevState, data: lastData }));
+      }
+      
       const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
       if (savedLastSearch) {
           const lastCity: CitySuggestion = JSON.parse(savedLastSearch);
           setInitialSearchTerm(lastCity.name);
       }
     } catch(e) {
-        console.warn("Could not read last search from localStorage.");
+        console.warn("Could not read last session from localStorage.");
+        localStorage.removeItem(LAST_RESULT_KEY);
+        localStorage.removeItem(LAST_SEARCH_KEY);
     }
-  }, []); // Empty array ensures this runs only once on the client.
+  }, []);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
       ? `Searching for ${params.city}...` 
       : 'Fetching weather for your location...';
       
-    setWeatherState({
-      data: null, // Clear previous data for a new search
+    setWeatherState(prevState => ({
+      ...prevState,
       isLoading: true,
       loadingMessage,
       error: null,
       cityNotFound: false,
-    });
+    }));
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
@@ -94,6 +102,7 @@ function WeatherPageContent() {
         };
         try {
             localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(cityForStorage));
+            localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(result.data));
         } catch (e) {
             console.warn("Could not save last search to localStorage.");
         }
@@ -107,7 +116,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, [toast]);
+  }, []);
 
   const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
@@ -120,6 +129,21 @@ function WeatherPageContent() {
     
     performWeatherFetch(params);
   }, [performWeatherFetch]);
+
+  // Listen for search events from other components (like the navbar)
+  useEffect(() => {
+    const handleSearchEvent = (event: Event) => {
+        const citySuggestion = (event as CustomEvent<CitySuggestion>).detail;
+        if (citySuggestion) {
+            handleSearch(citySuggestion.name, citySuggestion.lat, citySuggestion.lon);
+        }
+    };
+
+    window.addEventListener('weather-search', handleSearchEvent);
+    return () => {
+        window.removeEventListener('weather-search', handleSearchEvent);
+    };
+}, [handleSearch]);
   
   const handleLocate = useCallback(async () => {
     setIsLocating(true);

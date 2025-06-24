@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFavoriteCities } from '@/hooks/use-favorite-cities';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -35,7 +34,6 @@ export function FavoriteCitiesDropdown() {
   const { favorites, removeMultipleFavorites } = useFavoriteCities();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
-  const router = useRouter();
 
   const handleSelectionChange = (city: CitySuggestion, isChecked: boolean) => {
     setSelectedCities(prev => {
@@ -65,17 +63,20 @@ export function FavoriteCitiesDropdown() {
   const isAllSelected = useMemo(() => favorites.length > 0 && selectedCities.length === favorites.length, [favorites, selectedCities]);
   
   const handleCityClick = (city: CitySuggestion) => {
-    const url = `/?city=${encodeURIComponent(city.name)}&lat=${city.lat}&lon=${city.lon}`;
-    router.push(url);
+    // Dispatch a custom event that the main page can listen for.
+    // This avoids changing the URL.
+    const event = new CustomEvent('weather-search', { detail: city });
+    window.dispatchEvent(event);
   };
   
   return (
     <SignedIn>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Favorite cities">
-                <Star className={cn("h-5 w-5", favorites.length > 0 && "text-yellow-400 fill-yellow-400")} />
-            </Button>
+              <Button variant="ghost" className="gap-2">
+                <Star className={cn("h-5 w-5 transition-colors", favorites.length > 0 && "text-primary fill-primary")} />
+                <span className="hidden md:inline">Favorites</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between">
@@ -119,9 +120,12 @@ export function FavoriteCitiesDropdown() {
                             <DropdownMenuItem
                                 key={cityKey}
                                 className="flex justify-between items-center p-2 cursor-pointer focus:bg-accent"
-                                onSelect={(e) => e.preventDefault()} // Prevent closing on click
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  handleCityClick(city);
+                                }}
                             >
-                                <div className="flex items-center min-w-0" onClick={() => handleCityClick(city)}>
+                                <div className="flex items-center min-w-0">
                                     <MapPin className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                                     <div className="flex flex-col truncate">
                                     <span className="truncate">{city.name}</span>
