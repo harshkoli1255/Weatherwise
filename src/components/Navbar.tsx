@@ -41,6 +41,10 @@ export function Navbar() {
         <div className="flex items-center">
             {/* Desktop Links & User Actions */}
             <div className="hidden md:flex items-center gap-4">
+                <SignedIn>
+                    <FavoriteCitiesDropdown />
+                </SignedIn>
+
                 {navItems.map((item) => (
                     <Button 
                         key={item.href}
@@ -51,19 +55,20 @@ export function Navbar() {
                     </Button>
                 ))}
                 
-                <SignedIn>
-                    <div className="flex items-center gap-2">
-                        <FavoriteCitiesDropdown />
-                        <UserButton />
-                    </div>
-                </SignedIn>
-                <SignedOut>
-                    <SignInButton mode="modal">
-                        <Button variant="outline">Sign In</Button>
-                    </SignInButton>
-                </SignedOut>
-                <div className="ml-2">
-                  <ThemeToggle />
+                <div className="flex-grow"></div>
+
+                <div className="flex items-center gap-2">
+                  <SignedIn>
+                      <UserButton />
+                  </SignedIn>
+                  <SignedOut>
+                      <SignInButton mode="modal">
+                          <Button variant="outline">Sign In</Button>
+                      </SignInButton>
+                  </SignedOut>
+                  <div className="ml-2">
+                    <ThemeToggle />
+                  </div>
                 </div>
             </div>
 

@@ -14,13 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
   isSearchingWeather: boolean;
-  currentCityName?: string;
+  initialValue?: string;
   onLocate: () => void;
   isLocating: boolean;
 }
 
-export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLocate, isLocating }: SearchBarProps) {
-  const [inputValue, setInputValue] = useState('');
+export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate, isLocating }: SearchBarProps) {
+  const [inputValue, setInputValue] = useState(initialValue || '');
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -28,6 +28,11 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
   const commandRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (initialValue) {
+      setInputValue(initialValue);
+    }
+  }, [initialValue]);
 
   const fetchSuggestions = useCallback((query: string) => {
     if (query.length < 1) {
@@ -129,7 +134,7 @@ export function SearchBar({ onSearch, isSearchingWeather, currentCityName, onLoc
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
-                placeholder={currentCityName ? `Try "${currentCityName}" or another city` : "Search 'capital of Spain' or 'Tokyo'... "}
+                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search 'capital of Spain' or 'Tokyo'... "}
                 className="block w-full h-12 md:h-14 pl-12 pr-[150px] md:pr-[160px] text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
