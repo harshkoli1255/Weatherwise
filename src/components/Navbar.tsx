@@ -36,9 +36,6 @@ export function Navbar() {
                 </span>
             </Link>
              <div className="hidden md:flex items-center gap-2">
-                <SignedIn>
-                    <FavoriteCitiesDropdown />
-                </SignedIn>
                 {navItems.map((item) => (
                     <Button 
                         key={item.href}
@@ -54,9 +51,10 @@ export function Navbar() {
         {/* Right Side: User Actions */}
         <div className="flex items-center">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-x-4">
+            <div className="hidden md:flex items-center gap-3">
               <SignedIn>
-                  <UserButton />
+                <FavoriteCitiesDropdown />
+                <UserButton />
               </SignedIn>
               <SignedOut>
                   <SignInButton mode="modal">
