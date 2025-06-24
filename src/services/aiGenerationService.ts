@@ -20,7 +20,7 @@ const PREFERRED_MODELS = [
 
 // This interface defines the parameters for our centralized generation function.
 // It mirrors the structure of Genkit's `ai.generate()` options for familiarity.
-interface GenerationParams<I extends z.ZodType, O extends z.ZodType> extends Omit<GenerateOptions, 'model' | 'output' | 'input'> {
+interface GenerationParams<I extends z.ZodType, O extends z.ZodType> extends Omit<GenerateOptions, 'model' | 'output' | 'prompt' | 'input'> {
     prompt: string;
     input: z.infer<I>;
     output: {
@@ -41,8 +41,21 @@ interface GenerationParams<I extends z.ZodType, O extends z.ZodType> extends Omi
 export async function generateWithFallback<I extends z.ZodType, O extends z.ZodType>(
     params: GenerationParams<I, O>
 ): Promise<z.infer<O>> {
-    const { prompt, input, output, source, ...restOfConfig } = params;
+    const { prompt: promptTemplate, input, output, source, ...restOfConfig } = params;
 
+    // Helper to replace {{...}} placeholders in the prompt template.
+    const renderPrompt = (template: string, data: Record<string, any>): string => {
+        let rendered = template;
+        for (const key in data) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), String(data[key]));
+            }
+        }
+        return rendered;
+    };
+
+    const finalPrompt = renderPrompt(promptTemplate, input);
+    
     const keysToTry = apiKeyManager.getKeysToTry();
     if (keysToTry.length === 0) {
         const errorMsg = 'AI service is not configured or no keys are available.';
@@ -74,8 +87,7 @@ export async function generateWithFallback<I extends z.ZodType, O extends z.ZodT
                 
                 const { output: generatedOutput } = await localAi.generate({
                     model,
-                    prompt,
-                    input,
+                    prompt: finalPrompt,
                     output,
                     ...restOfConfig
                 });
