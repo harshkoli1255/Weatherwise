@@ -4,28 +4,28 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
+    --background: 208 100% 97%; /* #F0F8FF - Alice Blue */
     --foreground: 220 25% 10%;
     --card: 220 20% 100%;
     --card-foreground: 220 25% 10%;
     --popover: 220 20% 100%;
     --popover-foreground: 220 25% 10%;
-    --primary: 221 83% 53%; /* A more vibrant, saturated blue */
-    --primary-foreground: 210 20% 98%;
+    --primary: 197 71% 73%; /* #87CEEB - Sky Blue */
+    --primary-foreground: 220 25% 10%; /* Dark text on light blue */
     --secondary: 220 15% 94%;
     --secondary-foreground: 220 30% 25%;
     --muted: 220 15% 94%;
     --muted-foreground: 220 15% 45%;
-    --accent: 220 50% 90%; /* Lighter blue for subtle accents */
-    --accent-foreground: 220 70% 30%;
+    --accent: 197 50% 90%; /* Lighter Sky Blue for UI interactions */
+    --accent-foreground: 197 70% 30%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 88%;
     --input: 220 20% 92%;
-    --ring: 221 83% 53%;
+    --ring: 197 71% 73%; /* Sky Blue */
 
-    --chart-1: 221 83% 53%;
-    --chart-2: 173 58% 39%;
+    --chart-1: 197 71% 73%;
+    --chart-2: 51 100% 50%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -39,19 +39,19 @@
     --card-foreground: 210 20% 95%;
     --popover: 220 20% 8%;
     --popover-foreground: 210 20% 95%;
-    --primary: 217 91% 60%; /* Brighter blue for dark mode */
+    --primary: 197 71% 68%; /* Brighter Sky Blue */
     --primary-foreground: 210 20% 10%;
     --secondary: 220 15% 18%;
     --secondary-foreground: 210 20% 95%;
     --muted: 220 15% 18%;
     --muted-foreground: 210 20% 65%;
-    --accent: 220 15% 25%;
+    --accent: 197 15% 25%; /* Darker blue for UI interactions */
     --accent-foreground: 210 20% 95%;
     --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 15% 20%;
     --input: 220 15% 22%;
-    --ring: 217 91% 60%;
+    --ring: 197 71% 68%;
   }
 }
 

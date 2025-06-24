@@ -37,12 +37,12 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
               size="icon"
               onClick={onSaveCityToggle}
               aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
-              className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary"
+              className="h-10 w-10 rounded-full text-muted-foreground hover:text-amber-500"
               title={isCitySaved ? `Remove ${weatherData.city} from favorites` : `Save ${weatherData.city}`}
             >
               <Star className={cn(
                   "h-7 w-7 transition-all duration-300",
-                  isCitySaved && "fill-primary text-primary"
+                  isCitySaved && "fill-amber-400 text-amber-500"
               )} />
             </Button>
           </div>
@@ -51,9 +51,9 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         <CardContent className="space-y-8 p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
             <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-              <div className="text-7xl sm:text-8xl font-bold text-primary drop-shadow-lg">
+              <div className="text-7xl sm:text-8xl font-bold text-amber-400 drop-shadow-lg">
                 {weatherData.temperature}°
-                <span className="text-5xl sm:text-6xl text-primary/80">C</span>
+                <span className="text-5xl sm:text-6xl text-amber-400/80">C</span>
               </div>
             </div>
             <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
@@ -173,9 +173,9 @@ function HourlyForecastItem({ forecast, className, ...props }: HourlyForecastIte
 
     switch (code) {
       case '01': // Clear sky
-        return isDay ? 'text-yellow-400' : 'text-sky-300';
+        return isDay ? 'text-amber-400' : 'text-sky-300';
       case '02': // Few clouds
-        return isDay ? 'text-yellow-400' : 'text-sky-400';
+        return isDay ? 'text-amber-400' : 'text-sky-400';
       case '03': // Scattered clouds
       case '04': // Broken clouds
         return 'text-slate-400 dark:text-slate-300';

@@ -54,7 +54,7 @@ export function Navbar() {
         {/* Right Side: User Actions */}
         <div className="flex items-center">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-x-4">
               <SignedIn>
                   <UserButton />
               </SignedIn>
@@ -63,9 +63,7 @@ export function Navbar() {
                       <Button variant="outline">Sign In</Button>
                   </SignInButton>
               </SignedOut>
-              <div className="ml-4">
-                <ThemeToggle />
-              </div>
+              <ThemeToggle />
             </div>
 
             {/* Mobile navigation menu */}
