@@ -22,6 +22,14 @@
 
 ---
 
+## 🌐 Live Demo
+
+You can try the live application here:
+
+[https://9000-firebase-studio-1750300058345.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev/](https://9000-firebase-studio-1750300058345.cluster-ubrd2huk7jh6otbgyei4h62ope.cloudworkstations.dev/)
+
+---
+
 ## 🛠️ Architectural Highlights & Tech Stack
 
 This project was built with a focus on modern, scalable web architecture. The choices below reflect a commitment to performance, type safety, and maintainability.
