@@ -247,12 +247,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         } catch (err) {
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
             console.error("AI city interpretation failed:", message);
-            // Don't block search if AI fails, just use original query
-            toast({
-              variant: 'destructive',
-              title: 'AI Search Error',
-              description: message,
-            });
+            // Don't block search if AI fails, just use original query and log the error.
         }
     }
 
@@ -382,7 +377,4 @@ export async function getCityFromCoordsAction(
     const message = error instanceof Error ? error.message : "An unknown server error occurred while getting city from coordinates.";
     return { city: null, error: message };
   }
-}
-function toast(arg0: { variant: string; title: string; description: string; }) {
-  throw new Error('Function not implemented.');
 }
