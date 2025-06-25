@@ -170,7 +170,7 @@ The easiest way to install these tools on a Mac is with [Homebrew](https://brew.
         ```bash
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
         ```
-    *   **Close and reopen your terminal**, then run the following to install the latest LTS version of Node.js:
+    *   **Close and reopen your terminal**, then run the following to install and use the latest LTS version of Node.js:
         ```bash
         nvm install --lts
         nvm use --lts
