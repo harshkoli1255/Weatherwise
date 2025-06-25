@@ -29,7 +29,9 @@
 - [🧠 Key Architectural Decisions](#-key-architectural-decisions)
 - [🛠️ Tech Stack](#️-tech-stack)
 - [📂 Project Structure](#-project-structure)
-- [🚀 Running Locally](#-running-locally)
+- [🚀 Getting Started](#-getting-started)
+  - [1. Prerequisites (Required Dependencies)](#1-prerequisites-required-dependencies)
+  - [2. Project Setup & Local Server](#2-project-setup--local-server)
 - [☁️ Deployment (Free Hosting)](#️-deployment-free-hosting)
 - [⏰ Setting up Automatic Hourly Alerts (Cron Job)](#-setting-up-automatic-hourly-alerts-cron-job)
 - [❓ Frequently Asked Questions](#-frequently-asked-questions)
@@ -112,21 +114,81 @@ A brief overview of the key directories in this project:
 
 ---
 
-## 🚀 Running Locally
+## 🚀 Getting Started
 
 Follow these steps to get the project running on your local machine.
 
-#### 1. Prerequisites
-*   [**Node.js**](https://nodejs.org/) (v18 or later recommended)
-*   [**Git**](https://git-scm.com/)
+### 1. Prerequisites (Required Dependencies)
 
-#### 2. Clone the Repository
+Before you can run the project, you must have the following tools installed on your system. **This project is compatible with the latest stable versions of Node.js, npm, and Git.**
+
+---
+
+#### 🖥️ For Windows
+
+1.  **Install Git:**
+    *   Go to the official [Git for Windows](https://git-scm.com/download/win) website.
+    *   Download the installer and run it. The default settings are fine for most users.
+
+2.  **Install Node.js (and npm):**
+    *   Go to the official [Node.js website](https://nodejs.org/en).
+    *   Download the installer for the **LTS (Long-Term Support)** version.
+    *   Run the installer. It will automatically install both `node` and `npm`.
+
+---
+
+#### 🍎 For macOS
+
+The easiest way to install these tools on a Mac is with [Homebrew](https://brew.sh/), a package manager.
+
+1.  **Install Homebrew (if you don't have it):**
+    *   Open the Terminal app and paste the following command:
+        ```bash
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+
+2.  **Install Git and Node.js:**
+    *   Once Homebrew is installed, run these commands in your Terminal:
+        ```bash
+        brew install git
+        brew install node
+        ```
+
+---
+
+#### 🐧 For Linux (Ubuntu/Debian)
+
+1.  **Install Git:**
+    *   Open your terminal and run:
+        ```bash
+        sudo apt update && sudo apt install git
+        ```
+
+2.  **Install Node.js (and npm) via nvm (Recommended):**
+    *   Using **nvm (Node Version Manager)** is the best way to install Node.js on Linux.
+    *   **Install nvm:**
+        ```bash
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        ```
+    *   **Close and reopen your terminal**, then run the following to install the latest LTS version of Node.js:
+        ```bash
+        nvm install --lts
+        nvm use --lts
+        ```
+
+---
+
+### 2. Project Setup & Local Server
+
+Once the prerequisites are installed, you can set up the project itself.
+
+#### Step 1: Clone the Repository
 ```bash
 git clone <YOUR_REPOSITORY_URL>
 cd <project-directory>
 ```
 
-#### 3. Configure Environment Variables
+#### Step 2: Configure Environment Variables
 > **⚠️ IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys.
 
 1.  In the root directory, create a new file named `.env`.
@@ -144,7 +206,7 @@ cd <project-directory>
 | `EMAIL_FROM`                      | The email address alerts will appear to be sent from. Can be the same as `EMAIL_USER`.                                                                                    | Your choice, but usually the same as `EMAIL_USER`.                                                                                                                           |
 | `NEXT_PUBLIC_BASE_URL`            | The public URL of your application.                                                                                                                                     | For local development, this is `http://localhost:3000`. For a deployed app, this will be your Firebase URL.                                                                  |
 
-#### 4. Install Dependencies & Run
+#### Step 3: Install Project Dependencies & Run
 ```bash
 npm install
 npm run dev
