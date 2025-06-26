@@ -9,6 +9,7 @@ const nextConfig = {
     serverComponentsExternalPackages: [
       '@opentelemetry/instrumentation',
       '@opentelemetry/sdk-node',
+      'handlebars',
     ],
   },
   images: {
