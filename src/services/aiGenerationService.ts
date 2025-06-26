@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { GenerateOptions } from 'genkit';
 import { modelAvailabilityService } from '@/services/modelAvailabilityService';
 import { z } from 'zod';
+import Handlebars from 'handlebars';
 
 const PREFERRED_MODELS = [
     'googleai/gemini-1.5-pro-latest',
@@ -44,16 +45,9 @@ export async function generateWithFallback<I extends z.ZodType, O extends z.ZodT
 ): Promise<z.infer<O>> {
     const { prompt: promptTemplate, input, output, source, ...restOfConfig } = params;
 
-    const renderPrompt = (template: string, data: Record<string, any>): string => {
-        let rendered = template;
-        for (const key in data) {
-            if (Object.prototype.hasOwnProperty.call(data, key)) {
-                rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), String(data[key]));
-            }
-        }
-        return rendered;
-    };
-    const finalPrompt = renderPrompt(promptTemplate, input);
+    const compiledPrompt = Handlebars.compile(promptTemplate);
+    const finalPrompt = compiledPrompt(input);
+
 
     let modelsToTry = PREFERRED_MODELS.filter(model => modelAvailabilityService.isAvailable(model));
     if (modelsToTry.length === 0) {
