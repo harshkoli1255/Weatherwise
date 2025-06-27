@@ -15,7 +15,10 @@
 <br/>
 
 <p align="center">
-  <img src="./public/weatherwise-screenshot.png" alt="The Weatherwise dashboard showing real-time weather data for New York." style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+  <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard showing real-time weather data for New York." style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+</p>
+<p align="center">
+  <img src="./public/WeatherwiseDarkThemeScreenshot.png" alt="The Weatherwise dashboard showing real-time weather data for New York." style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
 </p>
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
