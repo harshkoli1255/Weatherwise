@@ -46,8 +46,11 @@ export async function fetchWeatherAndSummaryAction(
 
     // --- Step 1: Resolve the query into precise coordinates ---
     if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      // User provided coordinates directly (e.g., from "use my location")
+      // User provided coordinates directly (e.g., from "use my location" or a suggestion click)
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
+      // If a friendly name was also provided (from a suggestion click), use it.
+      // Otherwise, we'll fetch the name from the weather data later.
+      userFriendlyDisplayName = params.city; 
       console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
     } else if (params.city) {
       // User provided a text query. We need to interpret and geocode it.
@@ -101,7 +104,7 @@ export async function fetchWeatherAndSummaryAction(
     }
 
     const currentWeatherData = weatherResult.data;
-    // The final display name should be the user-friendly one from the AI if available.
+    // The final display name is the user-friendly one from AI/suggestion click if available. Otherwise, it's the name from the weather API.
     const finalDisplayName = userFriendlyDisplayName || currentWeatherData.city;
 
     const aiInput: WeatherSummaryInput = {
@@ -209,76 +212,77 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
       return { suggestions: null, processedQuery: query, error: "Server configuration error: No valid geocoding keys." };
     }
-    
+    const apiKey = openWeatherApiKeys[0];
+
     let interpretationResult: InterpretSearchQueryOutput | null = null;
     let queryForApi = query.trim();
 
+    // Step 1: Interpret the user's query with AI
     if (isAiConfigured()) {
         try {
-            console.log(`[AI] Interpreting search query: "${queryForApi}"`);
+            console.log(`[AI] Interpreting search query for suggestions: "${queryForApi}"`);
             interpretationResult = await interpretSearchQuery({ query: queryForApi });
-            
             if (interpretationResult.searchQueryForApi) {
                 queryForApi = interpretationResult.searchQueryForApi;
-                console.log(`[AI] Interpreted "${query.trim()}" as "${queryForApi}" for suggestions API.`);
+                console.log(`[AI] Interpreted "${query.trim()}" as "${queryForApi}" for geocoding.`);
             }
         } catch (err) {
-            console.error("AI search interpretation failed:", err instanceof Error ? err.message : "An unknown AI error occurred.");
+            console.error("AI search interpretation failed during suggestion fetch:", err instanceof Error ? err.message : "An unknown AI error occurred.");
         }
     }
     
-    let lastTechnicalError: string | null = null;
+    // Step 2: Geocode the (potentially AI-enhanced) query to get a list of possible locations
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=5&appid=${apiKey}`;
+    const response = await fetch(url);
 
-    for (const apiKey of openWeatherApiKeys) {
-        const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=8&appid=${apiKey}`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                if ([401, 403, 429].includes(response.status)) { 
-                    console.warn(`OpenWeather Geocoding API key failed or rate limited. Trying next key.`);
-                    continue; 
-                }
-                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-                lastTechnicalError = errorData.message || `Failed to fetch city suggestions (status: ${response.status})`;
-                console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastTechnicalError, url });
-                return { suggestions: null, processedQuery: query, error: "Geocoding service returned an error." };
-            }
+    if (!response.ok) {
+        console.error("Geocoding API error during suggestion fetch:", { status: response.status });
+        return { suggestions: null, processedQuery: query, error: 'Geocoding service failed.' };
+    }
 
-            const data: any[] = await response.json();
-            const uniqueSuggestions: CitySuggestion[] = [];
-            const seenKeys = new Set<string>();
+    const geoData: any[] = await response.json();
+    const finalSuggestions: CitySuggestion[] = [];
+    const seenKeys = new Set<string>();
 
-            for (const item of data) {
-                let displayName = item.name;
-                if (interpretationResult && interpretationResult.isSpecificLocation && uniqueSuggestions.length === 0) {
-                    displayName = interpretationResult.locationName 
-                        ? `${interpretationResult.locationName}, ${interpretationResult.cityName}` 
-                        : interpretationResult.cityName || item.name;
-                }
+    // Step 3: If the AI identified a specific location, manually create a suggestion for it.
+    // This ensures the AI's smart result is always shown, even if the geocoding API doesn't perfectly match it.
+    if (interpretationResult && interpretationResult.isSpecificLocation && geoData.length > 0) {
+        const firstResult = geoData[0];
+        const displayName = interpretationResult.locationName 
+            ? `${interpretationResult.locationName}, ${interpretationResult.cityName}` 
+            : interpretationResult.cityName || firstResult.name;
 
-                const key = `${displayName}|${item.state || 'NO_STATE'}|${item.country}`;
-                if (displayName && item.country && !seenKeys.has(key)) {
-                    seenKeys.add(key);
-                    uniqueSuggestions.push({
-                        name: displayName,
-                        lat: item.lat,
-                        lon: item.lon,
-                        country: item.country,
-                        state: item.state,
-                    });
-                }
-            }
-            return { suggestions: uniqueSuggestions, processedQuery: query, error: null };
-        } catch (e) {
-            lastTechnicalError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
-            console.error("Error fetching city suggestions:", e);
-            return { suggestions: null, processedQuery: query, error: "Network error while fetching suggestions." };
+        const key = `${displayName}|${firstResult.state || 'NO_STATE'}|${firstResult.country}`;
+        if (!seenKeys.has(key)) {
+            finalSuggestions.push({
+                name: displayName,
+                lat: firstResult.lat,
+                lon: firstResult.lon,
+                country: firstResult.country,
+                state: firstResult.state,
+            });
+            seenKeys.add(key);
         }
     }
-    
-    const serverError = lastTechnicalError || "Failed to fetch city suggestions with all available API keys.";
-    console.error("[Service Error] All geocoding API keys failed.", { details: serverError });
-    return { suggestions: null, processedQuery: query, error: "Could not retrieve city suggestions due to a server-side issue." };
+
+    // Step 4: Process the rest of the standard geocoding results, adding them if they are unique.
+    for (const item of geoData) {
+        const displayName = item.name;
+        const key = `${displayName}|${item.state || 'NO_STATE'}|${item.country}`;
+
+        if (displayName && item.country && !seenKeys.has(key)) {
+            finalSuggestions.push({
+                name: displayName,
+                lat: item.lat,
+                lon: item.lon,
+                country: item.country,
+                state: item.state,
+            });
+            seenKeys.add(key);
+        }
+    }
+
+    return { suggestions: finalSuggestions, processedQuery: query, error: null };
 
   } catch (error) {
     console.error("An unexpected error occurred in fetchCitySuggestionsAction:", error);
