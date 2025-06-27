@@ -10,6 +10,7 @@ import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { WeatherIcon } from '@/components/WeatherIcon';
 
 interface AlertsCitySearchProps {
   value: string;
@@ -195,7 +196,7 @@ export function AlertsCitySearch({ value, onValueChange, name, id, required }: A
                           key={uniqueKey}
                           value={uniqueKey}
                           onSelect={() => handleSelectSuggestion(suggestion)}
-                          className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center"
+                          className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                         >
                           <div className="flex items-center min-w-0">
                             <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -208,6 +209,12 @@ export function AlertsCitySearch({ value, onValueChange, name, id, required }: A
                               </span>
                             </div>
                           </div>
+                          {typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                            <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                              <span className="font-semibold text-foreground">{suggestion.temperature}°C</span>
+                              <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
                         </CommandItem>
                     );
                 })}
