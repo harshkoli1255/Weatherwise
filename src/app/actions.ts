@@ -41,23 +41,30 @@ export async function fetchWeatherAndSummaryAction(
     const apiKey = openWeatherApiKeys[0]; // Use the first available key for this optimized flow
 
     let locationIdentifier: LocationIdentifier;
+    let userFriendlyCityName: string | undefined = params.city;
 
     // --- Step 1: Resolve location ---
-    
-    // PRIORITY 1: Precise coordinates are always best.
     if (typeof params.lat === 'number' && typeof params.lon === 'number') {
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
       console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
-    } 
-    // PRIORITY 2: Text-based search.
-    else if (params.city) {
-      // AI interpretation has been removed from this primary action for speed and accuracy.
-      // The city name is now passed directly to the weather service, which has its own robust parsing.
-      // Smarter AI logic is now scoped to the suggestion generation.
-      locationIdentifier = { type: 'city', city: params.city };
-    } 
-    // No valid parameters.
-    else {
+    } else if (params.city) {
+      let queryForApi = params.city;
+      if (isAiConfigured()) {
+        try {
+          console.log(`[AI] Interpreting search query for main fetch: "${params.city}"`);
+          const interpretation = await interpretSearchQuery({ query: params.city });
+          if (interpretation.searchQueryForApi && interpretation.searchQueryForApi.toLowerCase() !== params.city.toLowerCase()) {
+            queryForApi = interpretation.searchQueryForApi;
+            // Use the more descriptive name if the AI found one.
+            userFriendlyCityName = interpretation.locationName || interpretation.cityName || params.city;
+            console.log(`[AI] Main fetch interpreted as "${queryForApi}". User-friendly name: "${userFriendlyCityName}"`);
+          }
+        } catch (err) {
+          console.error("AI search interpretation failed during main fetch, falling back to original query:", err);
+        }
+      }
+      locationIdentifier = { type: 'city', city: queryForApi };
+    } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
 
@@ -88,10 +95,7 @@ export async function fetchWeatherAndSummaryAction(
     const resolvedLat = weatherResult.rawResponse.coord.lat;
     const resolvedLon = weatherResult.rawResponse.coord.lon;
 
-    // --- FIX: Preserve user-selected city name ---
-    // When searching by coordinates (often from a suggestion), the API might return the name of a
-    // nearby, larger city. We prioritize the name the user actually searched for or selected.
-    const finalCityName = params.city || currentWeatherData.city;
+    const finalCityName = userFriendlyCityName || currentWeatherData.city;
 
     const aiInput: WeatherSummaryInput = {
       city: finalCityName, // Use the preserved name
@@ -394,6 +398,3 @@ export async function fetchWeatherForFavoritesAction(
 
   return results;
 }
-    
-
-    
