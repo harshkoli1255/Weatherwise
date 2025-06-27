@@ -1,8 +1,6 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -61,7 +59,6 @@ export function FavoriteCitiesDropdown() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [pendingCityKey, setPendingCityKey] = useState<string | null>(null);
-  const router = useRouter();
   const { toast } = useToast();
 
   const loadFavoritesWeather = useCallback(async () => {
@@ -116,7 +113,6 @@ export function FavoriteCitiesDropdown() {
                 title: 'Alert City Set!',
                 description: result.message,
             });
-            router.push('/alerts');
         } else {
             toast({
                 variant: 'destructive',
@@ -126,7 +122,7 @@ export function FavoriteCitiesDropdown() {
         }
         setPendingCityKey(null);
     });
-  }, [router, toast]);
+  }, [toast]);
 
 
   const isAllSelected = useMemo(() => favorites.length > 0 && selectedCities.length === favorites.length, [favorites, selectedCities]);
