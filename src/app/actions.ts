@@ -60,7 +60,7 @@ export async function fetchWeatherAndSummaryAction(
           const interpretation = await interpretSearchQuery({ query: params.city });
           
           // The AI now returns the reliable city name in `searchQueryForApi`
-          queryForGeocoding = interpretation.searchQueryForApi;
+          queryForGeocoding = interpretation.cityName || interpretation.searchQueryForApi;
           
           // Construct the friendly display name from the AI's parsed components
           if (interpretation.isSpecificLocation && interpretation.locationName && interpretation.cityName) {
@@ -224,9 +224,13 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     if (isAiConfigured()) {
       try {
         interpretationResult = await interpretSearchQuery({ query: trimmedQuery });
-        if (interpretationResult.searchQueryForApi) {
-          queryForApi = interpretationResult.searchQueryForApi;
+        // Use the reliable city name for the API call.
+        if (interpretationResult.cityName) {
+          queryForApi = interpretationResult.cityName;
           console.log(`[AI] Using interpreted city query for suggestions: "${queryForApi}"`);
+        } else if (interpretationResult.searchQueryForApi) {
+          queryForApi = interpretationResult.searchQueryForApi;
+          console.log(`[AI] Using interpreted fallback query for suggestions: "${queryForApi}"`);
         }
       } catch (err) {
         console.error("AI interpretation failed, falling back to original query for suggestions.", err);
@@ -256,7 +260,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       const topHit = data[0];
       const friendlyName = interpretationResult.locationName && interpretationResult.cityName
         ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
-        : interpretationResult.searchQueryForApi;
+        : interpretationResult.cityName || topHit.name;
       
       initialSuggestions.push({
         name: friendlyName,

@@ -22,20 +22,20 @@ const interpretQueryPromptTemplate = `You are an expert in natural language unde
 User's raw query: "{{query}}"
 
 Instructions:
-1.  **Analyze the Intent**: Determine if the user is asking for a city/region (e.g., "London") or a specific point of interest (POI) like a landmark, business, or university (e.g., "Eiffel Tower", "Vivekananda Global University Jaipur").
+1.  **Analyze the Intent**: Determine if the user is asking for a city/region (e.g., "London"), a specific point of interest (POI) like a landmark, business, or university (e.g., "Eiffel Tower", "Vivekananda Global University Jaipur"), or using conversational language ("weather at...").
 2.  **Handle Abbreviations and Typos**: Correct spelling mistakes and expand common abbreviations.
 3.  **Prioritize the City**: If the query is a POI, your most important job is to identify the **containing city**. The geocoding API works best with city names.
     - For a query like "weather at the eiffel tower", you must identify that the Eiffel Tower is in **Paris**.
     - For a query like "VGU", you must expand it to "Vivekananda Global University" and identify its city as **Jaipur**.
     - For a query with a typo like "new yrok", you must correct it to **New York**.
-4.  **Format for Geocoding API**: Create a \`searchQueryForApi\` string. This string MUST BE ONLY the city name you identified.
+4.  **Format for Geocoding API**: Create a \`searchQueryForApi\` string. This string SHOULD BE ONLY the city name you identified if possible. If you can't identify a city, use your best judgment to provide the most searchable location term.
     - For "Eiffel Tower", \`searchQueryForApi\` should be "Paris".
     - For "VGU", \`searchQueryForApi\` should be "Jaipur".
     - For "London", \`searchQueryForApi\` should be "London".
 5.  **Set Output Fields**:
     *   \`isSpecificLocation\`: Set to \`true\` if the original query was a POI, \`false\` otherwise.
     *   \`locationName\`: The full, proper name of the specific location if one was identified (e.g., "Eiffel Tower").
-    *   \`cityName\`: The name of the city you extracted (e.g., "Paris").
+    *   \`cityName\`: The name of the city you extracted (e.g., "Paris"). This is the most critical field.
 6.  **Final Output**: Your response must be only the JSON object in the specified format. Do not add any other text or markdown formatting like \`\`\`json.
 `;
 
@@ -43,7 +43,7 @@ Instructions:
 export async function interpretSearchQuery(input: InterpretSearchQueryInput): Promise<InterpretSearchQueryOutput> {
   const sanitizedQuery = input.query.trim();
   if (!sanitizedQuery) {
-    return { searchQueryForApi: '', isSpecificLocation: false };
+    return { searchQueryForApi: '', isSpecificLocation: false, cityName: '' };
   }
   
   try {
@@ -59,11 +59,13 @@ export async function interpretSearchQuery(input: InterpretSearchQueryInput): Pr
     // Ensure that if a specific location is identified, the API query is the city name.
     if (result.isSpecificLocation && result.cityName) {
         result.searchQueryForApi = result.cityName;
+    } else if (result.cityName) {
+        result.searchQueryForApi = result.cityName;
     }
     return result;
   } catch (err) {
     console.error(`[AI] Search query interpretation failed, returning original query. Error:`, err);
     // Failsafe: return a simplified version of the original query.
-    return { searchQueryForApi: sanitizedQuery, isSpecificLocation: false };
+    return { searchQueryForApi: sanitizedQuery, isSpecificLocation: false, cityName: sanitizedQuery };
   }
 }

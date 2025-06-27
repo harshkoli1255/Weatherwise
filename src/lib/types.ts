@@ -191,10 +191,10 @@ export const InterpretSearchQueryInputSchema = z.object({
 export type InterpretSearchQueryInput = z.infer<typeof InterpretSearchQueryInputSchema>;
 
 export const InterpretSearchQueryOutputSchema = z.object({
-  searchQueryForApi: z.string().describe("The processed, cleaned-up query string that is optimized for use with a geocoding API like OpenWeatherMap's. This should be in the format 'Place Name, City'. For example, 'Eiffel Tower, Paris' or just 'London'."),
+  searchQueryForApi: z.string().describe("The processed, cleaned-up query string that is optimized for use with a geocoding API that works best with city names. This should typically be just the city name, e.g., 'Paris', 'Jaipur', 'London'."),
   isSpecificLocation: z.boolean().describe("True if the query refers to a specific point of interest (like 'Eiffel Tower' or 'VGU Jaipur') rather than just a city ('Paris')."),
-  locationName: z.string().optional().describe("The name of the specific location if one was identified (e.g., 'Eiffel Tower')."),
-  cityName: z.string().optional().describe("The name of the city associated with the location (e.g., 'Paris')."),
+  locationName: z.string().optional().describe("The full, proper name of the specific location if one was identified (e.g., 'Eiffel Tower')."),
+  cityName: z.string().optional().describe("The name of the city you extracted (e.g., 'Paris'). This is the most reliable value for geocoding."),
 });
 export type InterpretSearchQueryOutput = z.infer<typeof InterpretSearchQueryOutputSchema>;
 

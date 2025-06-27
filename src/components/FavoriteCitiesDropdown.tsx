@@ -25,10 +25,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Star, Trash2, MapPin, Inbox, RefreshCw, AlertCircle } from 'lucide-react';
+import { Star, Trash2, Inbox, RefreshCw, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import type { CitySuggestion, FavoritesWeatherMap, FavoriteCityWeatherResult } from '@/lib/types';
+import type { CitySuggestion, FavoritesWeatherMap } from '@/lib/types';
 import { SignedIn } from '@clerk/nextjs';
 import { fetchWeatherForFavoritesAction } from '@/app/actions';
 import { WeatherIcon } from './WeatherIcon';
