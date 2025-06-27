@@ -22,6 +22,7 @@ export function Navbar() {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/alerts', label: 'Alerts' },
+    { href: '/about', label: 'About' },
   ];
 
   return (
@@ -107,13 +108,13 @@ export function Navbar() {
                             <SignedIn>
                                 <SheetClose asChild>
                                     <Link
-                                        href="/profile"
+                                        href="/settings"
                                         className={cn(
                                             "text-lg font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                            pathname === '/profile' && "bg-accent text-primary"
+                                            pathname === '/settings' && "bg-accent text-primary"
                                         )}
                                     >
-                                        Profile
+                                        Settings
                                     </Link>
                                 </SheetClose>
                             </SignedIn>
