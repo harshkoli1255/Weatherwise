@@ -7,8 +7,7 @@ import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin } from 'lu
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -16,42 +15,25 @@ interface WeatherDisplayProps {
   onSaveCityToggle: () => void;
 }
 
-const chartConfig = {
-  temp: {
-    label: "Temp.",
-    color: "hsl(var(--primary))",
-  },
-} satisfies ChartConfig;
-
-
-const CustomChartTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    const data: HourlyForecastData = payload[0].payload;
-    return (
-      <div className="rounded-lg border bg-popover p-3 text-popover-foreground shadow-sm">
-        <div className="flex items-center justify-between mb-2 pb-1 border-b">
-          <p className="text-sm font-bold">{label}</p>
-          <p className="text-sm font-bold">{data.temp}°C</p>
+function ForecastCard({ data }: { data: HourlyForecastData }) {
+  const showPrecipitation = data.precipitationChance > 0;
+  return (
+    <div className={cn(
+      "flex flex-col items-center justify-center text-center space-y-2 p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-28 shrink-0",
+      showPrecipitation ? "h-44" : "h-40" // Make card taller if precipitation is shown
+    )}>
+      <p className="text-sm font-medium text-muted-foreground">{data.time}</p>
+      <WeatherIcon iconCode={data.iconCode} className="h-10 w-10 text-primary drop-shadow-lg" />
+      <p className="text-2xl font-bold text-foreground">{data.temp}°</p>
+      {showPrecipitation && (
+        <div className="flex items-center gap-1.5 text-xs text-sky-400 font-medium pt-1">
+            <Droplets className="h-4 w-4" />
+            <span>{data.precipitationChance}%</span>
         </div>
-        <div className="space-y-1.5 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <WeatherIcon iconCode={data.iconCode} className="h-4 w-4 text-foreground" />
-            <span className="capitalize text-foreground font-medium">{data.condition}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Droplets className="h-4 w-4 text-sky-400" />
-            <span>Humidity: {data.humidity}%</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wind className="h-4 w-4 text-cyan-400" />
-            <span>Wind: {data.windSpeed} km/h</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
+      )}
+    </div>
+  );
+}
 
 
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
@@ -113,59 +95,20 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
           <div className="pt-6 border-t border-border/50">
-            <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4 shadow-inner dark:bg-primary/10">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-                <h3 className="text-xl font-headline font-semibold text-primary sm:text-2xl">
-                  Hourly Forecast
-                </h3>
-              </div>
-              <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                <LineChart
-                  accessibilityLayer
-                  data={weatherData.hourlyForecast}
-                  margin={{
-                    top: 10,
-                    right: 10,
-                    left: -10,
-                    bottom: 0,
-                  }}
-                >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                  <XAxis
-                    dataKey="time"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => `${value}°`}
-                    domain={['dataMin - 2', 'dataMax + 2']}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  />
-                  <ChartTooltip
-                    cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 2, strokeDasharray: '3 3' }}
-                    content={<CustomChartTooltip />}
-                  />
-                  <Line
-                    dataKey="temp"
-                    type="monotone"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2.5}
-                    dot={{
-                      r: 4,
-                      fill: "hsl(var(--primary))",
-                      stroke: "hsl(var(--background))",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </LineChart>
-              </ChartContainer>
+            <div className="flex items-center mb-4">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+              <h3 className="text-xl font-headline font-semibold text-primary sm:text-2xl">
+                Hourly Forecast
+              </h3>
             </div>
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
+              <div className="flex w-max space-x-4 pb-4">
+                {weatherData.hourlyForecast.map((hour, index) => (
+                  <ForecastCard key={index} data={hour} />
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </div>
         )}
 
