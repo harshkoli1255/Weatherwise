@@ -30,8 +30,8 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: false,
-  loadingMessage: null,
+  isLoading: true, // Start in loading state for auto-detection
+  loadingMessage: 'Initializing...',
   cityNotFound: false,
 };
 
@@ -46,27 +46,6 @@ function WeatherPageContent() {
   
   const { toast } = useToast();
   const { addFavorite, removeFavorite, isFavorite } = useFavoriteCities();
-
-  // This effect runs only once on mount to restore the last session.
-  useEffect(() => {
-    try {
-      const savedResult = localStorage.getItem(LAST_RESULT_KEY);
-      if (savedResult) {
-        const lastData: WeatherSummaryData = JSON.parse(savedResult);
-        setWeatherState(prevState => ({ ...prevState, data: lastData }));
-      }
-      
-      const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
-      if (savedLastSearch) {
-          const lastCity: CitySuggestion = JSON.parse(savedLastSearch);
-          setInitialSearchTerm(lastCity.name);
-      }
-    } catch(e) {
-        console.warn("Could not read last session from localStorage.");
-        localStorage.removeItem(LAST_RESULT_KEY);
-        localStorage.removeItem(LAST_SEARCH_KEY);
-    }
-  }, []);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -130,23 +109,10 @@ function WeatherPageContent() {
     performWeatherFetch(params);
   }, [performWeatherFetch]);
 
-  // Listen for search events from other components (like the navbar)
-  useEffect(() => {
-    const handleSearchEvent = (event: Event) => {
-        const citySuggestion = (event as CustomEvent<CitySuggestion>).detail;
-        if (citySuggestion) {
-            handleSearch(citySuggestion.name, citySuggestion.lat, citySuggestion.lon);
-        }
-    };
-
-    window.addEventListener('weather-search', handleSearchEvent);
-    return () => {
-        window.removeEventListener('weather-search', handleSearchEvent);
-    };
-}, [handleSearch]);
-  
-  const handleLocate = useCallback(async () => {
-    setIsLocating(true);
+  const handleLocate = useCallback(async (isAutoLocate = false) => {
+    if (!isAutoLocate) {
+        setIsLocating(true);
+    }
     setWeatherState(prev => ({
         ...prev,
         isLoading: true,
@@ -165,16 +131,20 @@ function WeatherPageContent() {
     let locationParams: ApiLocationParams | null = null;
 
     try {
-        setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
+        if (!isAutoLocate) {
+            setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
+        }
         const position = await getPosition();
         locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
     } catch (geoError: any) {
         console.warn(`Geolocation error: ${geoError.message}. Falling back to IP.`);
-        toast({
-            title: "Location via GPS failed",
-            description: "Falling back to IP-based location, which may be less accurate.",
-            duration: 5000,
-        });
+        if (!isAutoLocate) { // Only toast on manual click
+            toast({
+                title: "Location via GPS failed",
+                description: "Falling back to IP-based location, which may be less accurate.",
+                duration: 5000,
+            });
+        }
 
         try {
             setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
@@ -187,9 +157,9 @@ function WeatherPageContent() {
             setWeatherState({
                 ...initialState,
                 isLoading: false,
-                error: `Location detection failed completely. ${ipError.message} Please use the search bar.`,
+                error: `Location detection failed. ${isAutoLocate ? 'Please' : ipError.message + ' Please'} use the search bar.`,
             });
-            setIsLocating(false);
+            if (!isAutoLocate) setIsLocating(false);
             return;
         }
     }
@@ -199,8 +169,53 @@ function WeatherPageContent() {
     } else {
          setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
     }
-    setIsLocating(false);
+    if (!isAutoLocate) setIsLocating(false);
   }, [performWeatherFetch, toast]);
+  
+  // This effect runs only once on mount to determine initial state.
+  useEffect(() => {
+    const initializeWeather = () => {
+      // 1. Try to restore the last session first.
+      const savedResult = localStorage.getItem(LAST_RESULT_KEY);
+      if (savedResult) {
+        try {
+            const lastData: WeatherSummaryData = JSON.parse(savedResult);
+            setWeatherState({ data: lastData, error: null, isLoading: false, loadingMessage: null, cityNotFound: false });
+            const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
+            if (savedLastSearch) {
+                const lastCity: CitySuggestion = JSON.parse(savedLastSearch);
+                setInitialSearchTerm(lastCity.name);
+            }
+            return;
+        } catch (e) {
+            console.warn("Could not read last session from localStorage.");
+            localStorage.removeItem(LAST_RESULT_KEY);
+            localStorage.removeItem(LAST_SEARCH_KEY);
+        }
+      }
+      
+      // 2. If no last session, automatically fetch location for a better first-time experience.
+      handleLocate(true);
+    };
+
+    initializeWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Listen for search events from other components (like the navbar)
+  useEffect(() => {
+    const handleSearchEvent = (event: Event) => {
+        const citySuggestion = (event as CustomEvent<CitySuggestion>).detail;
+        if (citySuggestion) {
+            handleSearch(citySuggestion.name, citySuggestion.lat, citySuggestion.lon);
+        }
+    };
+
+    window.addEventListener('weather-search', handleSearchEvent);
+    return () => {
+        window.removeEventListener('weather-search', handleSearchEvent);
+    };
+}, [handleSearch]);
   
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
@@ -246,7 +261,7 @@ function WeatherPageContent() {
             onSearch={handleSearch}
             isSearchingWeather={isLoadingDisplay}
             initialValue={initialSearchTerm}
-            onLocate={handleLocate}
+            onLocate={() => handleLocate(false)}
             isLocating={isLocating}
           />
         </div>
