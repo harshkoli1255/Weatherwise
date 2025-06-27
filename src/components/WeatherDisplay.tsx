@@ -27,7 +27,7 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-between text-center p-2 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-36"
+        "flex flex-col items-center justify-between text-center p-2 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-36"
       )}
       aria-label={`View forecast for ${data.time}`}
     >
@@ -39,16 +39,16 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
       </div>
 
       {/* Group bottom content to push it down, showing precipitation or humidity */}
-      <div className="flex items-center justify-center gap-1.5 text-xs text-sky-400 font-medium pt-1 min-h-[20px]">
+      <div className="flex items-center justify-center gap-1.5 text-xs font-medium pt-1 min-h-[20px]">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-3 w-3" />
-            <span>{data.precipitationChance}%</span>
+            <Droplets className="h-3 w-3 text-sky-400" />
+            <span className="text-sky-400">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
-            <Droplets className="h-3 w-3" />
-            <span>{data.humidity}%</span>
+            <Droplets className="h-3 w-3 text-muted-foreground/80" />
+            <span className="text-muted-foreground/80">{data.humidity}%</span>
           </>
         )}
       </div>
@@ -68,13 +68,15 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   }
 
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
-      <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
-        <div className="relative inline-flex items-center justify-center">
-          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-none">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-lg transition-transform duration-300 mt-4">
+      <CardHeader className="pt-6 pb-4 border-b border-border/50">
+        <div className="flex w-full items-center justify-between gap-2 px-4">
+          {/* This empty div acts as a spacer to help center the title */}
+          <div className="w-9" />
+          <CardTitle className="min-w-0 flex-1 text-center text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
-          <div className="absolute top-1/2 left-full -translate-y-1/2 ml-2">
+          <div className="flex-shrink-0">
             <TooltipProvider>
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
@@ -98,7 +100,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             </TooltipProvider>
           </div>
         </div>
-        <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
+        <CardDescription className="text-center text-lg capitalize text-muted-foreground mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 sm:p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
@@ -109,7 +111,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             </div>
           </div>
           <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
-            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-32 sm:w-32 ${sentimentColorClass} drop-shadow-2xl`} />
+            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
@@ -150,7 +152,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             </h3>
           </div>
           <div
-            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-md"
+            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-sm"
             dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
           />
         </div>
@@ -164,7 +166,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
               </h3>
             </div>
             <div
-              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-md"
+              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-sm"
               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
             />
           </div>
@@ -195,9 +197,9 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105", className)} {...props}>
-      <Icon className={cn("h-7 w-7 mb-2", iconColor || 'text-primary')} />
+      <Icon className={cn("h-6 w-6 mb-2", iconColor || 'text-primary')} />
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>
+      <p className="text-base font-semibold text-foreground mt-0.5">{value}</p>
     </div>
   );
 }
