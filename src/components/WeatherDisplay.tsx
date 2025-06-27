@@ -27,17 +27,17 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center text-center space-y-2 p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-        showPrecipitation ? "h-44" : "h-40"
+        "flex flex-col items-center justify-center text-center space-y-1 p-3 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 sm:w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        showPrecipitation ? "h-40 sm:h-44" : "h-36 sm:h-40"
       )}
       aria-label={`View forecast for ${data.time}`}
     >
-      <p className="text-sm font-medium text-muted-foreground">{data.time}</p>
-      <WeatherIcon iconCode={data.iconCode} className="h-10 w-10 text-primary drop-shadow-lg" />
-      <p className="text-2xl font-bold text-foreground">{data.temp}°</p>
+      <p className="text-xs sm:text-sm font-medium text-muted-foreground">{data.time}</p>
+      <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-lg" />
+      <p className="text-xl sm:text-2xl font-bold text-foreground">{data.temp}°</p>
       {showPrecipitation && (
         <div className="flex items-center gap-1.5 text-xs text-sky-400 font-medium pt-1">
-            <Droplets className="h-4 w-4" />
+            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>{data.precipitationChance}%</span>
         </div>
       )}
@@ -60,7 +60,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
         <div className="flex items-center justify-center gap-3">
-          <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
           <TooltipProvider>
             <Tooltip delayDuration={100}>
               <TooltipTrigger asChild>
@@ -88,13 +88,13 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
       <CardContent className="space-y-8 p-4 sm:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
           <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-            <div className="text-7xl sm:text-8xl font-bold text-foreground drop-shadow-lg">
+            <div className="text-6xl sm:text-8xl font-bold text-foreground drop-shadow-lg">
               {weatherData.temperature}°
-              <span className="text-5xl sm:text-6xl text-muted-foreground/80">C</span>
+              <span className="text-4xl sm:text-6xl text-muted-foreground/80">C</span>
             </div>
           </div>
           <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
-            <WeatherIcon iconCode={weatherData.iconCode} className={`h-28 w-28 sm:h-36 sm:w-36 ${sentimentColorClass} drop-shadow-2xl`} />
+            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-36 sm:w-36 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
               </h3>
             </div>
             <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-              <div className="flex w-max space-x-4 pb-4">
+              <div className="flex w-max space-x-3 sm:space-x-4 pb-4">
                 {weatherData.hourlyForecast.map((hour, index) => (
                   <ForecastCard 
                     key={index} 

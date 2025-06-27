@@ -97,7 +97,7 @@ export function Navbar() {
                                 <Link 
                                     href={item.href} 
                                     className={cn(
-                                        "text-lg font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                        "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
                                         pathname === item.href && "bg-accent text-primary"
                                     )}
                                 >
@@ -110,7 +110,7 @@ export function Navbar() {
                                     <Link
                                         href="/settings"
                                         className={cn(
-                                            "text-lg font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
                                             pathname === '/settings' && "bg-accent text-primary"
                                         )}
                                     >
