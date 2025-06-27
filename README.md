@@ -1,4 +1,3 @@
-
 # Weatherwise: Intelligent Weather & Alert Platform
 
 <div align="center">
@@ -46,9 +45,46 @@
 Follow these steps to get the project running on your local machine.
 
 ### 1. Prerequisites
-Ensure you have the latest stable versions of the following tools installed:
-*   [**Node.js**](https://nodejs.org/) (which includes npm)
-*   [**Git**](https://git-scm.com/)
+Before you begin, ensure you have the latest stable versions of **Node.js** and **Git** installed on your system.
+
+<details>
+<summary><strong>Click here for OS-specific installation instructions</strong></summary>
+<br>
+
+**On macOS:**
+The recommended way to install is using [Homebrew](https://brew.sh/):
+```bash
+# Install Homebrew if you don't have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Node.js and Git
+brew install node git
+```
+
+**On Windows:**
+The recommended way is using the official installers:
+1.  Download and run the "LTS" (Long Term Support) installer for [**Node.js**](https://nodejs.org/en/download/).
+2.  Download and run the installer for [**Git**](https://git-scm.com/download/win).
+*Alternatively, you can use a package manager like [Chocolatey](https://chocolatey.org/):*
+```powershell
+# Install Chocolatey if you don't have it
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install Node.js LTS and Git
+choco install nodejs-lts git -y
+```
+
+**On Linux (Debian/Ubuntu):**
+Use the `apt` package manager:
+```bash
+sudo apt update
+sudo apt install nodejs npm git -y
+```
+*(For other Linux distributions, please use your system's respective package manager, like `yum` or `pacman`.)*
+
+</details>
+
+<br/>
 
 ### 2. Project Setup
 
@@ -78,7 +114,11 @@ cd <project-directory>
 
 **Step 3: Install Dependencies & Run**
 ```bash
+# This command installs all the necessary packages defined in package.json
+# It will automatically fetch the correct, compatible versions.
 npm install
+
+# This starts the local development server
 npm run dev
 ```
 
