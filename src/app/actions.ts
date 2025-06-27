@@ -53,12 +53,15 @@ export async function fetchWeatherAndSummaryAction(
         try {
           console.log(`[AI] Interpreting search query for main fetch: "${params.city}"`);
           const interpretation = await interpretSearchQuery({ query: params.city });
-          if (interpretation.searchQueryForApi && interpretation.searchQueryForApi.toLowerCase() !== params.city.toLowerCase()) {
-            queryForApi = interpretation.searchQueryForApi;
-            // Use the more descriptive name if the AI found one.
-            userFriendlyCityName = interpretation.locationName || interpretation.cityName || params.city;
-            console.log(`[AI] Main fetch interpreted as "${queryForApi}". User-friendly name: "${userFriendlyCityName}"`);
-          }
+          
+          // Use the specific city name for the API call if available, otherwise use the general query.
+          queryForApi = interpretation.cityName || interpretation.searchQueryForApi;
+          
+          // Use the more descriptive name for display purposes.
+          userFriendlyCityName = interpretation.locationName || interpretation.cityName || params.city;
+          
+          console.log(`[AI] Main fetch interpreted. API query: "${queryForApi}", Display name: "${userFriendlyCityName}"`);
+
         } catch (err) {
           console.error("AI search interpretation failed during main fetch, falling back to original query:", err);
         }
@@ -86,7 +89,7 @@ export async function fetchWeatherAndSummaryAction(
       const isNotFound = weatherResult.status === 404;
       const originalQuery = locationIdentifier.type === 'city' ? locationIdentifier.city : `${locationIdentifier.lat}, ${locationIdentifier.lon}`;
       const errorMessage = isNotFound 
-        ? `Could not find a valid location for "${originalQuery}". Please try a different search.`
+        ? `Could not find a valid location for "${userFriendlyCityName || originalQuery}". Please try a different search.`
         : weatherResult.error;
       return { data: null, error: errorMessage, cityNotFound: isNotFound };
     }
@@ -213,10 +216,12 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         try {
             console.log(`[AI] Interpreting search query: "${processedQuery}"`);
             const interpretationResult = await interpretSearchQuery({ query: processedQuery });
-            const newQuery = interpretationResult.searchQueryForApi;
+            
+            // For the suggestions API, use the extracted city name for better results.
+            const newQuery = interpretationResult.cityName || interpretationResult.searchQueryForApi;
             
             if (newQuery && newQuery.toLowerCase() !== processedQuery.toLowerCase()) {
-                console.log(`[AI] Interpreted "${processedQuery}" as "${newQuery}".`);
+                console.log(`[AI] Interpreted "${processedQuery}" as "${newQuery}" for suggestions API.`);
                 processedQuery = newQuery;
             } else {
                 console.log(`[AI] No significant interpretation change for "${processedQuery}". Using original.`);
