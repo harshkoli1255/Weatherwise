@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Heart, Umbrella } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Umbrella } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -40,17 +40,17 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                     variant="ghost"
                     size="icon"
                     onClick={onSaveCityToggle}
-                    aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
-                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-red-500"
+                    aria-label={isCitySaved ? 'Unpin this city' : 'Pin this city'}
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
                   >
-                    <Heart className={cn(
+                    <Pin className={cn(
                         "h-6 w-6 transition-all duration-300",
-                        isCitySaved && "fill-red-500 text-red-600"
+                        isCitySaved ? "fill-primary text-primary" : "fill-none"
                     )} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isCitySaved ? `Remove ${weatherData.city} from favorites` : `Save ${weatherData.city}`}</p>
+                  <p>{isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
