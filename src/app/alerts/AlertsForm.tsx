@@ -43,10 +43,11 @@ const daysOfWeek = [
   { id: 0, label: 'Sun', name: 'sunday' },
 ];
 
+// Generate time options consistently on both server and client to avoid hydration errors.
 const hourOptions = Array.from({ length: 24 }, (_, i) => {
-    const date = new Date();
-    date.setHours(i);
-    const label = date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+    const hour = i % 12 === 0 ? 12 : i % 12;
+    const ampm = i < 12 ? 'AM' : 'PM';
+    const label = `${hour} ${ampm}`;
     return { value: i.toString(), label };
 });
 
