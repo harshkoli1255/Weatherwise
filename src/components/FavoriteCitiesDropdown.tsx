@@ -149,7 +149,7 @@ export function FavoriteCitiesDropdown() {
                     <Inbox className="h-10 w-10 text-muted-foreground/50" />
                     <div>
                         <p className="font-semibold text-foreground/90">No Favorite Cities Yet</p>
-                        <p className="text-xs mt-1">Click the star next to a city name to save it for quick access.</p>
+                        <p className="text-xs mt-1">Click the pin next to a city name to save it for quick access.</p>
                     </div>
                 </div>
             ) : (
@@ -178,7 +178,7 @@ export function FavoriteCitiesDropdown() {
                     <ScrollArea className="h-[250px]">
                         <DropdownMenuGroup className="p-1">
                         {isLoading ? (
-                            Array.from({ length: Math.min(favorites.length, 5) }).map((_, i) => <FavoriteItemSkeleton key={i} />)
+                            Array.from({ length: Math.min(favorites.length, 3) || 3 }).map((_, i) => <FavoriteItemSkeleton key={i} />)
                         ) : (
                             favorites.map((city) => {
                                 const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
