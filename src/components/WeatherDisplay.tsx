@@ -38,12 +38,17 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
         <p className="text-xl sm:text-2xl font-bold text-foreground">{data.temp}°</p>
       </div>
 
-      {/* Group bottom content to push it down, acting as a placeholder */}
+      {/* Group bottom content to push it down, showing precipitation or humidity */}
       <div className="flex items-center justify-center gap-1.5 text-xs text-sky-400 font-medium pt-1 min-h-[20px] sm:min-h-[24px]">
-        {showPrecipitation && (
+        {showPrecipitation ? (
           <>
             <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>{data.precipitationChance}%</span>
+          </>
+        ) : (
+          <>
+            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span>{data.humidity}%</span>
           </>
         )}
       </div>
