@@ -233,7 +233,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       }
     }
 
-    // Step 2: Perform a search using the reliable city query from the AI.
+    // Step 2: Perform a geocoding search using the reliable city query.
     const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=5&appid=${apiKey}`;
     const response = await fetch(url);
 
@@ -247,8 +247,8 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: [], error: null };
     }
 
-    // Step 3: Map the results, creating a custom suggestion for landmarks.
-    const finalSuggestions: CitySuggestion[] = [];
+    // Step 3: Map the API results to our initial suggestion format.
+    const initialSuggestions: CitySuggestion[] = [];
     const seenKeys = new Set<string>();
 
     // If the AI identified a specific landmark, create a special suggestion for it.
@@ -258,7 +258,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
         : interpretationResult.searchQueryForApi;
       
-      finalSuggestions.push({
+      initialSuggestions.push({
         name: friendlyName,
         lat: topHit.lat,
         lon: topHit.lon,
@@ -266,16 +266,14 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         state: topHit.state,
       });
 
-      // Add the underlying city to the 'seen' set to avoid showing it twice.
       const key = `${topHit.name}|${topHit.state || 'NO_STATE'}|${topHit.country}`;
       seenKeys.add(key);
     }
 
-    // Add the rest of the API results, skipping any we've already handled.
     data.forEach((item: any) => {
       const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
       if (item.name && item.country && !seenKeys.has(key)) {
-        finalSuggestions.push({
+        initialSuggestions.push({
           name: item.name,
           lat: item.lat,
           lon: item.lon,
@@ -284,6 +282,25 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         });
         seenKeys.add(key);
       }
+    });
+
+    // Step 4: Fetch live weather for each suggestion in parallel.
+    const weatherPromises = initialSuggestions.map(suggestion => 
+      fetchCurrentWeather({ type: 'coords', lat: suggestion.lat, lon: suggestion.lon }, apiKey)
+    );
+    
+    const weatherResults = await Promise.allSettled(weatherPromises);
+
+    const finalSuggestions = initialSuggestions.map((suggestion, index) => {
+      const weatherResult = weatherResults[index];
+      if (weatherResult.status === 'fulfilled' && weatherResult.value.data) {
+        return {
+          ...suggestion,
+          temperature: weatherResult.value.data.temperature,
+          iconCode: weatherResult.value.data.iconCode,
+        };
+      }
+      return suggestion; // Return suggestion without weather if fetch failed
     });
 
     return { suggestions: finalSuggestions, error: null };

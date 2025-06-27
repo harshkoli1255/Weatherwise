@@ -10,6 +10,7 @@ import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { WeatherIcon } from './WeatherIcon';
 
 interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
@@ -213,6 +214,12 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                       </span>
                     </div>
                   </div>
+                   {typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                    <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                      <span className="font-semibold text-foreground">{suggestion.temperature}°C</span>
+                      <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
                 </CommandItem>
               )
             })}

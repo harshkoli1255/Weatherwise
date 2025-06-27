@@ -169,6 +169,8 @@ export interface CitySuggestion {
   lon: number;
   country: string;
   state?: string; // Optional: For states/provinces within countries like US, CA
+  temperature?: number; // Optional: For live weather in suggestions
+  iconCode?: string; // Optional: For live weather in suggestions
 }
 
 // State type for form actions
