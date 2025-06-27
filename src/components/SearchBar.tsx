@@ -134,7 +134,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
-                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search 'capital of Spain' or 'Tokyo'... "}
+                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search for a city or a specific place..."}
                 className="block w-full h-12 md:h-14 pl-12 pr-[150px] md:pr-[160px] text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"

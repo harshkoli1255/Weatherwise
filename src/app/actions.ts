@@ -15,7 +15,7 @@ import {
   type FavoriteCityWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
-import { correctCitySpelling } from '@/ai/flows/city-correction';
+import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 
@@ -207,19 +207,19 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
 
     if (isAiConfigured()) {
         try {
-            console.log(`Attempting AI spelling correction for raw query: "${processedQuery}"`);
-            const correctionResult = await correctCitySpelling({ query: processedQuery });
-            const correctedQuery = correctionResult.correctedQuery;
+            console.log(`[AI] Interpreting search query: "${processedQuery}"`);
+            const interpretationResult = await interpretSearchQuery({ query: processedQuery });
+            const newQuery = interpretationResult.searchQueryForApi;
             
-            if (correctedQuery && correctedQuery.toLowerCase() !== processedQuery.toLowerCase()) {
-                console.log(`AI corrected "${processedQuery}" to "${correctedQuery}".`);
-                processedQuery = correctedQuery;
+            if (newQuery && newQuery.toLowerCase() !== processedQuery.toLowerCase()) {
+                console.log(`[AI] Interpreted "${processedQuery}" as "${newQuery}".`);
+                processedQuery = newQuery;
             } else {
-                console.log(`AI did not provide a different correction for "${processedQuery}". Using original.`);
+                console.log(`[AI] No significant interpretation change for "${processedQuery}". Using original.`);
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
-            console.error("AI city correction failed:", message);
+            console.error("AI search interpretation failed:", message);
             // Don't block search if AI fails, just use original query and log the error.
         }
     }
