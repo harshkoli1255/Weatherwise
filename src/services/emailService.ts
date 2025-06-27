@@ -3,24 +3,19 @@
 
 import nodemailer from 'nodemailer';
 
-const portNumber = Number(process.env.EMAIL_PORT);
-
 const emailConfig = {
-  host: process.env.EMAIL_HOST,
-  port: !isNaN(portNumber) && portNumber > 0 ? portNumber : undefined,
-  // secure: true for 465, false for other ports
-  secure: portNumber === 465,
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    pass: process.env.EMAIL_PASSWORD, // This should be a 16-digit App Password
   },
 };
 
-const isEmailConfigured = emailConfig.host && emailConfig.port && emailConfig.auth.user && emailConfig.auth.pass;
+const isEmailConfigured = emailConfig.auth.user && emailConfig.auth.pass;
 
 if (!isEmailConfigured) {
   console.warn(
-    'Email service is not fully configured. Please set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, and EMAIL_PASSWORD in your .env file to enable email features.'
+    'Email service is not fully configured. Please set EMAIL_USER and EMAIL_PASSWORD (for Gmail) in your .env file to enable email features.'
   );
 }
 
@@ -59,12 +54,14 @@ export async function sendEmail({
     // Provide a more specific error if possible
     let errorMessage = `Failed to send email.`;
     if (error.code === 'ECONNECTION') {
-        errorMessage = 'Could not connect to the email server. Please check the host and port settings.';
-    } else if (error.code === 'EAUTH') {
-        errorMessage = 'Authentication failed. Please check the email user and password.';
+        errorMessage = 'Could not connect to the email server. Please check your network and firewall settings.';
+    } else if (error.code === 'EAUTH' || (error.response && error.response.includes('Authentication failed'))) {
+        errorMessage = 'Gmail authentication failed. Please ensure you are using a correct 16-digit App Password, not your regular password.';
     } else {
         errorMessage = `An unexpected error occurred: ${error.message}`;
     }
     return { success: false, error: errorMessage };
   }
 }
+
+    
