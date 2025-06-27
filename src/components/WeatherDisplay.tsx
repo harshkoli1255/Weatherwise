@@ -1,5 +1,5 @@
 
-import type { WeatherSummaryData } from '@/lib/types';
+import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartTooltip } from '@/components/ui/chart';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -22,6 +22,37 @@ const chartConfig = {
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
+
+
+const CustomChartTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data: HourlyForecastData = payload[0].payload;
+    return (
+      <div className="rounded-lg border bg-popover p-3 text-popover-foreground shadow-sm">
+        <div className="flex items-center justify-between mb-2 pb-1 border-b">
+          <p className="text-sm font-bold">{label}</p>
+          <p className="text-sm font-bold">{data.temp}°C</p>
+        </div>
+        <div className="space-y-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <WeatherIcon iconCode={data.iconCode} className="h-4 w-4 text-foreground" />
+            <span className="capitalize text-foreground font-medium">{data.condition}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Droplets className="h-4 w-4 text-sky-400" />
+            <span>Humidity: {data.humidity}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Wind className="h-4 w-4 text-cyan-400" />
+            <span>Wind: {data.windSpeed} km/h</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
 
@@ -117,13 +148,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                 />
                 <ChartTooltip
                   cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 2, strokeDasharray: '3 3' }}
-                  content={<ChartTooltipContent
-                    formatter={(value) => [`${value}°C`, '']}
-                    labelFormatter={(label) => `Time: ${label}`}
-                    indicator="dot"
-                    labelClassName="font-bold"
-                    className="shadow-lg"
-                  />}
+                  content={<CustomChartTooltip />}
                 />
                 <Line
                   dataKey="temp"
