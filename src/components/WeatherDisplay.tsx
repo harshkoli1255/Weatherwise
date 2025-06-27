@@ -27,20 +27,26 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center text-center space-y-1 p-3 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 sm:w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-        showPrecipitation ? "h-40 sm:h-44" : "h-36 sm:h-40"
+        "flex flex-col items-center justify-between text-center p-3 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 sm:w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-40 sm:h-44"
       )}
       aria-label={`View forecast for ${data.time}`}
     >
-      <p className="text-xs sm:text-sm font-medium text-muted-foreground">{data.time}</p>
-      <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-lg" />
-      <p className="text-xl sm:text-2xl font-bold text-foreground">{data.temp}°</p>
-      {showPrecipitation && (
-        <div className="flex items-center gap-1.5 text-xs text-sky-400 font-medium pt-1">
+      {/* Group top content to push it up */}
+      <div className="flex flex-col items-center space-y-1">
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{data.time}</p>
+        <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-lg" />
+        <p className="text-xl sm:text-2xl font-bold text-foreground">{data.temp}°</p>
+      </div>
+
+      {/* Group bottom content to push it down, acting as a placeholder */}
+      <div className="flex items-center justify-center gap-1.5 text-xs text-sky-400 font-medium pt-1 min-h-[20px] sm:min-h-[24px]">
+        {showPrecipitation && (
+          <>
             <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>{data.precipitationChance}%</span>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </button>
   );
 }
