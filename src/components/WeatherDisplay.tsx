@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Star, Umbrella } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Heart, Umbrella } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -41,11 +41,11 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                     size="icon"
                     onClick={onSaveCityToggle}
                     aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
-                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-amber-500"
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-red-500"
                   >
-                    <Star className={cn(
+                    <Heart className={cn(
                         "h-6 w-6 transition-all duration-300",
-                        isCitySaved && "fill-amber-400 text-amber-500"
+                        isCitySaved && "fill-red-500 text-red-600"
                     )} />
                   </Button>
                 </TooltipTrigger>
