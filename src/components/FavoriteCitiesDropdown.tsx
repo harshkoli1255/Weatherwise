@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Star, Trash2, Inbox, RefreshCw, AlertCircle, Bell } from 'lucide-react';
+import { Star, Trash2, Inbox, RefreshCw, AlertCircle, Bell, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { CitySuggestion, FavoritesWeatherMap } from '@/lib/types';
@@ -60,6 +60,7 @@ export function FavoriteCitiesDropdown() {
   const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [pendingCityKey, setPendingCityKey] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -105,6 +106,9 @@ export function FavoriteCitiesDropdown() {
   };
 
   const handleSetAlertCity = useCallback((city: CitySuggestion) => {
+    const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
+    setPendingCityKey(cityKey);
+
     startTransition(async () => {
         const result = await setAlertCityAction(city);
         if (result.success) {
@@ -120,6 +124,7 @@ export function FavoriteCitiesDropdown() {
                 description: result.message,
             });
         }
+        setPendingCityKey(null);
     });
   }, [router, toast]);
 
@@ -210,6 +215,7 @@ export function FavoriteCitiesDropdown() {
                                 const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
                                 const weather = weatherData[cityKey];
                                 const isSelected = selectedCities.some(c => `${c.lat.toFixed(4)},${c.lon.toFixed(4)}` === cityKey);
+                                const isThisCityPending = pendingCityKey === cityKey;
 
                                 return (
                                 <DropdownMenuItem
@@ -250,7 +256,11 @@ export function FavoriteCitiesDropdown() {
                                                     disabled={isPending}
                                                     aria-label="Set as alert city"
                                                 >
-                                                    <Bell className="h-4 w-4" />
+                                                    {isThisCityPending ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Bell className="h-4 w-4" />
+                                                    )}
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
