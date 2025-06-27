@@ -70,29 +70,33 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
-        <div className="flex items-center justify-center gap-2">
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md leading-none">{weatherData.city}, {weatherData.country}</CardTitle>
-          <TooltipProvider>
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onSaveCityToggle}
-                  aria-label={isCitySaved ? 'Unpin this city' : 'Pin this city'}
-                  className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
-                >
-                  <Pin className={cn(
-                      "h-6 w-6 transition-all duration-300",
-                      isCitySaved ? "fill-primary text-primary" : "fill-none"
-                  )} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="relative inline-flex items-center justify-center">
+          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md leading-none">
+            {weatherData.city}, {weatherData.country}
+          </CardTitle>
+          <div className="absolute top-1/2 left-full -translate-y-1/2 ml-2">
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onSaveCityToggle}
+                    aria-label={isCitySaved ? 'Unpin this city' : 'Pin this city'}
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
+                  >
+                    <Pin className={cn(
+                        "h-6 w-6 transition-all duration-300",
+                        isCitySaved ? "fill-primary text-primary" : "fill-none"
+                    )} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
         <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
       </CardHeader>
