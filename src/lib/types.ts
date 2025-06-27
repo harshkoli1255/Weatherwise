@@ -249,5 +249,3 @@ export interface EmailTemplatePayload {
 
 export type FavoriteCityWeatherResult = WeatherData | { error: string };
 export type FavoritesWeatherMap = Record<string, FavoriteCityWeatherResult>;
-
-    
