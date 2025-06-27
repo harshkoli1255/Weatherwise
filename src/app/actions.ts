@@ -10,6 +10,8 @@ import {
   type OpenWeatherCurrentAPIResponse,
   type WeatherSummaryInput,
   type InterpretSearchQueryOutput,
+  FavoritesWeatherMap,
+  FavoriteCityWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
@@ -51,11 +53,12 @@ export async function fetchWeatherAndSummaryAction(
     } else if (params.city) {
       // User provided a text query. We need to interpret and geocode it.
       let queryForGeocoding = params.city;
+      let interpretation: InterpretSearchQueryOutput | null = null;
 
       if (isAiConfigured()) {
         try {
           console.log(`[AI] Interpreting search query for geocoding: "${params.city}"`);
-          const interpretation = await interpretSearchQuery({ query: params.city });
+          interpretation = await interpretSearchQuery({ query: params.city });
           queryForGeocoding = interpretation.searchQueryForApi;
           userFriendlyDisplayName = interpretation.locationName ? `${interpretation.locationName}, ${interpretation.cityName}` : interpretation.cityName || params.city;
           console.log(`[AI] Geocoding interpreted query: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
@@ -79,6 +82,13 @@ export async function fetchWeatherAndSummaryAction(
       const resolvedCoords = { lat: geoData[0].lat, lon: geoData[0].lon };
       console.log(`[Geocoding] Successfully resolved "${queryForGeocoding}" to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}`);
       locationIdentifier = { type: 'coords', ...resolvedCoords };
+
+      // If the display name from params wasn't from a suggestion click, update it with the AI's friendly name.
+      if (interpretation) {
+         userFriendlyDisplayName = interpretation.locationName && interpretation.cityName
+            ? `${interpretation.locationName}, ${interpretation.cityName}`
+            : geoData[0].name;
+      }
       
     } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
@@ -199,91 +209,74 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: [], error: null };
     }
 
-    const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
-    if (!openWeatherApiKeysString) {
-      console.error("[Server Config Error] OpenWeather API keys missing for suggestions.");
-      return { suggestions: null, error: "Server configuration error: Geocoding keys missing." };
-    }
-    const apiKey = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key)[0];
+    const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
     if (!apiKey) {
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
       return { suggestions: null, error: "Server configuration error: No valid geocoding keys." };
     }
 
-    const finalSuggestions: CitySuggestion[] = [];
-    const seenKeys = new Set<string>();
-
-    // Step 1: Interpret the user's query with AI to see if it's a specific landmark.
+    let queryForApi = trimmedQuery;
     let interpretationResult: InterpretSearchQueryOutput | null = null;
+
+    // Step 1: Get AI interpretation to enhance the query
     if (isAiConfigured()) {
       try {
         interpretationResult = await interpretSearchQuery({ query: trimmedQuery });
+        if (interpretationResult.searchQueryForApi) {
+          queryForApi = interpretationResult.searchQueryForApi;
+          console.log(`[AI] Using interpreted query for suggestions: "${queryForApi}"`);
+        }
       } catch (err) {
-        console.error("AI search interpretation failed during suggestion fetch:", err instanceof Error ? err.message : "An unknown AI error occurred.");
+        console.error("AI interpretation failed, falling back to original query for suggestions.", err);
       }
     }
 
-    // Step 2: If AI found a specific location, prioritize it and fetch its coordinates.
-    // This is a separate, targeted lookup to ensure we get the landmark.
-    if (interpretationResult && interpretationResult.isSpecificLocation && interpretationResult.searchQueryForApi) {
-      const landmarkUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(interpretationResult.searchQueryForApi)}&limit=1&appid=${apiKey}`;
-      try {
-        const landmarkResponse = await fetch(landmarkUrl);
-        if (landmarkResponse.ok) {
-          const landmarkData = await landmarkResponse.json();
-          if (landmarkData && landmarkData.length > 0) {
-            const landmark = landmarkData[0];
-            const displayName = interpretationResult.locationName 
-              ? `${interpretationResult.locationName}, ${interpretationResult.cityName}` 
-              : interpretationResult.cityName || landmark.name;
-            
-            const key = `${displayName}|${landmark.state || 'NO_STATE'}|${landmark.country}`;
-            if (!seenKeys.has(key)) {
-              finalSuggestions.push({
-                name: displayName,
-                lat: landmark.lat,
-                lon: landmark.lon,
-                country: landmark.country,
-                state: landmark.state,
-              });
-              seenKeys.add(key);
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Error fetching specific AI-identified landmark suggestion:", e);
-      }
+    // Step 2: Perform a single, unified search using the best available query
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=5&appid=${apiKey}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.error("Geocoding API error for suggestions:", { status: response.status });
+      return { suggestions: null, error: "Geocoding service failed." };
     }
     
-    // Step 3: Fetch general city suggestions based on the original query to provide broader options.
-    const generalUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(trimmedQuery)}&limit=5&appid=${apiKey}`;
-    try {
-        const generalResponse = await fetch(generalUrl);
-        if (generalResponse.ok) {
-            const generalData = await generalResponse.json();
-            for (const item of generalData) {
-                const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
-                if (item.name && item.country && !seenKeys.has(key)) {
-                    finalSuggestions.push({
-                        name: item.name,
-                        lat: item.lat,
-                        lon: item.lon,
-                        country: item.country,
-                        state: item.state,
-                    });
-                    seenKeys.add(key);
-                }
-            }
-        }
-    } catch(e) {
-        console.error("Error fetching general city suggestions:", e);
+    const data = await response.json();
+    if (!data || data.length === 0) {
+      return { suggestions: [], error: null };
     }
+
+    // Step 3: Map the results into suggestions, using AI context if available
+    const finalSuggestions: CitySuggestion[] = [];
+    const seenKeys = new Set<string>();
+
+    data.forEach((item: any, index: number) => {
+      let displayName = item.name;
+      // If this is the first result AND the AI identified a specific location,
+      // use the AI's much friendlier display name. This is the key fix.
+      if (index === 0 && interpretationResult?.isSpecificLocation && interpretationResult.searchQueryForApi) {
+          displayName = interpretationResult.locationName && interpretationResult.cityName
+              ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
+              : interpretationResult.searchQueryForApi;
+      }
+      
+      const key = `${displayName}|${item.state || 'NO_STATE'}|${item.country}`;
+      if (item.name && item.country && !seenKeys.has(key)) {
+        finalSuggestions.push({
+          name: displayName,
+          lat: item.lat,
+          lon: item.lon,
+          country: item.country,
+          state: item.state,
+        });
+        seenKeys.add(key);
+      }
+    });
 
     return { suggestions: finalSuggestions, error: null };
 
   } catch (error) {
     console.error("An unexpected error occurred in fetchCitySuggestionsAction:", error);
-    const message = error instanceof Error ? error.message : "An unknown server error occurred while fetching suggestions.";
+    const message = error instanceof Error ? error.message : "An unknown server error occurred.";
     return { suggestions: null, error: message };
   }
 }
