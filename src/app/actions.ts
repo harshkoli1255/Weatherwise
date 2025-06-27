@@ -53,15 +53,23 @@ export async function fetchWeatherAndSummaryAction(
     } else if (params.city) {
       // User provided a text query. We need to interpret and geocode it.
       let queryForGeocoding = params.city;
-      let interpretation: InterpretSearchQueryOutput | null = null;
-
+      
       if (isAiConfigured()) {
         try {
           console.log(`[AI] Interpreting search query for geocoding: "${params.city}"`);
-          interpretation = await interpretSearchQuery({ query: params.city });
+          const interpretation = await interpretSearchQuery({ query: params.city });
+          
+          // The AI now returns the reliable city name in `searchQueryForApi`
           queryForGeocoding = interpretation.searchQueryForApi;
-          userFriendlyDisplayName = interpretation.locationName ? `${interpretation.locationName}, ${interpretation.cityName}` : interpretation.cityName || params.city;
-          console.log(`[AI] Geocoding interpreted query: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
+          
+          // Construct the friendly display name from the AI's parsed components
+          if (interpretation.isSpecificLocation && interpretation.locationName && interpretation.cityName) {
+            userFriendlyDisplayName = `${interpretation.locationName}, ${interpretation.cityName}`;
+          } else {
+            userFriendlyDisplayName = interpretation.cityName || interpretation.searchQueryForApi || params.city;
+          }
+          console.log(`[AI] Geocoding city: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
+
         } catch (err) {
           console.error("AI search interpretation failed, falling back to original query:", err);
         }
@@ -82,13 +90,6 @@ export async function fetchWeatherAndSummaryAction(
       const resolvedCoords = { lat: geoData[0].lat, lon: geoData[0].lon };
       console.log(`[Geocoding] Successfully resolved "${queryForGeocoding}" to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}`);
       locationIdentifier = { type: 'coords', ...resolvedCoords };
-
-      // If the display name from params wasn't from a suggestion click, update it with the AI's friendly name.
-      if (interpretation) {
-         userFriendlyDisplayName = interpretation.locationName && interpretation.cityName
-            ? `${interpretation.locationName}, ${interpretation.cityName}`
-            : geoData[0].name;
-      }
       
     } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
@@ -98,6 +99,7 @@ export async function fetchWeatherAndSummaryAction(
     const cacheKey = `weather-${locationIdentifier.lat.toFixed(4)}-${locationIdentifier.lon.toFixed(4)}`;
     const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
     if (cachedData) {
+      cachedData.city = userFriendlyDisplayName || cachedData.city;
       return { data: cachedData, error: null, cityNotFound: false };
     }
     console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
@@ -218,20 +220,20 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
     let queryForApi = trimmedQuery;
     let interpretationResult: InterpretSearchQueryOutput | null = null;
 
-    // Step 1: Get AI interpretation to enhance the query
+    // Step 1: Get AI interpretation to find the correct city to search for.
     if (isAiConfigured()) {
       try {
         interpretationResult = await interpretSearchQuery({ query: trimmedQuery });
         if (interpretationResult.searchQueryForApi) {
           queryForApi = interpretationResult.searchQueryForApi;
-          console.log(`[AI] Using interpreted query for suggestions: "${queryForApi}"`);
+          console.log(`[AI] Using interpreted city query for suggestions: "${queryForApi}"`);
         }
       } catch (err) {
         console.error("AI interpretation failed, falling back to original query for suggestions.", err);
       }
     }
 
-    // Step 2: Perform a single, unified search using the best available query
+    // Step 2: Perform a search using the reliable city query from the AI.
     const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=5&appid=${apiKey}`;
     const response = await fetch(url);
 
@@ -245,24 +247,36 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: [], error: null };
     }
 
-    // Step 3: Map the results into suggestions, using AI context if available
+    // Step 3: Map the results, creating a custom suggestion for landmarks.
     const finalSuggestions: CitySuggestion[] = [];
     const seenKeys = new Set<string>();
 
-    data.forEach((item: any, index: number) => {
-      let displayName = item.name;
-      // If this is the first result AND the AI identified a specific location,
-      // use the AI's much friendlier display name. This is the key fix.
-      if (index === 0 && interpretationResult?.isSpecificLocation && interpretationResult.searchQueryForApi) {
-          displayName = interpretationResult.locationName && interpretationResult.cityName
-              ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
-              : interpretationResult.searchQueryForApi;
-      }
+    // If the AI identified a specific landmark, create a special suggestion for it.
+    if (interpretationResult?.isSpecificLocation && data.length > 0) {
+      const topHit = data[0];
+      const friendlyName = interpretationResult.locationName && interpretationResult.cityName
+        ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
+        : interpretationResult.searchQueryForApi;
       
-      const key = `${displayName}|${item.state || 'NO_STATE'}|${item.country}`;
+      finalSuggestions.push({
+        name: friendlyName,
+        lat: topHit.lat,
+        lon: topHit.lon,
+        country: topHit.country,
+        state: topHit.state,
+      });
+
+      // Add the underlying city to the 'seen' set to avoid showing it twice.
+      const key = `${topHit.name}|${topHit.state || 'NO_STATE'}|${topHit.country}`;
+      seenKeys.add(key);
+    }
+
+    // Add the rest of the API results, skipping any we've already handled.
+    data.forEach((item: any) => {
+      const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
       if (item.name && item.country && !seenKeys.has(key)) {
         finalSuggestions.push({
-          name: displayName,
+          name: item.name,
           lat: item.lat,
           lon: item.lon,
           country: item.country,
