@@ -4,28 +4,28 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 208 100% 97%; /* AliceBlue - a very light blue */
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* Keep cards white for contrast */
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 199 92% 61%; /* A vibrant, accessible sky blue for actions */
+    --primary-foreground: 210 40% 98%; /* White text on blue buttons */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 51 100% 50%; /* Sunny Yellow */
+    --accent-foreground: 51 50% 15%; /* A dark color for text on yellow */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 199 92% 61%;
 
-    --chart-1: 217.2 91.2% 59.8%;
-    --chart-2: 22.2 91.2% 59.8%;
+    --chart-1: 199 92% 61%; /* Blue */
+    --chart-2: 51 100% 50%; /* Yellow */
     --chart-3: 292.2 91.2% 59.8%;
     --chart-4: 152.2 91.2% 59.8%;
     --chart-5: 210 40% 96.1%;
@@ -33,25 +33,25 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 40% 10%; /* Dark blue slate */
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 220 40% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 40% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 197 71% 73%; /* Lighter sky blue for dark mode */
+    --primary-foreground: 197 90% 10%; /* Dark text for contrast */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --accent: 51 100% 50%; /* Sunny Yellow */
+    --accent-foreground: 51 90% 10%; /* Dark text for contrast */
+    --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217.2 32.6% 22.5%;
+    --input: 217.2 32.6% 22.5%;
+    --ring: 197 71% 73%;
   }
 }
 
