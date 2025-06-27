@@ -42,7 +42,13 @@
 ## ✨ Core Features
 
 *   **Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide or automatically detect the user's location via browser geolocation or IP lookup.
-*   **AI-Powered Insights:** The application leverages Google's Gemini model via Genkit to provide users with conversational weather summaries, creative activity suggestions, and intelligent email subject lines.
+*   **AI-Powered Insights & Search:** The application leverages Google's Gemini model via Genkit to provide users with a smarter experience:
+    *   **Intelligent Search:** Go beyond simple city names. The search bar understands natural language, correcting typos and interpreting complex queries.
+        *   **Example (Abbreviations):** A search for `"VGU"` is understood as `"Vivekananda Global University, Jaipur"`.
+        *   **Example (Landmarks):** A search for `"weather at the eiffel tower"` is interpreted as `"Eiffel Tower, Paris"`.
+        *   **Example (Typos):** A search for `"new yrok"` is automatically corrected to `"New York"`.
+    *   **Conversational Summaries:** Get friendly, easy-to-read weather summaries that highlight the most important information.
+    *   **Creative Suggestions:** Receive AI-generated activity suggestions tailored to the current weather conditions.
 *   **Intelligent, Customizable Alerts:**
     *   **AI-Driven Decisions:** Instead of rigid rules, the AI analyzes weather conditions to decide if an alert is significant enough to send.
     *   **Custom Schedules:** Users can define specific days and times to receive alerts, all managed within their chosen timezone.
@@ -60,15 +66,15 @@ This project was designed with specific architectural patterns to ensure it is p
 *   **Server-First Approach with Next.js App Router:**
     *   **Why:** By using **Server Components** and **Server Actions** as the default, we minimize the amount of JavaScript sent to the client. This results in faster initial page loads and a snappier user experience, as the heavy lifting is done on the server.
     *   **Example:** The primary `fetchWeatherAndSummaryAction` is a Server Action, allowing the client to call server-side logic without needing to define a separate API endpoint.
-
+*   **Decoupled AI Flows for Specific Tasks:**
+    *   **Why:** Instead of a single, monolithic AI prompt, the application uses smaller, specialized Genkit flows for distinct tasks like summarizing weather, deciding on alerts, and interpreting search queries. This makes the system more maintainable, testable, and allows for tailored prompts and models for each job.
+    *   **How:** The `interpret-search-query` flow is specifically prompted to convert ambiguous user input like `"weather at VGU"` into a precise, geocodable string like `"Vivekananda Global University, Jaipur"`, ensuring accurate location results.
 *   **Resilient, Multi-Key API Services:**
     *   **Why:** Services like OpenWeatherMap and Google Gemini often have free tiers with rate limits. To prevent a single exhausted API key from taking down the entire application, the backend services for both are designed to accept multiple API keys.
     *   **How:** If a call with one key fails due to a quota or invalid key error, the service automatically and transparently retries the request with the next available key. Failing keys are temporarily put in a "penalty box" to improve performance.
-
 *   **Secure User Data with Clerk Private Metadata:**
     *   **Why:** A user's alert preferences (city, schedule, frequency) are sensitive and should not be stored in a place the client can easily read or manipulate, like `localStorage`.
     *   **How:** We leverage Clerk's `privateMetadata` field, a secure, server-side storage location associated with each user. This keeps their preferences safe and ensures they are only accessed and modified through secure Server Actions.
-
 *   **Decoupled Alert Triggering with Cron Jobs:**
     *   **Why:** The system needs to check for alerts for all users every hour, regardless of whether they are using the app. Relying on client-side timers is unreliable.
     *   **How:** We expose a secure API endpoint (`/api/cron`) that is protected by a secret key. This endpoint is designed to be called by an external, reliable scheduling service (a "cron job"). This decouples the alert-checking logic from the main application's user-facing parts and ensures it runs consistently.
