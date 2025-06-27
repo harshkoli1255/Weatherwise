@@ -113,57 +113,59 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
           <div className="pt-6 border-t border-border/50">
-            <div className="flex items-center mb-4">
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-              <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
-                Hourly Forecast
-              </h3>
-            </div>
-            <ChartContainer config={chartConfig} className="w-full h-[200px]">
-              <LineChart
-                accessibilityLayer
-                data={weatherData.hourlyForecast}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  left: -10,
-                  bottom: 0,
-                }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-                <XAxis
-                  dataKey="time"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => `${value}°`}
-                  domain={['dataMin - 2', 'dataMax + 2']}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                />
-                <ChartTooltip
-                  cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 2, strokeDasharray: '3 3' }}
-                  content={<CustomChartTooltip />}
-                />
-                <Line
-                  dataKey="temp"
-                  type="monotone"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2.5}
-                  dot={{
-                    r: 4,
-                    fill: "hsl(var(--primary))",
-                    stroke: "hsl(var(--background))",
-                    strokeWidth: 2,
+            <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4 shadow-inner dark:bg-primary/10">
+              <div className="flex items-center">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+                <h3 className="text-xl font-headline font-semibold text-primary sm:text-2xl">
+                  Hourly Forecast
+                </h3>
+              </div>
+              <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                <LineChart
+                  accessibilityLayer
+                  data={weatherData.hourlyForecast}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -10,
+                    bottom: 0,
                   }}
-                />
-              </LineChart>
-            </ChartContainer>
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+                  <XAxis
+                    dataKey="time"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => `${value}°`}
+                    domain={['dataMin - 2', 'dataMax + 2']}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  />
+                  <ChartTooltip
+                    cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 2, strokeDasharray: '3 3' }}
+                    content={<CustomChartTooltip />}
+                  />
+                  <Line
+                    dataKey="temp"
+                    type="monotone"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2.5}
+                    dot={{
+                      r: 4,
+                      fill: "hsl(var(--primary))",
+                      stroke: "hsl(var(--background))",
+                      strokeWidth: 2,
+                    }}
+                  />
+                </LineChart>
+              </ChartContainer>
+            </div>
           </div>
         )}
 

@@ -16,8 +16,8 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 51 100% 50%; /* Sunny Yellow */
-    --accent-foreground: 51 50% 15%; /* A dark color for text on yellow */
+    --accent: 210 40% 96.1%; /* Use a subtle blue for hovers */
+    --accent-foreground: 222.2 47.4% 11.2%; /* Dark text for hovers */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
@@ -45,8 +45,8 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 51 100% 50%; /* Sunny Yellow */
-    --accent-foreground: 51 90% 10%; /* Dark text for contrast */
+    --accent: 217.2 32.6% 17.5%; /* Use a subtle dark blue for hovers */
+    --accent-foreground: 210 40% 98%; /* Light text for hovers */
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 22.5%;
