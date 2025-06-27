@@ -1,4 +1,3 @@
-
 'use server';
 
 import { 
@@ -54,8 +53,8 @@ export async function fetchWeatherAndSummaryAction(
           console.log(`[AI] Interpreting search query for main fetch: "${params.city}"`);
           const interpretation = await interpretSearchQuery({ query: params.city });
           
-          // Use the specific city name for the API call if available, otherwise use the general query.
-          queryForApi = interpretation.cityName || interpretation.searchQueryForApi;
+          // Use the AI's full query for the API call for maximum precision.
+          queryForApi = interpretation.searchQueryForApi;
           
           // Use the more descriptive name for display purposes.
           userFriendlyCityName = interpretation.locationName || interpretation.cityName || params.city;
@@ -217,8 +216,8 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
             console.log(`[AI] Interpreting search query: "${processedQuery}"`);
             const interpretationResult = await interpretSearchQuery({ query: processedQuery });
             
-            // For the suggestions API, use the extracted city name for better results.
-            const newQuery = interpretationResult.cityName || interpretationResult.searchQueryForApi;
+            // Use the AI's fully processed query for the suggestions API for best results.
+            const newQuery = interpretationResult.searchQueryForApi;
             
             if (newQuery && newQuery.toLowerCase() !== processedQuery.toLowerCase()) {
                 console.log(`[AI] Interpreted "${processedQuery}" as "${newQuery}" for suggestions API.`);
