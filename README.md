@@ -43,7 +43,7 @@
 
 *   **Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide or automatically detect the user's location via browser geolocation or IP lookup.
 *   **AI-Powered Insights & Search:** The application leverages Google's Gemini model via Genkit to provide users with a smarter experience:
-    *   **Intelligent Search:** Go beyond simple city names. The search bar understands natural language, correcting typos and interpreting complex queries.
+    *   **Intelligent Search:** Simply type what you're thinking, and the AI will figure it out. It goes beyond simple city names, understanding natural language to correct typos and interpret complex queries involving landmarks, businesses, or even abbreviations. Just type your query and press Enter, or select from the smart suggestions.
         *   **Example (Abbreviations):** A search for `"VGU"` is understood as `"Vivekananda Global University, Jaipur"`.
         *   **Example (Landmarks):** A search for `"weather at the eiffel tower"` is interpreted as `"Eiffel Tower, Paris"`.
         *   **Example (Typos):** A search for `"new yrok"` is automatically corrected to `"New York"`.
@@ -68,7 +68,7 @@ This project was designed with specific architectural patterns to ensure it is p
     *   **Example:** The primary `fetchWeatherAndSummaryAction` is a Server Action, allowing the client to call server-side logic without needing to define a separate API endpoint.
 *   **Decoupled AI Flows for Specific Tasks:**
     *   **Why:** Instead of a single, monolithic AI prompt, the application uses smaller, specialized Genkit flows for distinct tasks like summarizing weather, deciding on alerts, and interpreting search queries. This makes the system more maintainable, testable, and allows for tailored prompts and models for each job.
-    *   **How:** The `interpret-search-query` flow is specifically prompted to convert ambiguous user input like `"weather at VGU"` into a precise, geocodable string like `"Vivekananda Global University, Jaipur"`, ensuring accurate location results.
+    *   **How:** The `interpret-search-query` flow handles ambiguous user input. When a user types `"weather at the eiffel tower"`, the AI's job is to identify the core landmark ("Eiffel Tower") and its containing **city** ("Paris"). The application then uses the reliable city name for the API call while displaying the full, user-friendly name in the UI, ensuring both accuracy and a great user experience.
 *   **Resilient, Multi-Key API Services:**
     *   **Why:** Services like OpenWeatherMap and Google Gemini often have free tiers with rate limits. To prevent a single exhausted API key from taking down the entire application, the backend services for both are designed to accept multiple API keys.
     *   **How:** If a call with one key fails due to a quota or invalid key error, the service automatically and transparently retries the request with the next available key. Failing keys are temporarily put in a "penalty box" to improve performance.
