@@ -24,19 +24,17 @@ User's raw query: "{{query}}"
 Instructions:
 1.  **Analyze the Intent**: Determine if the user is asking for a city/region (e.g., "London", "California") or a specific point of interest (POI) like a landmark, business, or university (e.g., "Eiffel Tower", "Statue of Liberty", "Vivekananda Global University Jaipur").
 2.  **Handle Abbreviations and Typos**: Correct spelling mistakes and expand common abbreviations.
-    - If a query is an abbreviation for a globally recognized landmark or institution, expand it and provide the city context. For example, if the query is just "VGU", your output for \`searchQueryForApi\` should be "Vivekananda Global University, Jaipur".
-    - If a query has a typo, correct it. For example, "Lodon" should become "London".
+    - If a query is an abbreviation for a globally recognized landmark or institution, expand it and provide the city context. For example, if the query is just "VGU", your output for \`searchQueryForApi\` should be "Vivekananda Global University, Jaipur". If the query is "VGU jaipur", the result should be the same.
+    - If a query has a typo, correct it. For example, "new yrok" should become "New York".
 3.  **Extract Entities**:
     *   If it's a specific POI, extract the **name of the place** and the **containing city**.
     *   If it's just a city, the place name is not needed.
 4.  **Format for Geocoding API**: Create a \`searchQueryForApi\` string. The best format is "Place, City" or just "City".
     *   For "weather at the Eiffel Tower", \`searchQueryForApi\` should be "Eiffel Tower, Paris".
-    *   For "VGU jaipur", \`searchQueryForApi\` should be "Vivekananda Global University, Jaipur".
     *   For "capital of spain", \`searchQueryForApi\` should be "Madrid".
-    *   For "new yrok", \`searchQueryForApi\` should be "New York".
 5.  **Set Output Fields**:
     *   \`isSpecificLocation\`: Set to \`true\` if it's a POI, \`false\` otherwise.
-    *   \`locationName\`: The name of the POI, if applicable (e.g., "Vivekananda Global University").
+    *   \`locationName\`: The name of the specific location if one was identified (e.g., "Vivekananda Global University").
     *   \`cityName\`: The name of the city associated with the location (e.g., "Jaipur").
 6.  **Final Output**: Your response must be only the JSON object in the specified format. Do not add any other text or markdown formatting like \`\`\`json.
 `;
