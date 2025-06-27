@@ -233,24 +233,21 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
               
               <div>
                   <Label>Active Days of the Week</Label>
-                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">
                       {daysOfWeek.map(day => (
-                          <div key={day.id}>
-                            <Checkbox 
-                              id={`day-${day.id}`} 
-                              name={`scheduleDay${day.id}`}
-                              checked={selectedDays.includes(day.id)}
-                              onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
-                              className="sr-only peer"
-                            />
-                            <Label 
-                              htmlFor={`day-${day.id}`} 
-                              className={cn(
-                                  "flex flex-col items-center justify-center p-2.5 rounded-lg border-2 border-muted bg-transparent cursor-pointer transition-all duration-200 hover:bg-accent peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary"
-                              )}
-                            >
-                              <span className="font-bold text-sm">{day.label}</span>
-                            </Label>
+                          <div key={day.id} className="flex items-center space-x-2 rounded-lg border border-muted bg-background/50 p-3 has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-colors">
+                              <Checkbox 
+                                id={`day-${day.id}`} 
+                                name={`scheduleDay${day.id}`}
+                                checked={selectedDays.includes(day.id)}
+                                onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
+                              />
+                              <Label 
+                                htmlFor={`day-${day.id}`} 
+                                className="text-sm font-medium leading-none cursor-pointer w-full"
+                              >
+                                {day.label}
+                              </Label>
                           </div>
                       ))}
                   </div>
