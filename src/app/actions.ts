@@ -1,3 +1,4 @@
+
 'use server';
 
 import { 
@@ -12,6 +13,7 @@ import {
   type WeatherData,
   type FavoritesWeatherMap,
   type FavoriteCityWeatherResult,
+  type InterpretSearchQueryOutput,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
@@ -197,71 +199,68 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: [], processedQuery: query, error: null };
     }
 
-    let processedQuery = query.trim();
-
-    if (isAiConfigured()) {
-        try {
-            console.log(`[AI] Interpreting search query: "${processedQuery}"`);
-            const interpretationResult = await interpretSearchQuery({ query: processedQuery });
-            
-            // Use the AI's fully processed query for the suggestions API for best results.
-            const newQuery = interpretationResult.searchQueryForApi;
-            
-            if (newQuery && newQuery.toLowerCase() !== processedQuery.toLowerCase()) {
-                console.log(`[AI] Interpreted "${processedQuery}" as "${newQuery}" for suggestions API.`);
-                processedQuery = newQuery;
-            } else {
-                console.log(`[AI] No significant interpretation change for "${processedQuery}". Using original.`);
-            }
-        } catch (err) {
-            const message = err instanceof Error ? err.message : "An unknown AI error occurred.";
-            console.error("AI search interpretation failed:", message);
-            // Don't block search if AI fails, just use original query and log the error.
-        }
-    }
-
-
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
     if (!openWeatherApiKeysString) {
       console.error("[Server Config Error] OpenWeather API keys missing for suggestions.");
-      return { suggestions: null, processedQuery, error: "Server configuration error: Geocoding keys missing." };
+      return { suggestions: null, processedQuery: query, error: "Server configuration error: Geocoding keys missing." };
     }
     const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
     if (openWeatherApiKeys.length === 0) {
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
-      return { suggestions: null, processedQuery, error: "Server configuration error: No valid geocoding keys." };
+      return { suggestions: null, processedQuery: query, error: "Server configuration error: No valid geocoding keys." };
+    }
+    
+    let interpretationResult: InterpretSearchQueryOutput | null = null;
+    let queryForApi = query.trim();
+
+    if (isAiConfigured()) {
+        try {
+            console.log(`[AI] Interpreting search query: "${queryForApi}"`);
+            interpretationResult = await interpretSearchQuery({ query: queryForApi });
+            
+            if (interpretationResult.searchQueryForApi) {
+                queryForApi = interpretationResult.searchQueryForApi;
+                console.log(`[AI] Interpreted "${query.trim()}" as "${queryForApi}" for suggestions API.`);
+            }
+        } catch (err) {
+            console.error("AI search interpretation failed:", err instanceof Error ? err.message : "An unknown AI error occurred.");
+        }
     }
     
     let lastTechnicalError: string | null = null;
-    let currentKeyIndex = 0;
 
     for (const apiKey of openWeatherApiKeys) {
-        currentKeyIndex++;
-        const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(processedQuery)}&limit=8&appid=${apiKey}`;
+        const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=8&appid=${apiKey}`;
         try {
             const response = await fetch(url);
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-                lastTechnicalError = errorData.message || `Failed to fetch city suggestions (status: ${response.status}, Key ${currentKeyIndex})`;
                 if ([401, 403, 429].includes(response.status)) { 
-                    console.warn(`OpenWeather Geocoding API key ${currentKeyIndex} failed or rate limited. Trying next key.`);
+                    console.warn(`OpenWeather Geocoding API key failed or rate limited. Trying next key.`);
                     continue; 
                 }
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
+                lastTechnicalError = errorData.message || `Failed to fetch city suggestions (status: ${response.status})`;
                 console.error("OpenWeather Geocoding API error:", { status: response.status, message: lastTechnicalError, url });
-                return { suggestions: null, processedQuery, error: "Geocoding service returned an error." };
+                return { suggestions: null, processedQuery: query, error: "Geocoding service returned an error." };
             }
 
             const data: any[] = await response.json();
-            
             const uniqueSuggestions: CitySuggestion[] = [];
             const seenKeys = new Set<string>();
 
             for (const item of data) {
-                const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
-                if (item.name && item.country && !seenKeys.has(key)) {
+                let displayName = item.name;
+                if (interpretationResult && interpretationResult.isSpecificLocation && uniqueSuggestions.length === 0) {
+                    displayName = interpretationResult.locationName 
+                        ? `${interpretationResult.locationName}, ${interpretationResult.cityName}` 
+                        : interpretationResult.cityName || item.name;
+                }
+
+                const key = `${displayName}|${item.state || 'NO_STATE'}|${item.country}`;
+                if (displayName && item.country && !seenKeys.has(key)) {
                     seenKeys.add(key);
                     uniqueSuggestions.push({
-                        name: item.name,
+                        name: displayName,
                         lat: item.lat,
                         lon: item.lon,
                         country: item.country,
@@ -269,18 +268,17 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
                     });
                 }
             }
-            return { suggestions: uniqueSuggestions, processedQuery, error: null };
+            return { suggestions: uniqueSuggestions, processedQuery: query, error: null };
         } catch (e) {
             lastTechnicalError = e instanceof Error ? e.message : "Unknown error fetching city suggestions";
             console.error("Error fetching city suggestions:", e);
-            return { suggestions: null, processedQuery, error: "Network error while fetching suggestions." };
+            return { suggestions: null, processedQuery: query, error: "Network error while fetching suggestions." };
         }
     }
     
     const serverError = lastTechnicalError || "Failed to fetch city suggestions with all available API keys.";
     console.error("[Service Error] All geocoding API keys failed.", { details: serverError });
-    const userFacingError = "Could not retrieve city suggestions due to a server-side issue.";
-    return { suggestions: null, processedQuery, error: userFacingError };
+    return { suggestions: null, processedQuery: query, error: "Could not retrieve city suggestions due to a server-side issue." };
 
   } catch (error) {
     console.error("An unexpected error occurred in fetchCitySuggestionsAction:", error);
