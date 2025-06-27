@@ -47,10 +47,6 @@ Follow these steps to get the project running on your local machine.
 ### 1. Prerequisites
 Before you begin, ensure you have the latest stable versions of **Node.js** and **Git** installed on your system.
 
-<details>
-<summary><strong>Click here for OS-specific installation instructions</strong></summary>
-<br>
-
 **On macOS:**
 The recommended way to install is using [Homebrew](https://brew.sh/):
 ```bash
@@ -81,10 +77,6 @@ sudo apt update
 sudo apt install nodejs npm git -y
 ```
 *(For other Linux distributions, please use your system's respective package manager, like `yum` or `pacman`.)*
-
-</details>
-
-<br/>
 
 ### 2. Project Setup
 
