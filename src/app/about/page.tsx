@@ -20,19 +20,19 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex flex-col items-start gap-3 p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02]">
+  <div className="flex flex-col items-start gap-3 p-3 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02]">
     <div className="flex items-center gap-3">
         <div className="p-2 bg-primary/10 rounded-lg">
             <Icon className="h-6 w-6 text-primary" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
     </div>
     <p className="text-sm text-muted-foreground">{children}</p>
   </div>
 );
 
 const TechItem = ({ name }: { name: string }) => (
-    <Badge variant="secondary" className="text-sm py-1 px-3">
+    <Badge variant="secondary" className="text-xs py-0.5 px-2.5">
         {name}
     </Badge>
 );
@@ -44,26 +44,26 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12">
-        <Card className="w-full max-w-4xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-2xl">
+    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
+        <Card className="w-full max-w-4xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-xl">
             <CardHeader className="text-center items-center pt-8 pb-6">
                  <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-                    <Sparkles className="h-12 w-12 text-primary drop-shadow-lg" />
+                    <Sparkles className="h-10 w-10 text-primary drop-shadow-lg" />
                  </div>
-                <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary">
+                <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">
                     About Weatherwise
                 </CardTitle>
-                <CardDescription className="text-lg text-muted-foreground mt-2 max-w-2xl">
+                <CardDescription className="text-base text-muted-foreground mt-2 max-w-2xl">
                     An intelligent companion for real-time weather data, AI-powered insights, and a highly customizable alert system.
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="px-6 sm:px-8 pb-8 space-y-12">
+            <CardContent className="px-6 sm:px-8 pb-8 space-y-10">
                 <section>
-                    <h2 className="text-2xl font-headline font-semibold text-foreground mb-6 text-center">
+                    <h2 className="text-xl font-headline font-semibold text-foreground mb-5 text-center">
                         Core Features
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FeatureItem icon={MapPin} title="Dynamic Weather Dashboard">
                             Get real-time weather data for any city, or use your current location automatically.
                         </FeatureItem>
@@ -86,16 +86,16 @@ export default function AboutPage() {
                 </section>
 
                 <section>
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                        <Layers className="h-7 w-7 text-muted-foreground" />
-                        <h2 className="text-2xl font-headline font-semibold text-foreground text-center">
+                    <div className="flex items-center justify-center gap-3 mb-5">
+                        <Layers className="h-6 w-6 text-muted-foreground" />
+                        <h2 className="text-xl font-headline font-semibold text-foreground text-center">
                             Technology Stack
                         </h2>
                     </div>
-                    <p className="text-muted-foreground mb-6 text-center max-w-xl mx-auto">
+                    <p className="text-muted-foreground mb-5 text-center max-w-xl mx-auto text-sm">
                         Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience.
                     </p>
-                    <div className="flex flex-wrap gap-3 justify-center">
+                    <div className="flex flex-wrap gap-2 justify-center">
                         {techStack.map(tech => (
                             <TechItem key={tech} name={tech} />
                         ))}
@@ -103,14 +103,14 @@ export default function AboutPage() {
                 </section>
 
                 <section>
-                     <div className="flex items-center justify-center gap-3 mb-6">
-                        <Heart className="h-7 w-7 text-muted-foreground" />
-                        <h2 className="text-2xl font-headline font-semibold text-foreground text-center">
+                     <div className="flex items-center justify-center gap-3 mb-5">
+                        <Heart className="h-6 w-6 text-muted-foreground" />
+                        <h2 className="text-xl font-headline font-semibold text-foreground text-center">
                             Our Mission
                         </h2>
                     </div>
-                    <div className="bg-primary/5 dark:bg-primary/10 p-6 rounded-lg shadow-inner border border-primary/20 text-center">
-                         <p className="text-lg text-foreground/90 italic leading-relaxed max-w-xl mx-auto">
+                    <div className="bg-primary/5 dark:bg-primary/10 p-5 rounded-lg shadow-inner border border-primary/20 text-center">
+                         <p className="text-base text-foreground/90 italic leading-relaxed max-w-xl mx-auto">
                            &ldquo;To provide a weather application that is not only accurate and reliable but also a joy to use. By leveraging the power of generative AI, we deliver insights that go beyond raw data, helping you plan your day more effectively.&rdquo;
                         </p>
                     </div>

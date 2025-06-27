@@ -27,27 +27,27 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-between text-center p-3 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 sm:w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-40 sm:h-44"
+        "flex flex-col items-center justify-between text-center p-2 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-36"
       )}
       aria-label={`View forecast for ${data.time}`}
     >
       {/* Group top content to push it up */}
       <div className="flex flex-col items-center space-y-1">
-        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{data.time}</p>
-        <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-lg" />
-        <p className="text-xl sm:text-2xl font-bold text-foreground">{data.temp}°</p>
+        <p className="text-xs font-medium text-muted-foreground">{data.time}</p>
+        <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 text-primary drop-shadow-lg" />
+        <p className="text-lg sm:text-xl font-bold text-foreground">{data.temp}°</p>
       </div>
 
       {/* Group bottom content to push it down, showing precipitation or humidity */}
-      <div className="flex items-center justify-center gap-1.5 text-xs text-sky-400 font-medium pt-1 min-h-[20px] sm:min-h-[24px]">
+      <div className="flex items-center justify-center gap-1.5 text-xs text-sky-400 font-medium pt-1 min-h-[20px]">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Droplets className="h-3 w-3" />
             <span>{data.precipitationChance}%</span>
           </>
         ) : (
           <>
-            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Droplets className="h-3 w-3" />
             <span>{data.humidity}%</span>
           </>
         )}
@@ -68,10 +68,10 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   }
 
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
         <div className="relative inline-flex items-center justify-center">
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md leading-none">
+          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-none">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
           <div className="absolute top-1/2 left-full -translate-y-1/2 ml-2">
@@ -100,35 +100,35 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         </div>
         <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8 p-4 sm:p-6">
+      <CardContent className="space-y-6 p-4 sm:p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
           <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-            <div className="text-6xl sm:text-8xl font-bold text-foreground drop-shadow-lg">
+            <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
               {weatherData.temperature}°
-              <span className="text-4xl sm:text-6xl text-muted-foreground/80">C</span>
+              <span className="text-4xl sm:text-5xl text-muted-foreground/80">C</span>
             </div>
           </div>
           <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
-            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-36 sm:w-36 ${sentimentColorClass} drop-shadow-2xl`} />
+            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-32 sm:w-32 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
           <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-orange-400" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
           <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-sky-400" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
           <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-cyan-400" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-          <div className="pt-6 border-t border-border/50">
+          <div className="pt-4 border-t border-border/50">
             <div className="flex items-center mb-4">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-              <h3 className="text-xl font-headline font-semibold text-primary sm:text-2xl">
+              <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
                 Hourly Forecast
               </h3>
             </div>
             <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-              <div className="flex w-max space-x-3 sm:space-x-4 pb-4">
+              <div className="flex w-max space-x-3 pb-4">
                 {weatherData.hourlyForecast.map((hour, index) => (
                   <ForecastCard 
                     key={index} 
@@ -142,10 +142,10 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
           </div>
         )}
 
-        <div className="pt-6 border-t border-border/50">
+        <div className="pt-4 border-t border-border/50">
           <div className="flex items-center mb-4">
             <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-            <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
+            <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
               AI Weather Summary
             </h3>
           </div>
@@ -156,10 +156,10 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         </div>
 
         {weatherData.activitySuggestion && (
-          <div className="pt-6 border-t border-border/50">
+          <div className="pt-4 border-t border-border/50">
             <div className="flex items-center mb-4">
               <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-              <h3 className="text-xl sm:text-2xl font-headline font-semibold text-primary">
+              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
                 Activity Suggestion
               </h3>
             </div>
@@ -194,7 +194,7 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105", className)} {...props}>
+    <div className={cn("flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105", className)} {...props}>
       <Icon className={cn("h-7 w-7 mb-2", iconColor || 'text-primary')} />
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold text-foreground mt-0.5">{value}</p>

@@ -29,18 +29,18 @@
     --chart-3: 292.2 91.2% 59.8%;
     --chart-4: 152.2 91.2% 59.8%;
     --chart-5: 210 40% 96.1%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 220 40% 10%; /* Dark blue slate */
+    --background: 220 40% 7%; /* Darker blue slate */
     --foreground: 210 40% 98%;
     --card: 220 40% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 40% 10%;
+    --popover: 220 40% 7%;
     --popover-foreground: 210 40% 98%;
     --primary: 197 71% 73%; /* Lighter sky blue for dark mode */
-    --primary-foreground: 197 90% 10%; /* Dark text for contrast */
+    --primary-foreground: 197 90% 5%; /* Darker text for contrast */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -49,8 +49,8 @@
     --accent-foreground: 210 40% 98%; /* Light text for hovers */
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 22.5%;
-    --input: 217.2 32.6% 22.5%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
     --ring: 197 71% 73%;
   }
 }

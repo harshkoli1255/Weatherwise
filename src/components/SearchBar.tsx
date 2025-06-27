@@ -136,17 +136,17 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search for a city or a specific place..."}
-                className="block w-full h-12 md:h-14 pl-12 pr-[150px] md:pr-[160px] text-base md:text-lg text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-11 md:h-12 pl-12 pr-[140px] md:pr-[150px] text-base text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
             />
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-9 md:h-10 w-9 md:w-10 text-muted-foreground hover:text-primary"
+                    className="h-8 md:h-9 w-8 md:w-9 text-muted-foreground hover:text-primary"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -163,7 +163,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     type="submit"
                     disabled={!inputValue.trim()}
                     aria-label="Search weather"
-                    className="h-9 md:h-10 text-sm md:text-base"
+                    className="h-8 md:h-9 text-sm"
                 >
                     {isSearchingWeather ? (
                         <>

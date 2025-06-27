@@ -248,12 +248,12 @@ function WeatherPageContent() {
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-      <section className="relative z-10 w-full max-w-3xl mb-8 sm:mb-10 text-center">
-        <h1 className="text-4xl sm:text-6xl font-headline font-extrabold text-primary mb-4 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
+    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
+      <section className="relative z-10 w-full max-w-3xl mb-8 text-center">
+        <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
           Weatherwise
         </h1>
-        <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 px-2">
+        <p className="text-base sm:text-lg text-muted-foreground mb-6 px-2">
           Your smart companion for real-time weather updates and AI-powered insights.
         </p>
         <div className="mt-1 w-full flex justify-center px-2 sm:px-0">

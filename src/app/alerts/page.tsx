@@ -11,8 +11,8 @@ export default async function AlertsPage() {
   
   if (!userId) {
     return (
-      <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 lg:py-16 flex flex-col items-center">
-        <Card className="w-full max-w-md text-center bg-glass border-primary/20 shadow-2xl rounded-2xl">
+      <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
+        <Card className="w-full max-w-md text-center bg-glass border-primary/20 shadow-2xl rounded-xl">
           <CardHeader className="items-center pt-6 sm:pt-8 pb-4">
             <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <BellOff className="h-12 w-12 text-primary drop-shadow-lg" />
