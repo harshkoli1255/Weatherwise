@@ -6,8 +6,9 @@ import { WeatherIcon } from './WeatherIcon';
 import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { HourlyForecastDialog } from './HourlyForecastDialog';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -15,13 +16,22 @@ interface WeatherDisplayProps {
   onSaveCityToggle: () => void;
 }
 
-function ForecastCard({ data }: { data: HourlyForecastData }) {
+interface ForecastCardProps {
+  data: HourlyForecastData;
+  onClick: () => void;
+}
+
+function ForecastCard({ data, onClick }: ForecastCardProps) {
   const showPrecipitation = data.precipitationChance > 0;
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center text-center space-y-2 p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-28 shrink-0",
-      showPrecipitation ? "h-44" : "h-40" // Make card taller if precipitation is shown
-    )}>
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-center justify-center text-center space-y-2 p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-28 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        showPrecipitation ? "h-44" : "h-40"
+      )}
+      aria-label={`View forecast for ${data.time}`}
+    >
       <p className="text-sm font-medium text-muted-foreground">{data.time}</p>
       <WeatherIcon iconCode={data.iconCode} className="h-10 w-10 text-primary drop-shadow-lg" />
       <p className="text-2xl font-bold text-foreground">{data.temp}°</p>
@@ -31,12 +41,13 @@ function ForecastCard({ data }: { data: HourlyForecastData }) {
             <span>{data.precipitationChance}%</span>
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
 
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
+  const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
@@ -104,7 +115,11 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
               <div className="flex w-max space-x-4 pb-4">
                 {weatherData.hourlyForecast.map((hour, index) => (
-                  <ForecastCard key={index} data={hour} />
+                  <ForecastCard 
+                    key={index} 
+                    data={hour} 
+                    onClick={() => setSelectedHour(hour)}
+                  />
                 ))}
               </div>
               <ScrollBar orientation="horizontal" />
@@ -140,6 +155,17 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
           </div>
         )}
       </CardContent>
+       {selectedHour && (
+        <HourlyForecastDialog
+          data={selectedHour}
+          open={!!selectedHour}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setSelectedHour(null);
+            }
+          }}
+        />
+      )}
     </Card>
   );
 }

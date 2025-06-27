@@ -117,6 +117,7 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: 
         time: time,
         timestamp: item.dt,
         temp: Math.round(item.main.temp),
+        feelsLike: Math.round(item.main.feels_like),
         iconCode: item.weather[0].icon,
         condition: item.weather[0].main,
         humidity: item.main.humidity,
