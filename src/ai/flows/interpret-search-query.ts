@@ -22,21 +22,19 @@ const interpretQueryPromptTemplate = `You are an expert in natural language unde
 User's raw query: "{{query}}"
 
 Instructions:
-1.  **Analyze the Intent**: Determine if the user is asking for a city/region (e.g., "London"), a specific point of interest (POI) like a landmark, business, or university (e.g., "Eiffel Tower", "Vivekananda Global University Jaipur"), or using conversational language ("weather at...").
-2.  **Handle Abbreviations and Typos**: Correct spelling mistakes and expand common abbreviations.
+1.  **Analyze the Intent**: Determine if the user is asking for a city/region, a specific point of interest (POI) like a landmark or business, or using conversational language.
+2.  **Handle Ambiguity**: Correct spelling mistakes, expand abbreviations, and remove conversational filler (like "weather at...").
 3.  **Prioritize the City**: If the query is a POI, your most important job is to identify the **containing city**. The geocoding API works best with city names.
-    - For a query like "weather at the eiffel tower", you must identify that the Eiffel Tower is in **Paris**.
-    - For a query like "VGU", you must expand it to "Vivekananda Global University" and identify its city as **Jaipur**.
-    - For a query with a typo like "new yrok", you must correct it to **New York**.
-4.  **Format for Geocoding API**: Create a \`searchQueryForApi\` string. This string SHOULD BE ONLY the city name you identified if possible. If you can't identify a city, use your best judgment to provide the most searchable location term.
-    - For "Eiffel Tower", \`searchQueryForApi\` should be "Paris".
-    - For "VGU", \`searchQueryForApi\` should be "Jaipur".
-    - For "London", \`searchQueryForApi\` should be "London".
-5.  **Set Output Fields**:
+    - For "weather at the eiffel tower", identify the POI as "Eiffel Tower" and the city as **Paris**.
+    - For "VGU", expand it to "Vivekananda Global University" and identify its city as **Jaipur**.
+    - For "scaler school of technology", identify the POI as "Scaler School of Technology" and its city as **Bengaluru**.
+    - For a typo like "new yrok", correct it to **New York**.
+4.  **Set Output Fields**:
     *   \`isSpecificLocation\`: Set to \`true\` if the original query was a POI, \`false\` otherwise.
-    *   \`locationName\`: The full, proper name of the specific location if one was identified (e.g., "Eiffel Tower").
-    *   \`cityName\`: The name of the city you extracted (e.g., "Paris"). This is the most critical field.
-6.  **Final Output**: Your response must be only the JSON object in the specified format. Do not add any other text or markdown formatting like \`\`\`json.
+    *   \`locationName\`: The full, proper name of the POI if one was identified (e.g., "Eiffel Tower", "Scaler School of Technology").
+    *   \`cityName\`: The name of the city you extracted (e.g., "Paris", "Bengaluru"). This is the most critical field.
+    *   \`searchQueryForApi\`: This should be the extracted \`cityName\` if available. Otherwise, use your best judgment to provide the most searchable term.
+5.  **Final Output**: Your response must be only the JSON object in the specified format. Do not add any other text or markdown formatting like \`\`\`json.
 `;
 
 
