@@ -70,8 +70,8 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
       <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
-        <div className="flex items-center justify-center gap-3">
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
+        <div className="flex items-center justify-center gap-2">
+          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-primary drop-shadow-md leading-none">{weatherData.city}, {weatherData.country}</CardTitle>
           <TooltipProvider>
             <Tooltip delayDuration={100}>
               <TooltipTrigger asChild>
