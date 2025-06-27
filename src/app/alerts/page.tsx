@@ -1,11 +1,10 @@
 
-import { auth, clerkClient } from '@clerk/nextjs/server';
 import { SignInButton, SignUpButton } from '@clerk/nextjs';
-import type { AlertPreferences } from '@/lib/types';
+import { auth } from '@clerk/nextjs/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertsForm } from './AlertsForm';
-import { Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BellOff } from 'lucide-react';
+import { AlertsPageClient } from './AlertsPageClient';
 
 export default async function AlertsPage() {
   const { userId } = auth();
@@ -36,58 +35,6 @@ export default async function AlertsPage() {
     );
   }
 
-  const user = await clerkClient().users.getUser(userId);
-  
-  const primaryEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ?? '';
-
-  const defaultPreferences: AlertPreferences = {
-    email: primaryEmail,
-    city: '',
-    alertsEnabled: false,
-    notificationFrequency: 'balanced', // Default to balanced
-    timezone: '', // Will be populated on the client
-    schedule: {
-      enabled: false,
-      days: [0, 1, 2, 3, 4, 5, 6], // All days by default
-      startHour: 8, // 8 AM
-      endHour: 22,  // 10 PM
-    },
-    lastAlertSentTimestamp: 0,
-  };
-  
-  const savedPreferencesRaw = user.privateMetadata?.alertPreferences;
-
-  const savedPreferences = savedPreferencesRaw 
-    ? JSON.parse(JSON.stringify(savedPreferencesRaw)) as Partial<AlertPreferences> 
-    : undefined;
-
-  const preferences: AlertPreferences = {
-    ...defaultPreferences,
-    ...savedPreferences,
-    email: primaryEmail, // Always use the current primary email
-    timezone: savedPreferences?.timezone || '',
-    schedule: {
-      ...defaultPreferences.schedule,
-      ...(savedPreferences?.schedule || {}),
-    },
-  };
-
-  return (
-    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12 flex flex-col items-center">
-      <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl">
-        <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
-           <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-              <Bell className="h-12 w-12 text-primary drop-shadow-lg" />
-           </div>
-          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
-          <CardDescription className="text-base text-muted-foreground mt-2 px-4">
-            Enable hourly email notifications and customize when and how often you receive them.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">
-          <AlertsForm preferences={preferences} />
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Render the client component which will handle its own data fetching.
+  return <AlertsPageClient />;
 }

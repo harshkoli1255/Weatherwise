@@ -168,3 +168,53 @@ export async function testAlertsAction(): Promise<{ message: string; error: bool
     return { message: `An unexpected error occurred while running the test: ${message}`, error: true };
   }
 }
+
+
+export async function getAlertPreferencesAction(): Promise<{ preferences: AlertPreferences | null; error: string | null }> {
+  const { userId } = auth();
+  if (!userId) {
+    return { preferences: null, error: 'User not authenticated.' };
+  }
+
+  try {
+    const user = await clerkClient().users.getUser(userId);
+    const primaryEmail = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress ?? '';
+
+    const defaultPreferences: AlertPreferences = {
+      email: primaryEmail,
+      city: '',
+      alertsEnabled: false,
+      notificationFrequency: 'balanced',
+      timezone: '',
+      schedule: {
+        enabled: false,
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startHour: 8,
+        endHour: 22,
+      },
+      lastAlertSentTimestamp: 0,
+    };
+    
+    const savedPreferencesRaw = user.privateMetadata?.alertPreferences;
+    const savedPreferences = savedPreferencesRaw 
+      ? JSON.parse(JSON.stringify(savedPreferencesRaw)) as Partial<AlertPreferences> 
+      : {};
+
+    const preferences: AlertPreferences = {
+      ...defaultPreferences,
+      ...savedPreferences,
+      email: primaryEmail,
+      timezone: savedPreferences?.timezone || '',
+      schedule: {
+        ...defaultPreferences.schedule,
+        ...(savedPreferences?.schedule || {}),
+      },
+    };
+
+    return { preferences, error: null };
+  } catch (error) {
+    console.error('Failed to get alert preferences:', error);
+    const message = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { preferences: null, error: `Failed to load preferences: ${message}` };
+  }
+}
