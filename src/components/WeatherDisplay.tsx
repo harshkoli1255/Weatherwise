@@ -7,6 +7,7 @@ import { WeatherIcon } from './WeatherIcon';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Star, Umbrella } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React from 'react';
 
@@ -30,21 +31,29 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
     <Dialog open={!!selectedForecast} onOpenChange={(isOpen) => !isOpen && setSelectedForecast(null)}>
       <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl transition-transform duration-300 mt-4">
         <CardHeader className="text-center pt-6 pb-4 items-center border-b border-border/50">
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-3">
             <CardTitle className="text-3xl sm:text-4xl font-headline font-bold text-primary drop-shadow-md">{weatherData.city}, {weatherData.country}</CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSaveCityToggle}
-              aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
-              className="h-10 w-10 rounded-full text-muted-foreground hover:text-amber-500"
-              title={isCitySaved ? `Remove ${weatherData.city} from favorites` : `Save ${weatherData.city}`}
-            >
-              <Star className={cn(
-                  "h-7 w-7 transition-all duration-300",
-                  isCitySaved && "fill-amber-400 text-amber-500"
-              )} />
-            </Button>
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onSaveCityToggle}
+                    aria-label={isCitySaved ? 'Remove from favorites' : 'Add to favorites'}
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-amber-500"
+                  >
+                    <Star className={cn(
+                        "h-6 w-6 transition-all duration-300",
+                        isCitySaved && "fill-amber-400 text-amber-500"
+                    )} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isCitySaved ? `Remove ${weatherData.city} from favorites` : `Save ${weatherData.city}`}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <CardDescription className="text-lg capitalize text-muted-foreground mt-1">{weatherData.description}</CardDescription>
         </CardHeader>
