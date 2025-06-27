@@ -1,7 +1,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -25,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Star, Trash2, Inbox, RefreshCw, AlertCircle } from 'lucide-react';
+import { Star, Trash2, Inbox, RefreshCw, AlertCircle, Bell } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { CitySuggestion, FavoritesWeatherMap } from '@/lib/types';
@@ -33,6 +34,8 @@ import { SignedIn } from '@clerk/nextjs';
 import { fetchWeatherForFavoritesAction } from '@/app/actions';
 import { WeatherIcon } from './WeatherIcon';
 import { Skeleton } from './ui/skeleton';
+import { setAlertCityAction } from '@/app/alerts/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const FavoriteItemSkeleton = () => (
   <div className="flex items-center justify-between p-2 m-1">
@@ -56,6 +59,9 @@ export function FavoriteCitiesDropdown() {
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
   const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const loadFavoritesWeather = useCallback(async () => {
     if (favorites.length === 0) return;
@@ -97,6 +103,26 @@ export function FavoriteCitiesDropdown() {
     setSelectedCities([]);
     setIsAlertOpen(false);
   };
+
+  const handleSetAlertCity = useCallback((city: CitySuggestion) => {
+    startTransition(async () => {
+        const result = await setAlertCityAction(city);
+        if (result.success) {
+            toast({
+                title: 'Alert City Set!',
+                description: result.message,
+            });
+            router.push('/alerts');
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: result.message,
+            });
+        }
+    });
+  }, [router, toast]);
+
 
   const isAllSelected = useMemo(() => favorites.length > 0 && selectedCities.length === favorites.length, [favorites, selectedCities]);
   
@@ -210,6 +236,28 @@ export function FavoriteCitiesDropdown() {
                                         </div>
                                     </div>
                                     <div className="ml-auto flex items-center gap-3 text-sm flex-shrink-0">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSetAlertCity(city);
+                                                    }}
+                                                    disabled={isPending}
+                                                    aria-label="Set as alert city"
+                                                >
+                                                    <Bell className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Set as alert city</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                       {weather && 'temperature' in weather && (
                                           <>
                                               <span className="font-medium text-foreground">{weather.temperature}°C</span>

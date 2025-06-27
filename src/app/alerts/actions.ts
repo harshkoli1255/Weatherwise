@@ -3,7 +3,7 @@
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
+import type { AlertPreferences, CitySuggestion, SaveAlertsFormState } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { processUserForAlerts } from '@/services/alertProcessing';
 
@@ -216,5 +216,60 @@ export async function getAlertPreferencesAction(): Promise<{ preferences: AlertP
     console.error('Failed to get alert preferences:', error);
     const message = error instanceof Error ? error.message : "An unknown error occurred.";
     return { preferences: null, error: `Failed to load preferences: ${message}` };
+  }
+}
+
+export async function setAlertCityAction(
+  city: CitySuggestion
+): Promise<{ success: boolean; message: string }> {
+  const { userId } = auth();
+  if (!userId) {
+    return { success: false, message: 'You must be signed in to perform this action.' };
+  }
+
+  if (!city || !city.name) {
+    return { success: false, message: 'Invalid city data provided.' };
+  }
+
+  try {
+    const user = await clerkClient().users.getUser(userId);
+    const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+
+    if (!email) {
+      return { success: false, message: 'Could not find your email address.' };
+    }
+
+    const existingPrefs = user.privateMetadata?.alertPreferences
+      ? (JSON.parse(JSON.stringify(user.privateMetadata.alertPreferences)) as Partial<AlertPreferences>)
+      : {};
+
+    const newPreferences: AlertPreferences = {
+      email: email,
+      city: city.name, // Set the new city
+      alertsEnabled: true, // Enable alerts by default when setting a city this way
+      notificationFrequency: existingPrefs.notificationFrequency ?? 'balanced',
+      timezone: existingPrefs.timezone ?? '',
+      schedule: existingPrefs.schedule ?? {
+        enabled: false,
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startHour: 8,
+        endHour: 22,
+      },
+      lastAlertSentTimestamp: existingPrefs.lastAlertSentTimestamp ?? 0,
+    };
+    
+    await clerkClient().users.updateUserMetadata(userId, {
+      privateMetadata: {
+        ...user.privateMetadata,
+        alertPreferences: newPreferences,
+      },
+    });
+    
+    revalidatePath('/alerts');
+    return { success: true, message: `Alert city has been set to ${city.name}.` };
+  } catch (error) {
+    console.error('Failed to set alert city:', error);
+    const message = error instanceof Error ? error.message : "An unknown server error occurred.";
+    return { success: false, message: `Failed to set alert city: ${message}` };
   }
 }
