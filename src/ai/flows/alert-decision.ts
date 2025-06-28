@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -28,13 +27,13 @@ Analyze the following weather data for {{city}}:
 - Wind Speed: {{windSpeed}} km/h
 
 Decision Criteria:
-1.  **Extreme Weather is a Priority:** Always trigger an alert for clear extreme conditions.
+1.  **Extreme Weather is a Priority:** Always trigger an alert for clear significant conditions that would impact someone's plans.
     -   Temperature above 30°C.
     -   Temperature below 5°C.
     -   Wind speed above 30 km/h.
-    -   Conditions like "Thunderstorm", "Snow", "Tornado", or "Hail".
-2.  **Combined Conditions Matter:** Trigger an alert if a combination of factors makes the weather notable, even if no single factor is extreme. For example, 10°C with 25 km/h winds and rain is more significant than just 10°C.
-3.  **Be Helpful, Not Annoying:** Do not send alerts for normal, pleasant, or slightly overcast weather (e.g., 22°C and partly cloudy). The user expects alerts for weather that might impact their plans or require preparation.
+    -   Conditions like "Rain", "Thunderstorm", "Snow", "Tornado", or "Hail".
+2.  **Combined Conditions Matter:** Trigger an alert if a combination of factors makes the weather notable, even if no single factor is extreme. For example, 10°C with 25 km/h winds and drizzle is more significant than just 10°C.
+3.  **Be Helpful, Not Annoying:** Do not send alerts for normal, pleasant, or slightly overcast weather (e.g., 22°C and partly cloudy). The user expects alerts for weather that might require preparation.
 4.  **Generate a Reason:** If you decide to send an alert (\`shouldSendAlert: true\`), provide a concise, user-facing reason. The reason should be formatted with HTML strong tags for emphasis, for example: "High temperature: <strong>32°C</strong>" or "Strong winds at <strong>35 km/h</strong>.". If multiple conditions are met, you can combine them like "High temperature and strong winds."
 5.  **Final Output:** Your response must be only the JSON object in the specified format with \`shouldSendAlert\` (boolean) and \`reason\` (string). If \`shouldSendAlert\` is false, the \`reason\` must be an empty string. Do not add any other text or markdown formatting like \`\`\`json.
 `;
