@@ -234,7 +234,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
                   <Label>Active Days of the Week</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">
                       {daysOfWeek.map(day => (
-                          <div key={day.id} className="flex items-center space-x-1.5 sm:space-x-2 rounded-lg border border-muted bg-background/50 p-2 sm:p-3 has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-colors">
+                          <div key={day.id} className="flex items-center justify-center space-x-2 rounded-lg border border-input p-3 transition-all duration-200 ease-in-out has-[:checked]:scale-[1.03] has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-md">
                               <Checkbox 
                                 id={`day-${day.id}`} 
                                 name={`scheduleDay${day.id}`}

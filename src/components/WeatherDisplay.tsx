@@ -61,7 +61,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
-    sentimentColorClass = 'text-green-500';
+    sentimentColorClass = 'text-success';
   } else if (weatherData.weatherSentiment === 'bad') {
     sentimentColorClass = 'text-destructive';
   }
@@ -113,9 +113,9 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-orange-400" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-sky-400" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-cyan-400" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
