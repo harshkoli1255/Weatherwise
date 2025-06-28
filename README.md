@@ -69,6 +69,8 @@ nvm install --lts
 ```
 This single command handles both installing and setting the new version as the one to use.
 
+> **Note on `npm`:** The Node Package Manager (`npm`) is installed automatically with Node.js. When using a version manager like `nvm`, you **do not need** to update `npm` separately using `sudo npm install -g npm@latest`. The `nvm install --lts` command gives you a version of `npm` that is tested and compatible with your Node.js version, and `nvm` manages its path for you without requiring `sudo`. Using `sudo` for global installations is strongly discouraged as it can lead to permission errors.
+
 **Step 3: Install Git**
 
 If you don't already have Git installed, download it from the [**official Git website**](https://git-scm.com/downloads).
@@ -199,5 +201,3 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ### How to Verify
 Check your application's logs in the Firebase Console. If you see the log message `[CRON-AUTH-SUCCESS] Cron job authorized successfully`, it's working!
-```
-
