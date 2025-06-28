@@ -85,45 +85,6 @@ If you don't already have Git installed, download it from the [**official Git we
 
 ---
 
-#### Alternative: Direct Installation (Not Recommended)
-If you prefer not to use a version manager, you can install Node.js and Git directly. However, this can make it more difficult to switch versions later.
-
-**On macOS:**
-The easiest way to install is using [Homebrew](https://brew.sh/):
-```bash
-# Install Homebrew if you don't have it
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install Node.js (LTS) and Git
-brew install node git
-```
-
-**On Windows:**
-The most straightforward method is using the official installers:
-1.  Download and run the **"LTS"** installer for [**Node.js**](https://nodejs.org/en/download/).
-2.  Download and run the installer for [**Git**](https://git-scm.com/download/win).
-*Alternatively, using the [Chocolatey](https://chocolatey.org/) package manager:*
-```powershell
-# Install Chocolatey if you don't have it
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-# Install Node.js LTS and Git
-choco install nodejs-lts git -y
-```
-
-**On Linux (Debian/Ubuntu):**
-Using the standard `apt` repository often provides an outdated version of Node.js. The recommended direct installation method involves a two-step process: first, you add the modern `NodeSource` repository to your system, and then you install Node.js from it.
-```bash
-# 1. Add the NodeSource repository to your system's sources list:
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-
-# 2. Install Node.js and Git from the newly added repository:
-sudo apt-get install -y nodejs git
-```
-*(For other Linux distributions, please check their documentation for installing a recent LTS version of Node.js.)*
-
----
-
 ### 2. Project Setup
 
 **Step 1: Clone the Repository**
