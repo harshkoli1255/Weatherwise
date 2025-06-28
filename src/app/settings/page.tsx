@@ -320,12 +320,6 @@ export default function SettingsPage() {
                     <DefaultLocationSettings />
                     <UnitSettings />
                     <AppearanceSettings />
-                    <SettingsLinkItem
-                        icon={Info}
-                        title="About Weatherwise"
-                        description="Learn more about the app and its features."
-                        href="/about"
-                    />
                 </div>
             </section>
         </CardContent>
