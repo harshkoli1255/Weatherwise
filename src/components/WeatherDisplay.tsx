@@ -165,7 +165,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             </h3>
           </div>
           <div
-            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-sm"
+            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
             dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
           />
         </div>
@@ -179,7 +179,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
               </h3>
             </div>
             <div
-              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/80 [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:rounded-sm"
+              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
             />
           </div>
@@ -210,10 +210,14 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-3 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:scale-105", className)} {...props}>
-      <Icon className={cn("h-6 w-6 mb-2", iconColor || 'text-primary')} />
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="text-base font-semibold text-foreground mt-0.5">{value}</p>
+     <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60", className)} {...props}>
+      <div className="p-2 bg-background rounded-lg">
+        <Icon className={cn("h-5 w-5", iconColor || 'text-primary')} />
+      </div>
+      <div className="flex flex-col text-left">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold text-foreground">{value}</span>
+      </div>
     </div>
   );
 }
