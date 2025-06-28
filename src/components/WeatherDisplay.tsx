@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
+import { useUnits } from '@/hooks/useUnits';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -21,6 +22,7 @@ interface ForecastCardProps {
 }
 
 function ForecastCard({ data, onClick }: ForecastCardProps) {
+  const { convertTemperature } = useUnits();
   const showPrecipitation = data.precipitationChance > 0;
   return (
     <button
@@ -34,7 +36,7 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
       <div className="flex flex-col items-center space-y-1">
         <p className="text-xs font-medium text-muted-foreground">{data.time}</p>
         <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 text-primary drop-shadow-lg" />
-        <p className="text-lg sm:text-xl font-bold text-foreground">{data.temp}°</p>
+        <p className="text-lg sm:text-xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
 
       {/* Group bottom content to push it down, showing precipitation or humidity */}
@@ -58,6 +60,7 @@ function ForecastCard({ data, onClick }: ForecastCardProps) {
 
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
+  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel } = useUnits();
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
@@ -103,8 +106,8 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
           <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
             <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
-              {weatherData.temperature}°
-              <span className="text-4xl sm:text-5xl text-muted-foreground/80">C</span>
+              {convertTemperature(weatherData.temperature)}°
+              <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
             </div>
           </div>
           <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
@@ -113,9 +116,9 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${weatherData.feelsLike}°C`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
           <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${weatherData.windSpeed} km/h`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (

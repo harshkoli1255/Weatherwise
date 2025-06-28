@@ -12,6 +12,7 @@ import {
 import { WeatherIcon } from './WeatherIcon';
 import { Droplets, Wind, CloudRain, Thermometer } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/hooks/useUnits';
 
 interface HourlyForecastDialogProps {
   data: HourlyForecastData;
@@ -43,6 +44,8 @@ function DetailItem({ icon: Icon, label, value, className }: DetailItemProps) {
 
 
 export function HourlyForecastDialog({ data, open, onOpenChange }: HourlyForecastDialogProps) {
+  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel } = useUnits();
+
   if (!data) return null;
 
   return (
@@ -61,7 +64,7 @@ export function HourlyForecastDialog({ data, open, onOpenChange }: HourlyForecas
             {/* Main Temp and Icon */}
             <div className="flex items-center justify-center gap-3">
                  <WeatherIcon iconCode={data.iconCode} className="h-24 w-24 text-primary drop-shadow-lg" />
-                 <p className="text-6xl font-bold text-foreground drop-shadow-lg">{data.temp}°<span className="text-4xl text-foreground/70 align-super">C</span></p>
+                 <p className="text-6xl font-bold text-foreground drop-shadow-lg">{convertTemperature(data.temp)}°<span className="text-4xl text-foreground/70 align-super">{getTemperatureUnitSymbol().replace('°','')}</span></p>
             </div>
             
             {/* Separator */}
@@ -69,9 +72,9 @@ export function HourlyForecastDialog({ data, open, onOpenChange }: HourlyForecas
 
             {/* Details Grid */}
             <div className="grid grid-cols-2 gap-3 w-full">
-                <DetailItem icon={Thermometer} label="Feels Like" value={`${data.feelsLike}°C`} />
+                <DetailItem icon={Thermometer} label="Feels Like" value={`${convertTemperature(data.feelsLike)}${getTemperatureUnitSymbol()}`} />
                 <DetailItem icon={Droplets} label="Humidity" value={`${data.humidity}%`} />
-                <DetailItem icon={Wind} label="Wind Speed" value={`${data.windSpeed} km/h`} />
+                <DetailItem icon={Wind} label="Wind Speed" value={`${convertWindSpeed(data.windSpeed)} ${getWindSpeedUnitLabel()}`} />
                 <DetailItem icon={CloudRain} label="Chance of Rain" value={`${data.precipitationChance}%`} />
             </div>
         </div>

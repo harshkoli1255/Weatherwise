@@ -34,6 +34,7 @@ import { WeatherIcon } from './WeatherIcon';
 import { Skeleton } from './ui/skeleton';
 import { setAlertCityAction } from '@/app/alerts/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useUnits } from '@/hooks/useUnits';
 
 const FavoriteItemSkeleton = () => (
   <div className="flex items-center justify-between p-2 m-1">
@@ -53,6 +54,7 @@ const FavoriteItemSkeleton = () => (
 
 export function FavoriteCitiesDropdown() {
   const { favorites, removeMultipleFavorites } = useFavoriteCities();
+  const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
   const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
@@ -266,7 +268,7 @@ export function FavoriteCitiesDropdown() {
                                     </TooltipProvider>
                                       {weather && 'temperature' in weather && (
                                           <>
-                                              <span className="font-medium text-foreground">{weather.temperature}°C</span>
+                                              <span className="font-medium text-foreground">{convertTemperature(weather.temperature)}{getTemperatureUnitSymbol()}</span>
                                               <WeatherIcon iconCode={weather.iconCode} className="h-5 w-5 text-muted-foreground" />
                                           </>
                                       )}
