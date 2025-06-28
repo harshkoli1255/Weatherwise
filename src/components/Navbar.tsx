@@ -1,3 +1,4 @@
+
 'use client'; 
 
 import Link from 'next/link';
@@ -22,6 +23,7 @@ export function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/alerts', label: 'Alerts' },
     { href: '/settings', label: 'Settings' },
+    { href: '/about', label: 'About' },
   ];
 
   return (
