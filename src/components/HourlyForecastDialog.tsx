@@ -29,8 +29,8 @@ interface DetailItemProps {
 // A more visually rich component for displaying individual forecast details.
 function DetailItem({ icon: Icon, label, value, className }: DetailItemProps) {
   return (
-    <div className={cn("flex items-center space-x-3 rounded-md bg-primary/5 p-3 shadow-inner border border-primary/10", className)}>
-      <div className="p-2 bg-primary/10 rounded-md">
+    <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/60 p-3 shadow-inner border border-border/60", className)}>
+      <div className="p-2 bg-background rounded-lg">
         <Icon className="h-6 w-6 text-primary flex-shrink-0" />
       </div>
       <div className="flex flex-col">
