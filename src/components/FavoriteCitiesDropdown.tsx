@@ -146,7 +146,7 @@ export function FavoriteCitiesDropdown() {
         <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <Star className={cn("h-5 w-5 transition-colors", favorites.length > 0 && "text-primary fill-primary")} />
+                <Star className={cn("h-5 w-5 transition-colors", isMounted && favorites.length > 0 && "text-primary fill-primary")} />
                 <span className="hidden md:inline">Favorites</span>
               </Button>
             </DropdownMenuTrigger>

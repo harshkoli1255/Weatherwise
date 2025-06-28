@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUnits, type TemperatureUnit, type WindSpeedUnit } from '@/hooks/useUnits';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CitySuggestion } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AlertsCitySearch } from '../alerts/AlertsCitySearch';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -151,8 +152,13 @@ function UnitSettings() {
 function DefaultLocationSettings() {
   const { defaultLocation, setDefaultLocation, clearDefaultLocation } = useDefaultLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  // We need a separate state for the selected object because the search query can be manually edited.
   const [selectedCityObject, setSelectedCityObject] = useState<CitySuggestion | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
 
   const handleSetDefault = () => {
     if (selectedCityObject) {
@@ -188,7 +194,12 @@ function DefaultLocationSettings() {
         </div>
       </div>
       <div className="space-y-4 pt-3 border-t border-border/50">
-        {defaultLocation ? (
+        {!isMounted ? (
+           <div className="space-y-3 p-1">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        ) : defaultLocation ? (
           <div className="flex items-center justify-between p-3 rounded-md bg-muted/70">
             <div className="flex flex-col">
               <span className="font-semibold">{defaultLocation.name}</span>
