@@ -15,12 +15,13 @@ import { WeatherIcon } from '@/components/WeatherIcon';
 interface AlertsCitySearchProps {
   value: string;
   onValueChange: (newValue: string) => void;
+  onSelectSuggestion?: (suggestion: CitySuggestion) => void;
   name: string;
   id: string;
   required?: boolean;
 }
 
-export function AlertsCitySearch({ value, onValueChange, name, id, required }: AlertsCitySearchProps) {
+export function AlertsCitySearch({ value, onValueChange, onSelectSuggestion, name, id, required }: AlertsCitySearchProps) {
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -104,6 +105,9 @@ export function AlertsCitySearch({ value, onValueChange, name, id, required }: A
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
     onValueChange(suggestion.name); // Use the clean name
+    if (onSelectSuggestion) {
+      onSelectSuggestion(suggestion);
+    }
     setIsSuggestionsOpen(false);
     setSuggestions([]);
     inputRef.current?.blur();

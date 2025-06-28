@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition, useCallback, Suspense } from 'react';
@@ -174,7 +175,20 @@ function WeatherPageContent() {
   // This effect runs only once on mount to determine initial state.
   useEffect(() => {
     const initializeWeather = () => {
-      // 1. Try to restore the last session first.
+      // 1. Prioritize the user-set default location.
+      try {
+        const storedDefault = JSON.parse(localStorage.getItem('weatherwise-default-location') || 'null');
+        if (storedDefault && storedDefault.name && typeof storedDefault.lat === 'number' && typeof storedDefault.lon === 'number') {
+          console.log(`[Perf] Initializing with user's default location: ${storedDefault.name}`);
+          setInitialSearchTerm(storedDefault.name);
+          handleSearch(storedDefault.name, storedDefault.lat, storedDefault.lon);
+          return;
+        }
+      } catch (e) {
+        console.warn("Could not read default location from localStorage.");
+      }
+
+      // 2. Try to restore the last session if no default is set.
       const savedResult = localStorage.getItem(LAST_RESULT_KEY);
       if (savedResult) {
         try {
@@ -193,7 +207,7 @@ function WeatherPageContent() {
         }
       }
       
-      // 2. If no last session, automatically fetch location for a better first-time experience.
+      // 3. If no last session, automatically fetch location for a better first-time experience.
       handleLocate(true);
     };
 

@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -9,6 +10,7 @@ import { Inter, Poppins } from 'next/font/google';
 import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
 import { FavoritesProvider } from '@/hooks/useFavorites';
 import { UnitsProvider } from '@/hooks/useUnits';
+import { DefaultLocationProvider } from '@/hooks/useDefaultLocation';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -54,18 +56,20 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <UnitsProvider>
-              <FavoritesProvider>
-                <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
-                  <Navbar />
-                  <main className="flex-grow">
-                    <PageTransitionWrapper>{children}</PageTransitionWrapper>
-                  </main>
-                  <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
-                    © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
-                  </footer>
-                </div>
-                <Toaster />
-              </FavoritesProvider>
+              <DefaultLocationProvider>
+                <FavoritesProvider>
+                  <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
+                    <Navbar />
+                    <main className="flex-grow">
+                      <PageTransitionWrapper>{children}</PageTransitionWrapper>
+                    </main>
+                    <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
+                      © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
+                    </footer>
+                  </div>
+                  <Toaster />
+                </FavoritesProvider>
+              </DefaultLocationProvider>
             </UnitsProvider>
           </ThemeProvider>
         </body>

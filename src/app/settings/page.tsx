@@ -1,13 +1,19 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer } from 'lucide-react';
+import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUnits, type TemperatureUnit, type WindSpeedUnit } from '@/hooks/useUnits';
+import { useDefaultLocation } from '@/hooks/useDefaultLocation';
+import { useState } from 'react';
+import type { CitySuggestion } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { AlertsCitySearch } from '../alerts/AlertsCitySearch';
 
 interface SettingsItemProps {
   icon: React.ElementType;
@@ -142,6 +148,81 @@ function UnitSettings() {
   );
 }
 
+function DefaultLocationSettings() {
+  const { defaultLocation, setDefaultLocation, clearDefaultLocation } = useDefaultLocation();
+  const [searchQuery, setSearchQuery] = useState('');
+  // We need a separate state for the selected object because the search query can be manually edited.
+  const [selectedCityObject, setSelectedCityObject] = useState<CitySuggestion | null>(null);
+
+  const handleSetDefault = () => {
+    if (selectedCityObject) {
+      setDefaultLocation(selectedCityObject);
+      setSearchQuery('');
+      setSelectedCityObject(null);
+    }
+  };
+
+  const handleSuggestionSelect = (suggestion: CitySuggestion) => {
+    // When a suggestion is picked, we set both the text query and the object
+    setSearchQuery(suggestion.name);
+    setSelectedCityObject(suggestion);
+  };
+  
+  const handleQueryChange = (query: string) => {
+    setSearchQuery(query);
+    // If the user types, the selected object is no longer valid for submission
+    if (selectedCityObject && query !== selectedCityObject.name) {
+      setSelectedCityObject(null);
+    }
+  }
+
+  return (
+    <div className="p-3 rounded-lg bg-background/50 shadow-lg border border-border/30">
+      <div className="flex items-center gap-4 mb-4">
+        <div className="p-3 bg-primary/10 rounded-lg">
+          <MapPin className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-foreground text-sm">Default Startup Location</h3>
+          <p className="text-xs text-muted-foreground">Set a city to show automatically when you open the app.</p>
+        </div>
+      </div>
+      <div className="space-y-4 pt-3 border-t border-border/50">
+        {defaultLocation ? (
+          <div className="flex items-center justify-between p-3 rounded-md bg-muted/70">
+            <div className="flex flex-col">
+              <span className="font-semibold">{defaultLocation.name}</span>
+              <span className="text-xs text-muted-foreground">{defaultLocation.country}</span>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 group" onClick={clearDefaultLocation}>
+              <XCircle className="h-5 w-5 text-muted-foreground group-hover:text-destructive transition-colors" />
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="default-city-search">Search for a city</Label>
+            <AlertsCitySearch
+              id="default-city-search"
+              name="default-city-search"
+              value={searchQuery}
+              onValueChange={handleQueryChange}
+              onSelectSuggestion={handleSuggestionSelect}
+            />
+            <Button
+              className="mt-3 w-full"
+              onClick={handleSetDefault}
+              disabled={!selectedCityObject}
+            >
+              Set "{selectedCityObject?.name || '...'}" as Default
+            </Button>
+             <p className="text-xs text-muted-foreground mt-1.5 text-center">Select a city from the dropdown to enable the button.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 export default function SettingsPage() {
   return (
@@ -178,6 +259,7 @@ export default function SettingsPage() {
             <section>
                 <h3 className="text-lg font-medium text-foreground mb-4">Application</h3>
                 <div className="space-y-3">
+                    <DefaultLocationSettings />
                     <UnitSettings />
                     <AppearanceSettings />
                     <SettingsLinkItem
