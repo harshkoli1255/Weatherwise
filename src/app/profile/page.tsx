@@ -16,11 +16,17 @@ export default function ProfilePage() {
             baseTheme: resolvedTheme === 'dark' ? dark : undefined,
             elements: {
               rootBox: 'w-full',
-              card: 'border-primary/20 shadow-2xl rounded-2xl',
-              headerTitle: 'font-headline',
-              profileSectionTitleText: 'font-headline',
+              card: 'border-border shadow-2xl rounded-2xl bg-card text-card-foreground',
+              headerTitle: 'font-headline text-card-foreground',
+              profileSectionTitleText: 'font-headline text-card-foreground',
               formButtonPrimary:
                 'bg-primary text-primary-foreground hover:bg-primary/90',
+              formFieldInput:
+                'bg-background border-border text-foreground',
+              formFieldLabel:
+                'text-muted-foreground',
+              selectButton: 'bg-background border-border text-foreground',
+              selectOptionsContainer: 'bg-background border-border',
             },
           }}
         />

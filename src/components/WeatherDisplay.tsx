@@ -1,4 +1,3 @@
-
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
