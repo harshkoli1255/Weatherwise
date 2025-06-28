@@ -67,11 +67,9 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   }
 
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-lg transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="pt-6 pb-4 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2 px-4">
-          {/* This empty div acts as a spacer to help center the title */}
-          <div className="w-9" />
           <CardTitle className="min-w-0 flex-1 text-center text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
