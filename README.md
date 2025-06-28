@@ -47,7 +47,30 @@
 Follow these steps to get the project running on your local machine.
 
 ### 1. Prerequisites
-Before you begin, ensure you have the latest stable versions of **Node.js** and **Git** installed on your system.
+Before you begin, you need **Git** and a recent version of **Node.js** (LTS version is recommended) and **npm** installed.
+
+#### Recommended Method (All Platforms)
+The most flexible way to install Node.js is with a version manager. This allows you to easily switch between Node.js versions for different projects.
+
+1.  **Install a Node Version Manager:**
+    *   **On macOS or Linux:** Follow the instructions to install [**nvm** (Node Version Manager)](https://github.com/nvm-sh/nvm#installing-and-updating).
+    *   **On Windows:** Follow the instructions to install [**nvm-for-windows**](https://github.com/coreybutler/nvm-for-windows#installation--upgrades).
+
+2.  **Install Node.js LTS and Git:**
+    After installing nvm, open a new terminal and run:
+    ```bash
+    # This installs the latest Long-Term Support version of Node.js
+    nvm install --lts
+    
+    # This sets the newly installed LTS version as the one to use
+    nvm use --lts
+    
+    # Git is also required. You can get it from the official website:
+    # https://git-scm.com/downloads
+    ```
+
+#### Alternative OS-Specific Instructions
+If you prefer not to use a version manager, you can use these system-specific methods.
 
 **On macOS:**
 The recommended way to install is using [Homebrew](https://brew.sh/):
@@ -55,15 +78,15 @@ The recommended way to install is using [Homebrew](https://brew.sh/):
 # Install Homebrew if you don't have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Node.js and Git
+# Install Node.js (LTS) and Git
 brew install node git
 ```
 
 **On Windows:**
-The recommended way is using the official installers:
-1.  Download and run the "LTS" (Long Term Support) installer for [**Node.js**](https://nodejs.org/en/download/).
+The recommended way is using the official installers or a package manager like [Chocolatey](https://chocolatey.org/).
+1.  Download and run the **"LTS"** installer for [**Node.js**](https://nodejs.org/en/download/).
 2.  Download and run the installer for [**Git**](https://git-scm.com/download/win).
-*Alternatively, you can use a package manager like [Chocolatey](https://chocolatey.org/):*
+*Alternatively, using Chocolatey:*
 ```powershell
 # Install Chocolatey if you don't have it
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -73,12 +96,15 @@ choco install nodejs-lts git -y
 ```
 
 **On Linux (Debian/Ubuntu):**
-Use the `apt` package manager:
+Using the standard `apt` repository often installs an outdated version. The recommended method is to use the repository provided by [NodeSource](https://github.com/nodesource/distributions).
 ```bash
-sudo apt update
-sudo apt install nodejs npm git -y
+# 1. Download and run the NodeSource setup script for the latest LTS version:
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+
+# 2. Install Node.js and Git:
+sudo apt-get install -y nodejs git
 ```
-*(For other Linux distributions, please use your system's respective package manager, like `yum` or `pacman`.)*
+*(For other Linux distributions, please use your system's respective package manager, ensuring you install a recent LTS version of Node.js.)*
 
 ### 2. Project Setup
 
