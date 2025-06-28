@@ -55,8 +55,15 @@ The most reliable way to install and manage Node.js versions is with a version m
 **Step 1: Install `nvm` (Node Version Manager)**
 
 First, you need to install `nvm`. This tool manages your Node.js installations.
-*   **On macOS or Linux:** Follow the official installation instructions on the [**nvm GitHub page**](https://github.com/nvm-sh/nvm#installing-and-updating). This usually involves running a single script in your terminal.
-*   **On Windows:** Use the installer for [**nvm-for-windows**](https://github.com/coreybutler/nvm-for-windows#installation--upgrades).
+*   **On macOS or Linux:** Run the official install script by opening your terminal and pasting the following command:
+    ```bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    ```
+    *This script automatically adds the necessary configuration to your shell profile (`~/.bash_profile`, `~/.zshrc`, etc.). If you don't have `curl`, you can use `wget` instead: `wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`*
+*   **On Windows:** The `nvm` project does not officially support Windows, but the community has created a great alternative.
+    1.  Go to the [**nvm-for-windows releases page**](https://github.com/coreybutler/nvm-for-windows/releases).
+    2.  Download the `nvm-setup.zip` or `nvm-setup.exe` file from the latest release.
+    3.  Run the installer.
 
 > **⚠️ Important:** After installing `nvm`, you **must close and reopen your terminal window** for the `nvm` command to become available.
 
