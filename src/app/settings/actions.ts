@@ -60,3 +60,31 @@ export async function saveDefaultLocation(location: CitySuggestion | null) {
     return { success: false, error: `Failed to save default location: ${message}` };
   }
 }
+
+export async function saveFavorites(favorites: CitySuggestion[]) {
+  const { userId } = auth();
+  if (!userId) {
+    return { success: false, error: 'User not authenticated.' };
+  }
+
+  try {
+    const user = await clerkClient().users.getUser(userId);
+    const existingPublicMetadata = user.publicMetadata || {};
+
+    await clerkClient().users.updateUser(userId, {
+      publicMetadata: {
+        ...existingPublicMetadata,
+        // Clerk metadata can't store undefined, so ensure it's an array.
+        favoriteCities: favorites || [],
+      },
+    });
+
+    // Revalidate paths where favorites might be displayed to ensure consistency
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save favorites:', error);
+    const message = error instanceof Error ? error.message : "An unknown server error occurred.";
+    return { success: false, error: `Failed to save favorites: ${message}` };
+  }
+}
