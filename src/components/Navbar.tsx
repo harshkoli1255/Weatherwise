@@ -1,10 +1,9 @@
-
-'use client'; 
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu } from 'lucide-react';
+import { CloudSun, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
@@ -13,16 +12,22 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { FavoriteCitiesDropdown } from './FavoriteCitiesDropdown';
 
 export function Navbar() {
   const pathname = usePathname();
 
+  // 'Settings' is now separate from the main nav items for a cleaner layout
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/alerts', label: 'Alerts' },
-    { href: '/settings', label: 'Settings' },
     { href: '/about', label: 'About' },
   ];
 
@@ -60,17 +65,36 @@ export function Navbar() {
         {/* Right Side: User Actions */}
         <div className="flex items-center">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-4">
-              <SignedIn>
-                <FavoriteCitiesDropdown />
-                <UserButton />
-              </SignedIn>
-              <SignedOut>
-                  <SignInButton mode="modal">
-                      <Button>Sign In</Button>
-                  </SignInButton>
-              </SignedOut>
-              <ThemeToggle />
+            <div className="hidden md:flex items-center gap-2">
+              <TooltipProvider>
+                <SignedIn>
+                  <FavoriteCitiesDropdown />
+                   <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          className={cn(pathname === '/settings' && 'bg-accent text-accent-foreground')}
+                        >
+                          <Link href="/settings" aria-label="Settings">
+                            <Settings className="h-5 w-5" />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Settings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  <UserButton />
+                </SignedIn>
+                <SignedOut>
+                    <SignInButton mode="modal">
+                        <Button>Sign In</Button>
+                    </SignInButton>
+                </SignedOut>
+                <ThemeToggle />
+              </TooltipProvider>
             </div>
 
             {/* Mobile navigation menu */}
@@ -107,6 +131,17 @@ export function Navbar() {
                             </SheetClose>
                             ))}
                             <SignedIn>
+                                <SheetClose asChild>
+                                    <Link
+                                        href="/settings"
+                                        className={cn(
+                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                            pathname === '/settings' && "bg-accent text-primary"
+                                        )}
+                                    >
+                                        Settings
+                                    </Link>
+                                </SheetClose>
                                 <SheetClose asChild>
                                     <Link
                                         href="/profile"
