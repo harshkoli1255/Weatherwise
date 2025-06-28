@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
@@ -51,7 +50,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       startTransition(async () => {
         const result = await saveFavorites(newFavorites);
         if (result.success) {
-          if (successMessage) toast({ description: successMessage });
+          if (successMessage) toast({ description: successMessage, variant: 'success' });
         } else {
           toast({ variant: 'destructive', title: 'Sync Error', description: result.error });
           // If sync fails, revert to the state from user.publicMetadata
@@ -63,7 +62,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // For guests, just save to localStorage.
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(newFavorites));
-        if (successMessage) toast({ description: successMessage });
+        if (successMessage) toast({ description: successMessage, variant: 'success' });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Storage Error', description: 'Could not save your favorites.' });
       }

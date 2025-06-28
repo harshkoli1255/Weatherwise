@@ -55,6 +55,7 @@ export function DefaultLocationProvider({ children }: { children: ReactNode }) {
           toast({
             title: location ? "Default Location Set" : "Default Location Cleared",
             description: successMessage,
+            variant: 'success',
           });
         } else {
           toast({
@@ -76,6 +77,7 @@ export function DefaultLocationProvider({ children }: { children: ReactNode }) {
         toast({
           title: location ? "Default Location Set" : "Default Location Cleared",
           description: successMessage,
+          variant: 'success',
         });
       } catch (error) {
         console.error("Error saving default location to localStorage", error);

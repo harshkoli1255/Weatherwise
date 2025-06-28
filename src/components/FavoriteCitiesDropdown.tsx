@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -120,6 +119,7 @@ export function FavoriteCitiesDropdown() {
             toast({
                 title: 'Alert City Set!',
                 description: result.message,
+                variant: 'success'
             });
         } else {
             toast({

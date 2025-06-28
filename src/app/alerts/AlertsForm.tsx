@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -75,9 +74,9 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   useEffect(() => {
     if (saveState.message) {
       toast({
-        title: saveState.error ? 'Error' : 'Success',
+        title: saveState.error ? 'Error Saving' : 'Preferences Saved',
         description: saveState.message,
-        variant: saveState.error ? 'destructive' : 'default',
+        variant: saveState.error ? 'destructive' : 'success',
       });
     }
   }, [saveState, toast]);
@@ -95,6 +94,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
                  toast({
                     title: 'Timezone Auto-Detected',
                     description: `Schedule timezone has been set to ${detected}.`,
+                    variant: 'success'
                 });
             }
         } catch (e) {
@@ -113,7 +113,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       toast({
         title: result.error ? 'Test Failed' : 'Test Complete',
         description: result.message,
-        variant: result.error ? 'destructive' : 'default',
+        variant: result.error ? 'destructive' : 'success',
         duration: result.error ? 6000 : 9000,
       });
     });

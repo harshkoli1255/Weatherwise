@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -119,6 +118,7 @@ export function TimezoneSearch({ value, onValueChange, name, id, required }: Tim
       toast({
         title: 'Timezone Detected',
         description: `Set to ${detectedTimezone}.`,
+        variant: 'success',
       });
       setIsSuggestionsOpen(false);
       inputRef.current?.blur();
