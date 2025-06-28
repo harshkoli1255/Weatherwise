@@ -47,33 +47,39 @@
 Follow these steps to get the project running on your local machine.
 
 ### 1. Prerequisites
-Before you begin, you need **Git** and a recent version of **Node.js** (LTS version is recommended) and **npm** installed.
+Before you begin, you must have **Git** and **Node.js** (the latest Long-Term Support version is recommended) installed on your system.
 
-#### Recommended Method (All Platforms)
-The most flexible way to install Node.js is with a version manager. This allows you to easily switch between Node.js versions for different projects.
+#### Recommended: Install via a Version Manager
+The most reliable way to install and manage Node.js versions is with a version manager. This is the recommended approach for all operating systems because it makes it easy to switch between different Node.js versions for different projects.
 
-1.  **Install a Node Version Manager:**
-    *   **On macOS or Linux:** Follow the instructions to install [**nvm** (Node Version Manager)](https://github.com/nvm-sh/nvm#installing-and-updating).
-    *   **On Windows:** Follow the instructions to install [**nvm-for-windows**](https://github.com/coreybutler/nvm-for-windows#installation--upgrades).
+**Step 1: Install `nvm` (Node Version Manager)**
 
-2.  **Install Node.js LTS and Git:**
-    After installing nvm, open a new terminal and run:
-    ```bash
-    # This installs the latest Long-Term Support version of Node.js
-    nvm install --lts
-    
-    # This sets the newly installed LTS version as the one to use
-    nvm use --lts
-    
-    # Git is also required. You can get it from the official website:
-    # https://git-scm.com/downloads
-    ```
+First, you need to install `nvm`. This tool manages your Node.js installations.
+*   **On macOS or Linux:** Follow the official installation instructions on the [**nvm GitHub page**](https://github.com/nvm-sh/nvm#installing-and-updating). This usually involves running a single script in your terminal.
+*   **On Windows:** Use the installer for [**nvm-for-windows**](https://github.com/coreybutler/nvm-for-windows#installation--upgrades).
 
-#### Alternative OS-Specific Instructions
-If you prefer not to use a version manager, you can use these system-specific methods.
+> **⚠️ Important:** After installing `nvm`, you **must close and reopen your terminal window** for the `nvm` command to become available.
+
+**Step 2: Install Node.js LTS**
+
+Once `nvm` is installed and you've opened a new terminal, you can install the latest Long-Term Support (LTS) version of Node.js with this command:
+```bash
+# Installs and uses the latest LTS version of Node.js
+nvm install --lts
+```
+This single command handles both installing and setting the new version as the one to use.
+
+**Step 3: Install Git**
+
+If you don't already have Git installed, download it from the [**official Git website**](https://git-scm.com/downloads).
+
+---
+
+#### Alternative: Direct Installation (Not Recommended)
+If you prefer not to use a version manager, you can install Node.js and Git directly. However, this can make it more difficult to switch versions later.
 
 **On macOS:**
-The recommended way to install is using [Homebrew](https://brew.sh/):
+The easiest way to install is using [Homebrew](https://brew.sh/):
 ```bash
 # Install Homebrew if you don't have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -83,10 +89,10 @@ brew install node git
 ```
 
 **On Windows:**
-The recommended way is using the official installers or a package manager like [Chocolatey](https://chocolatey.org/).
+The most straightforward method is using the official installers:
 1.  Download and run the **"LTS"** installer for [**Node.js**](https://nodejs.org/en/download/).
 2.  Download and run the installer for [**Git**](https://git-scm.com/download/win).
-*Alternatively, using Chocolatey:*
+*Alternatively, using the [Chocolatey](https://chocolatey.org/) package manager:*
 ```powershell
 # Install Chocolatey if you don't have it
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -96,7 +102,7 @@ choco install nodejs-lts git -y
 ```
 
 **On Linux (Debian/Ubuntu):**
-Using the standard `apt` repository often installs an outdated version. The recommended method is to use the repository provided by [NodeSource](https://github.com/nodesource/distributions).
+Using the standard `apt` repository often provides an outdated version. The recommended method is to use the repository provided by [NodeSource](https://github.com/nodesource/distributions).
 ```bash
 # 1. Download and run the NodeSource setup script for the latest LTS version:
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
@@ -104,7 +110,9 @@ curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 # 2. Install Node.js and Git:
 sudo apt-get install -y nodejs git
 ```
-*(For other Linux distributions, please use your system's respective package manager, ensuring you install a recent LTS version of Node.js.)*
+*(For other Linux distributions, please check their documentation for installing a recent LTS version of Node.js.)*
+
+---
 
 ### 2. Project Setup
 
@@ -191,3 +199,5 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ### How to Verify
 Check your application's logs in the Firebase Console. If you see the log message `[CRON-AUTH-SUCCESS] Cron job authorized successfully`, it's working!
+```
+
