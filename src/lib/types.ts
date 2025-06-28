@@ -1,16 +1,21 @@
 
 import { z } from 'zod';
 
-export interface HourlyForecastData {
-  timestamp: number; // UNIX timestamp
-  temp: number;
-  feelsLike: number;
-  iconCode: string;
-  condition: string;
-  humidity: number;
-  windSpeed: number; // km/h
-  precipitationChance: number; // percentage
-}
+// New Zod schema for hourly forecast data validation
+export const HourlyForecastDataSchema = z.object({
+  timestamp: z.number().describe("UNIX timestamp for the forecast hour."),
+  temp: z.number().describe("The forecasted temperature in Celsius."),
+  feelsLike: z.number().describe("The forecasted 'feels like' temperature in Celsius."),
+  iconCode: z.string().describe("The weather icon code from OpenWeatherMap."),
+  condition: z.string().describe("The general weather condition, e.g., 'Rain', 'Clouds'."),
+  humidity: z.number().describe("The forecasted humidity percentage."),
+  windSpeed: z.number().describe("The forecasted wind speed in km/h."),
+  precipitationChance: z.number().describe("The probability of precipitation as a percentage (0-100)."),
+});
+
+// The interface now infers its type from the Zod schema for consistency.
+export interface HourlyForecastData extends z.infer<typeof HourlyForecastDataSchema> {}
+
 
 export interface WeatherData {
   city: string;
@@ -227,6 +232,7 @@ export const AlertDecisionInputSchema = z.object({
   windSpeed: z.number(),
   condition: z.string(),
   description: z.string(),
+  hourlyForecast: z.array(HourlyForecastDataSchema).optional().describe("An array of hourly forecast data for the next few hours."),
 });
 export type AlertDecisionInput = z.infer<typeof AlertDecisionInputSchema>;
 
