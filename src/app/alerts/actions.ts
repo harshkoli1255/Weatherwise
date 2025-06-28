@@ -1,3 +1,4 @@
+
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -188,8 +189,8 @@ export async function getAlertPreferencesAction(): Promise<{ preferences: AlertP
       schedule: {
         enabled: false,
         days: [0, 1, 2, 3, 4, 5, 6],
-        startHour: 8,
-        endHour: 22,
+        startHour: 0,
+        endHour: 23,
       },
       lastAlertSentTimestamp: 0,
     };
@@ -251,8 +252,8 @@ export async function setAlertCityAction(
       schedule: existingPrefs.schedule ?? {
         enabled: false,
         days: [0, 1, 2, 3, 4, 5, 6],
-        startHour: 8,
-        endHour: 22,
+        startHour: 0,
+        endHour: 23,
       },
       lastAlertSentTimestamp: existingPrefs.lastAlertSentTimestamp ?? 0,
     };
