@@ -112,12 +112,12 @@ choco install nodejs-lts git -y
 ```
 
 **On Linux (Debian/Ubuntu):**
-Using the standard `apt` repository often provides an outdated version. The recommended method is to use the repository provided by [NodeSource](https://github.com/nodesource/distributions).
+Using the standard `apt` repository often provides an outdated version of Node.js. The recommended direct installation method involves a two-step process: first, you add the modern `NodeSource` repository to your system, and then you install Node.js from it.
 ```bash
-# 1. Download and run the NodeSource setup script for the latest LTS version:
+# 1. Add the NodeSource repository to your system's sources list:
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 
-# 2. Install Node.js and Git:
+# 2. Install Node.js and Git from the newly added repository:
 sudo apt-get install -y nodejs git
 ```
 *(For other Linux distributions, please check their documentation for installing a recent LTS version of Node.js.)*
