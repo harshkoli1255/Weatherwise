@@ -3,13 +3,14 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
+import { useFavoriteCities } from '@/hooks/useFavorites';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -65,6 +66,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel } = useUnits();
+  const { isSyncing } = useFavoriteCities();
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
@@ -91,15 +93,20 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                     onClick={onSaveCityToggle}
                     aria-label={isCitySaved ? 'Unpin this city' : 'Pin this city'}
                     className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
+                    disabled={isSyncing}
                   >
-                    <Pin className={cn(
-                        "h-6 w-6 transition-all duration-300",
-                        isCitySaved ? "fill-primary text-primary" : "fill-none"
-                    )} />
+                    {isSyncing ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    ) : (
+                        <Pin className={cn(
+                            "h-6 w-6 transition-all duration-300",
+                            isCitySaved ? "fill-primary text-primary" : "fill-none"
+                        )} />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
+                  <p>{isSyncing ? "Syncing..." : isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

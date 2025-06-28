@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo, useCallback, useTransition, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -54,13 +54,13 @@ const FavoriteItemSkeleton = () => (
 
 
 export function FavoriteCitiesDropdown() {
-  const { favorites, removeMultipleFavorites } = useFavoriteCities();
+  const { favorites, removeMultipleFavorites, isSyncing } = useFavoriteCities();
   const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
   const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [isPendingAlert, startAlertTransition] = React.useTransition();
   const [pendingCityKey, setPendingCityKey] = useState<string | null>(null);
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
@@ -71,14 +71,14 @@ export function FavoriteCitiesDropdown() {
 
   const loadFavoritesWeather = useCallback(async () => {
     if (favorites.length === 0) return;
-    setIsLoading(true);
+    setIsLoadingWeather(true);
     const data = await fetchWeatherForFavoritesAction(favorites);
     setWeatherData(data);
-    setIsLoading(false);
+    setIsLoadingWeather(false);
   }, [favorites]);
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
+    if (isOpen && favorites.length > 0) {
       loadFavoritesWeather();
     } else if (!isAlertOpen) {
       setSelectedCities([]);
@@ -114,7 +114,7 @@ export function FavoriteCitiesDropdown() {
     const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
     setPendingCityKey(cityKey);
 
-    startTransition(async () => {
+    startAlertTransition(async () => {
         const result = await setAlertCityAction(city);
         if (result.success) {
             toast({
@@ -136,7 +136,6 @@ export function FavoriteCitiesDropdown() {
   const isAllSelected = useMemo(() => favorites.length > 0 && selectedCities.length === favorites.length, [favorites, selectedCities]);
   
   const handleCityClick = (city: CitySuggestion) => {
-    // Dispatch a custom event that the main page can listen for.
     const event = new CustomEvent('weather-search', { detail: city });
     window.dispatchEvent(event);
   };
@@ -158,16 +157,16 @@ export function FavoriteCitiesDropdown() {
                     <Button variant="destructive" size="sm" className="h-7 rounded-md" onClick={(e) => {
                         e.stopPropagation();
                         setIsAlertOpen(true);
-                    }}>
-                        <Trash2 className="h-4 w-4 mr-1.5" />
+                    }} disabled={isSyncing}>
+                        {isSyncing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1.5" />}
                         Delete ({selectedCities.length})
                     </Button>
                     )}
                      <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={loadFavoritesWeather} disabled={isLoading}>
-                                    <RefreshCw className={cn("h-4 w-4 text-muted-foreground", isLoading && "animate-spin")} />
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={loadFavoritesWeather} disabled={isLoadingWeather || isSyncing}>
+                                    <RefreshCw className={cn("h-4 w-4 text-muted-foreground", isLoadingWeather && "animate-spin")} />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -199,6 +198,7 @@ export function FavoriteCitiesDropdown() {
                                 checked={isAllSelected}
                                 onCheckedChange={handleSelectAll}
                                 aria-label="Select all cities"
+                                disabled={isSyncing}
                             />
                             <label
                                 htmlFor="select-all"
@@ -212,7 +212,7 @@ export function FavoriteCitiesDropdown() {
 
                     <ScrollArea className="h-[250px]">
                         <DropdownMenuGroup className="p-1">
-                        {isLoading ? (
+                        {isLoadingWeather ? (
                             Array.from({ length: Math.min(favorites.length, 3) || 3 }).map((_, i) => <FavoriteItemSkeleton key={i} />)
                         ) : (
                             favorites.map((city) => {
@@ -239,6 +239,7 @@ export function FavoriteCitiesDropdown() {
                                             onCheckedChange={(checked) => handleSelectionChange(city, !!checked)}
                                             onClick={(e) => e.stopPropagation()}
                                             aria-label={`Select ${city.name}`}
+                                            disabled={isSyncing}
                                         />
                                         <div className="flex flex-col truncate">
                                             <span className="font-medium text-foreground truncate">{city.name}</span>
@@ -257,7 +258,7 @@ export function FavoriteCitiesDropdown() {
                                                         e.stopPropagation();
                                                         handleSetAlertCity(city);
                                                     }}
-                                                    disabled={isPending}
+                                                    disabled={isPendingAlert || isSyncing}
                                                     aria-label="Set as alert city"
                                                 >
                                                     {isThisCityPending ? (
