@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -29,7 +28,7 @@ interface DetailItemProps {
 
 function DetailItem({ icon: Icon, label, value, className }: DetailItemProps) {
   return (
-    <div className={cn("flex items-center space-x-4 rounded-lg bg-muted p-4", className)}>
+    <div className={cn("flex items-center space-x-4 rounded-lg bg-background p-4", className)}>
       <Icon className="h-7 w-7 text-primary flex-shrink-0" />
       <div className="flex flex-col">
         <span className="text-sm text-muted-foreground">{label}</span>
@@ -46,7 +45,7 @@ export function HourlyForecastDialog({ data, open, onOpenChange }: HourlyForecas
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-glass border-primary/20 shadow-2xl rounded-lg">
         <DialogHeader className="text-center items-center pb-4">
-          <DialogTitle className="text-2xl font-headline text-primary">
+          <DialogTitle className="text-2xl font-headline text-foreground">
             Forecast for {data.time}
           </DialogTitle>
           <DialogDescription className="text-base text-foreground/90 capitalize">
