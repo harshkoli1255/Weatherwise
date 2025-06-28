@@ -1,7 +1,9 @@
-
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { saveUnitPreferences } from '@/app/settings/actions';
+import { useToast } from './use-toast';
 
 const UNITS_STORAGE_KEY = 'weatherwise-unit-preferences';
 
@@ -27,50 +29,65 @@ interface UnitsContextType {
 
 const UnitsContext = createContext<UnitsContextType | undefined>(undefined);
 
-// Helper to read from localStorage
-function getUnitsFromStorage(): UnitPreferences {
-  const defaultUnits: UnitPreferences = {
-    temperature: 'celsius',
-    windSpeed: 'kmh',
-    timeFormat: '12h',
-  };
-  if (typeof window === 'undefined') {
-    return defaultUnits;
-  }
-  try {
-    const storedUnits = localStorage.getItem(UNITS_STORAGE_KEY);
-    const parsed = storedUnits ? JSON.parse(storedUnits) : {};
-    return { ...defaultUnits, ...parsed };
-  } catch (error) {
-    console.error("Error reading unit preferences from localStorage", error);
-    return defaultUnits;
-  }
-}
+const defaultUnits: UnitPreferences = {
+  temperature: 'celsius',
+  windSpeed: 'kmh',
+  timeFormat: '12h',
+};
 
 export function UnitsProvider({ children }: { children: ReactNode }) {
-  // Initialize with a default state that is consistent on server and client
-  const [units, setUnitsState] = useState<UnitPreferences>({
-    temperature: 'celsius',
-    windSpeed: 'kmh',
-    timeFormat: '12h',
-  });
+  const [units, setUnitsState] = useState<UnitPreferences>(defaultUnits);
+  const { user, isLoaded } = useUser();
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
-  // Load from localStorage only on the client, after the initial render
   useEffect(() => {
-    setUnitsState(getUnitsFromStorage());
-  }, []);
+    if (isLoaded) {
+      if (user) {
+        // User is logged in, use their synced settings from Clerk.
+        const syncedPrefs = user.publicMetadata?.unitPreferences as Partial<UnitPreferences> | undefined;
+        setUnitsState({ ...defaultUnits, ...syncedPrefs });
+      } else {
+        // User is a guest, use localStorage.
+        try {
+          const storedUnits = localStorage.getItem(UNITS_STORAGE_KEY);
+          const parsed = storedUnits ? JSON.parse(storedUnits) : {};
+          setUnitsState({ ...defaultUnits, ...parsed });
+        } catch (error) {
+          console.error("Error reading unit preferences from localStorage", error);
+          setUnitsState(defaultUnits);
+        }
+      }
+    }
+  }, [user, isLoaded]);
 
   const setUnits = useCallback((newUnits: Partial<UnitPreferences>) => {
-    setUnitsState(prev => {
-      const updatedUnits = { ...prev, ...newUnits };
+    const originalUnits = units;
+    const updatedUnits = { ...originalUnits, ...newUnits };
+    setUnitsState(updatedUnits); // Optimistically update the UI.
+
+    if (user) {
+      // For logged-in users, sync to Clerk metadata via a server action.
+      startTransition(async () => {
+        const result = await saveUnitPreferences(newUnits);
+        if (result.error) {
+          toast({
+            variant: 'destructive',
+            title: 'Sync Error',
+            description: result.error,
+          });
+          setUnitsState(originalUnits); // Revert on failure.
+        }
+      });
+    } else {
+      // For guests, save to localStorage.
       try {
         localStorage.setItem(UNITS_STORAGE_KEY, JSON.stringify(updatedUnits));
       } catch (error) {
         console.error("Error saving unit preferences to localStorage", error);
       }
-      return updatedUnits;
-    });
-  }, []);
+    }
+  }, [units, user, toast]);
 
   const convertTemperature = useCallback((celsius: number): number => {
     if (units.temperature === 'fahrenheit') {
@@ -96,19 +113,15 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
   }, [units.windSpeed]);
 
   const formatTime = useCallback((timestamp: number, timezoneOffset: number): string => {
-    // The timestamp is UTC. The offset is the city's shift from UTC in seconds.
-    // By adding them, we get a timestamp that, when interpreted as a UTC date,
-    // represents the correct local time in the city.
     const date = new Date((timestamp + timezoneOffset) * 1000);
     const h = date.getUTCHours();
     
     if (units.timeFormat === '12h') {
       const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12; // convert 0 to 12
+      const h12 = h % 12 || 12;
       return `${h12} ${ampm}`;
     }
     
-    // For 24h format, include minutes for clarity.
     const m = String(date.getUTCMinutes()).padStart(2, '0');
     return `${String(h).padStart(2, '0')}:${m}`;
   }, [units.timeFormat]);
