@@ -25,17 +25,18 @@
 
 ## ✨ Core Features
 
-*   **Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide, or automatically detect your location.
-*   **Interactive Forecast Chart:** Visualize the 24-hour temperature trend with a beautiful, interactive line chart.
+*   **Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide, with an interactive hourly forecast.
 *   **AI-Powered Search & Insights:**
-    *   **Intelligent Search:** Simply type what you're thinking—our AI understands natural language, corrects typos, and interprets complex queries involving landmarks or businesses (e.g., `"weather at the eiffel tower"`). Live weather data is shown directly in the search suggestions.
-    *   **Conversational Summaries:** Get friendly, easy-to-read weather summaries that highlight the most important information.
-    *   **Creative Suggestions:** Receive AI-generated activity suggestions tailored to the current weather.
+    *   **Intelligent Search:** Our AI understands natural language, corrects typos, and interprets complex queries like landmarks or businesses (e.g., `"weather at the eiffel tower"`). Live weather data is shown directly in the search suggestions.
+    *   **Conversational Summaries:** Get friendly, easy-to-read weather summaries and creative activity suggestions tailored to the current conditions.
+*   **Synced & Personalized Experience:**
+    *   **Cross-Device Sync:** Your favorite cities, unit preferences, and default location are saved to your account and sync seamlessly across all your devices.
+    *   **Customizable Display:** Choose between Celsius/Fahrenheit, km/h/mph, and 12/24-hour time formats.
+    *   **Default Location:** Set a default city to load automatically every time you open the app.
 *   **Intelligent, Customizable Alerts:**
     *   **AI-Driven Decisions:** The AI analyzes weather conditions to decide if an alert is significant enough to send.
-    *   **Custom Schedules:** Define specific days and times to receive alerts, managed within your chosen timezone.
-    *   **Adjustable Sensitivity:** Control alert frequency to prevent notification fatigue.
-*   **Live Favorites:** Your "Favorites" dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
+    *   **Custom Schedules & Sensitivity:** Define specific days, times, and a timezone to receive alerts, and control notification frequency to prevent fatigue.
+*   **Live Favorites Dashboard:** Your "Favorites" dropdown shows live weather for all your saved cities at a glance and allows you to set any favorite as your primary alert city with one click.
 *   **Secure User Authentication:** Full sign-up, sign-in, and profile management powered by Clerk.
 *   **Modern, Responsive UI:** A polished, responsive interface built with Tailwind CSS and ShadCN UI, featuring light and dark modes.
 

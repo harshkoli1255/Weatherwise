@@ -10,6 +10,8 @@ import {
   Sparkles,
   Layers,
   Heart,
+  SlidersHorizontal,
+  CloudCog,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -69,17 +71,23 @@ export default function AboutPage() {
                          <FeatureItem icon={AreaChart} title="Interactive Forecast">
                             Visualize the 24-hour temperature trend with a beautiful, interactive set of forecast cards.
                         </FeatureItem>
-                        <FeatureItem icon={BrainCircuit} title="AI-Powered Search">
-                            Our AI understands natural language, corrects typos, and interprets complex queries like "weather at the eiffel tower".
+                        <FeatureItem icon={BrainCircuit} title="AI-Powered Search & Insights">
+                            Our AI understands natural language, corrects typos, and provides helpful, conversational weather summaries.
                         </FeatureItem>
                         <FeatureItem icon={BellRing} title="Intelligent Alerts">
                             Receive customizable email alerts with scheduling, sensitivity controls, and AI-driven decision-making.
                         </FeatureItem>
-                        <FeatureItem icon={Star} title="Live Favorites">
-                            Your favorites dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
+                        <FeatureItem icon={SlidersHorizontal} title="Customizable Display">
+                            Tailor the app with your preferred units for temperature (°C/°F), wind speed (km/h/mph), and time format (12/24h).
+                        </FeatureItem>
+                        <FeatureItem icon={CloudCog} title="Synced Preferences">
+                            Your favorites, unit settings, and default location are saved to your account and sync seamlessly across all your devices.
                         </FeatureItem>
                          <FeatureItem icon={UserCheck} title="Secure Authentication">
                             Full sign-up, sign-in, and profile management powered by Clerk, complete with a modern settings hub.
+                        </FeatureItem>
+                        <FeatureItem icon={Star} title="Live Favorites">
+                            Your favorites dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
                         </FeatureItem>
                     </div>
                 </section>
