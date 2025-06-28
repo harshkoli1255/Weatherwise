@@ -92,28 +92,38 @@ export default function SettingsPage() {
             Manage your account, preferences, and application settings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-8 space-y-3">
+        <CardContent className="px-6 sm:px-8 pb-8 space-y-8">
             <SignedIn>
-                <SettingsLinkItem
-                    icon={User}
-                    title="Profile"
-                    description="Update your personal details and security."
-                    href="/profile"
-                />
-                <SettingsLinkItem
-                    icon={Bell}
-                    title="Alerts & Notifications"
-                    description="Set up and customize your email weather alerts."
-                    href="/alerts"
-                />
+              <section>
+                <h3 className="text-lg font-medium text-foreground mb-4">Account</h3>
+                <div className="space-y-3">
+                  <SettingsLinkItem
+                      icon={User}
+                      title="Profile"
+                      description="Update your personal details and security."
+                      href="/profile"
+                  />
+                  <SettingsLinkItem
+                      icon={Bell}
+                      title="Alerts & Notifications"
+                      description="Set up and customize your email weather alerts."
+                      href="/alerts"
+                  />
+                </div>
+              </section>
             </SignedIn>
-            <AppearanceSettings />
-            <SettingsLinkItem
-                icon={Info}
-                title="About Weatherwise"
-                description="Learn more about the app and its features."
-                href="/about"
-            />
+            <section>
+                <h3 className="text-lg font-medium text-foreground mb-4">Application</h3>
+                <div className="space-y-3">
+                    <AppearanceSettings />
+                    <SettingsLinkItem
+                        icon={Info}
+                        title="About Weatherwise"
+                        description="Learn more about the app and its features."
+                        href="/about"
+                    />
+                </div>
+            </section>
         </CardContent>
       </Card>
     </div>
