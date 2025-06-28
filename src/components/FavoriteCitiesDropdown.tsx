@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useMemo, useCallback, useTransition } from 'react';
+import React, { useState, useMemo, useCallback, useTransition, useEffect } from 'react';
 import { useFavoriteCities } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -62,6 +63,11 @@ export function FavoriteCitiesDropdown() {
   const [isPending, startTransition] = useTransition();
   const [pendingCityKey, setPendingCityKey] = useState<string | null>(null);
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const loadFavoritesWeather = useCallback(async () => {
     if (favorites.length === 0) return;
@@ -266,12 +272,14 @@ export function FavoriteCitiesDropdown() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                      {weather && 'temperature' in weather && (
+                                      {weather && 'temperature' in weather ? (
+                                        isMounted ? (
                                           <>
-                                              <span className="font-medium text-foreground">{convertTemperature(weather.temperature)}{getTemperatureUnitSymbol()}</span>
-                                              <WeatherIcon iconCode={weather.iconCode} className="h-5 w-5 text-muted-foreground" />
+                                            <span className="font-medium text-foreground">{convertTemperature(weather.temperature)}{getTemperatureUnitSymbol()}</span>
+                                            <WeatherIcon iconCode={weather.iconCode} className="h-5 w-5 text-muted-foreground" />
                                           </>
-                                      )}
+                                        ) : <Skeleton className="h-5 w-12" />
+                                      ) : null}
                                       {weather && 'error' in weather && (
                                           <TooltipProvider>
                                               <Tooltip>

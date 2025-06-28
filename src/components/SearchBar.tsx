@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { WeatherIcon } from './WeatherIcon';
 import { useUnits } from '@/hooks/useUnits';
+import { Skeleton } from './ui/skeleton';
 
 interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
@@ -29,6 +31,11 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
   const commandRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (initialValue) {
@@ -215,12 +222,18 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                       </span>
                     </div>
                   </div>
-                   {typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                   {typeof suggestion.temperature === 'number' && suggestion.iconCode ? (
                     <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
-                      <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
-                      <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                      {isMounted ? (
+                        <>
+                          <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
+                          <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                        </>
+                      ) : (
+                        <Skeleton className="h-5 w-16" />
+                      )}
                     </div>
-                  )}
+                  ) : null}
                 </CommandItem>
               )
             })}
