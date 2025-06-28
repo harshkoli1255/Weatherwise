@@ -94,7 +94,7 @@ cd <project-directory>
 ```
 
 **Step 2: Configure Environment Variables**
-> **⚠️ IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys.
+> **⚠️ IMPORTANT:** This is the most critical step. The application **will not start** without the required API keys. If you see an error like `Missing publishableKey` when you run the app, it means your `.env` file is missing or incomplete.
 
 1.  In the root directory, create a new file named `.env`.
 2.  Add the following variables, replacing the placeholder values with your own keys.
