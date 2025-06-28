@@ -43,11 +43,13 @@ function getUnitsFromStorage(): UnitPreferences {
 }
 
 export function UnitsProvider({ children }: { children: ReactNode }) {
+  // Initialize with a default state that is consistent on server and client
   const [units, setUnitsState] = useState<UnitPreferences>({
     temperature: 'celsius',
     windSpeed: 'kmh',
   });
 
+  // Load from localStorage only on the client, after the initial render
   useEffect(() => {
     setUnitsState(getUnitsFromStorage());
   }, []);
