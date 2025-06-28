@@ -40,13 +40,16 @@ export function generateWeatherAlertEmailHtml({
     </td>
   `;
 
-  const renderHourlyForecastItem = (item: HourlyForecastData) => `
+  const renderHourlyForecastItem = (item: HourlyForecastData) => {
+    const date = new Date(item.timestamp * 1000);
+    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, timeZone: 'UTC' });
+    return `
     <td align="center" width="60" style="padding: 0 4px;">
-      <p style="color: ${colors.textMuted}; font-size: 14px; font-weight: 500; margin: 0 0 10px 0;">${item.time.toUpperCase()}</p>
+      <p style="color: ${colors.textMuted}; font-size: 14px; font-weight: 500; margin: 0 0 10px 0;">${time.toUpperCase()}</p>
       <img src="https://openweathermap.org/img/wn/${item.iconCode}@2x.png" alt="${item.condition}" width="40" height="40" style="margin: 0 auto 10px auto;">
       <p style="color: ${colors.textHeading}; font-size: 18px; font-weight: 700; margin: 0;">${item.temp}°</p>
     </td>
-  `;
+  `};
 
   const renderSection = (emoji: string, title: string, content: string) => {
     return `

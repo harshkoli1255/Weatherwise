@@ -44,6 +44,9 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   }, [user, isLoaded]);
 
   const syncFavorites = useCallback((newFavorites: CitySuggestion[], successMessage: string) => {
+    // Optimistically update the local state for a snappy UI
+    setFavorites(newFavorites);
+
     if (user) {
       startTransition(async () => {
         const result = await saveFavorites(newFavorites);
@@ -51,13 +54,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           if (successMessage) toast({ description: successMessage });
         } else {
           toast({ variant: 'destructive', title: 'Sync Error', description: result.error });
+          // If sync fails, revert to the state from user.publicMetadata
+          const previousSyncedState = user.publicMetadata?.favoriteCities as CitySuggestion[] | undefined;
+          setFavorites(previousSyncedState || []);
         }
       });
     } else {
-      // For guests, we still update optimistically with local storage
+      // For guests, just save to localStorage.
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(newFavorites));
-        setFavorites(newFavorites);
         if (successMessage) toast({ description: successMessage });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Storage Error', description: 'Could not save your favorites.' });
