@@ -1,3 +1,4 @@
+
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -18,23 +19,26 @@ interface WeatherDisplayProps {
 
 interface ForecastCardProps {
   data: HourlyForecastData;
+  timezone: number;
   onClick: () => void;
 }
 
-function ForecastCard({ data, onClick }: ForecastCardProps) {
-  const { convertTemperature } = useUnits();
+function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
+  const { convertTemperature, formatTime } = useUnits();
   const showPrecipitation = data.precipitationChance > 0;
+  const displayTime = formatTime(data.timestamp, timezone);
+  
   return (
     <button
       onClick={onClick}
       className={cn(
         "flex flex-col items-center justify-between text-center p-2 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-36"
       )}
-      aria-label={`View forecast for ${data.time}`}
+      aria-label={`View forecast for ${displayTime}`}
     >
       {/* Group top content to push it up */}
       <div className="flex flex-col items-center space-y-1">
-        <p className="text-xs font-medium text-muted-foreground">{data.time}</p>
+        <p className="text-xs font-medium text-muted-foreground">{displayTime}</p>
         <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 text-primary drop-shadow-lg" />
         <p className="text-lg sm:text-xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
@@ -134,7 +138,8 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                 {weatherData.hourlyForecast.map((hour, index) => (
                   <ForecastCard 
                     key={index} 
-                    data={hour} 
+                    data={hour}
+                    timezone={weatherData.timezone}
                     onClick={() => setSelectedHour(hour)}
                   />
                 ))}
@@ -175,6 +180,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
        {selectedHour && (
         <HourlyForecastDialog
           data={selectedHour}
+          timezone={weatherData.timezone}
           open={!!selectedHour}
           onOpenChange={(isOpen) => {
             if (!isOpen) {

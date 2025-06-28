@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
@@ -6,10 +7,12 @@ const UNITS_STORAGE_KEY = 'weatherwise-unit-preferences';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 export type WindSpeedUnit = 'kmh' | 'mph';
+export type TimeFormatUnit = '12h' | '24h';
 
 interface UnitPreferences {
   temperature: TemperatureUnit;
   windSpeed: WindSpeedUnit;
+  timeFormat: TimeFormatUnit;
 }
 
 interface UnitsContextType {
@@ -19,6 +22,7 @@ interface UnitsContextType {
   getTemperatureUnitSymbol: () => '°C' | '°F';
   convertWindSpeed: (kmh: number) => number;
   getWindSpeedUnitLabel: () => 'km/h' | 'mph';
+  formatTime: (timestamp: number, timezoneOffset: number) => string;
 }
 
 const UnitsContext = createContext<UnitsContextType | undefined>(undefined);
@@ -28,6 +32,7 @@ function getUnitsFromStorage(): UnitPreferences {
   const defaultUnits: UnitPreferences = {
     temperature: 'celsius',
     windSpeed: 'kmh',
+    timeFormat: '12h',
   };
   if (typeof window === 'undefined') {
     return defaultUnits;
@@ -47,6 +52,7 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
   const [units, setUnitsState] = useState<UnitPreferences>({
     temperature: 'celsius',
     windSpeed: 'kmh',
+    timeFormat: '12h',
   });
 
   // Load from localStorage only on the client, after the initial render
@@ -89,6 +95,24 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
     return units.windSpeed === 'kmh' ? 'km/h' : 'mph';
   }, [units.windSpeed]);
 
+  const formatTime = useCallback((timestamp: number, timezoneOffset: number): string => {
+    // The timestamp is UTC. The offset is the city's shift from UTC in seconds.
+    // By adding them, we get a timestamp that, when interpreted as a UTC date,
+    // represents the correct local time in the city.
+    const date = new Date((timestamp + timezoneOffset) * 1000);
+    const h = date.getUTCHours();
+    
+    if (units.timeFormat === '12h') {
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12; // convert 0 to 12
+      return `${h12} ${ampm}`;
+    }
+    
+    // For 24h format, include minutes for clarity.
+    const m = String(date.getUTCMinutes()).padStart(2, '0');
+    return `${String(h).padStart(2, '0')}:${m}`;
+  }, [units.timeFormat]);
+
 
   const value = useMemo(() => ({
     units,
@@ -97,7 +121,8 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
     getTemperatureUnitSymbol,
     convertWindSpeed,
     getWindSpeedUnitLabel,
-  }), [units, setUnits, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel]);
+    formatTime,
+  }), [units, setUnits, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime]);
 
   return (
     <UnitsContext.Provider value={value}>

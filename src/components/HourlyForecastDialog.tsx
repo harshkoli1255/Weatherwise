@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -16,6 +17,7 @@ import { useUnits } from '@/hooks/useUnits';
 
 interface HourlyForecastDialogProps {
   data: HourlyForecastData;
+  timezone: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -43,17 +45,19 @@ function DetailItem({ icon: Icon, label, value, className }: DetailItemProps) {
 }
 
 
-export function HourlyForecastDialog({ data, open, onOpenChange }: HourlyForecastDialogProps) {
-  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel } = useUnits();
+export function HourlyForecastDialog({ data, timezone, open, onOpenChange }: HourlyForecastDialogProps) {
+  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime } = useUnits();
 
   if (!data) return null;
+
+  const displayTime = formatTime(data.timestamp, timezone);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-glass border-primary/20 shadow-xl rounded-lg">
         <DialogHeader className="text-center items-center pt-5 pb-4">
           <DialogTitle className="text-xl font-headline text-foreground">
-            Forecast for {data.time}
+            Forecast for {displayTime}
           </DialogTitle>
           <DialogDescription className="text-base text-foreground/80 capitalize">
             {data.condition}

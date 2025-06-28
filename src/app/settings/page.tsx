@@ -8,7 +8,7 @@ import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useUnits, type TemperatureUnit, type WindSpeedUnit } from '@/hooks/useUnits';
+import { useUnits, type TemperatureUnit, type WindSpeedUnit, type TimeFormatUnit } from '@/hooks/useUnits';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
 import { useState, useEffect } from 'react';
 import type { CitySuggestion } from '@/lib/types';
@@ -89,6 +89,11 @@ function AppearanceSettings() {
 
 function UnitSettings() {
   const { units, setUnits } = useUnits();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <div className="p-3 rounded-lg bg-background/50 shadow-lg border border-border/30">
@@ -102,48 +107,90 @@ function UnitSettings() {
         </div>
       </div>
       <div className="space-y-4 pt-3 border-t border-border/50">
-        <div>
-          <Label className="text-xs text-muted-foreground font-semibold">Temperature</Label>
-          <RadioGroup
-            value={units.temperature}
-            onValueChange={(value) => setUnits({ temperature: value as TemperatureUnit })}
-            className="grid grid-cols-2 gap-2 mt-1"
-          >
-            <div>
-              <RadioGroupItem value="celsius" id="celsius" className="sr-only peer" />
-              <Label htmlFor="celsius" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                Celsius (°C)
-              </Label>
+        {!isMounted ? (
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Skeleton className="h-3 w-16" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-full rounded-md" />
+                        <Skeleton className="h-9 w-full rounded-md" />
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-full rounded-md" />
+                        <Skeleton className="h-9 w-full rounded-md" />
+                    </div>
+                </div>
             </div>
-            <div>
-              <RadioGroupItem value="fahrenheit" id="fahrenheit" className="sr-only peer" />
-              <Label htmlFor="fahrenheit" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                Fahrenheit (°F)
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-        <div>
-          <Label className="text-xs text-muted-foreground font-semibold">Wind Speed</Label>
-          <RadioGroup
-            value={units.windSpeed}
-            onValueChange={(value) => setUnits({ windSpeed: value as WindSpeedUnit })}
-            className="grid grid-cols-2 gap-2 mt-1"
-          >
-            <div>
-              <RadioGroupItem value="kmh" id="kmh" className="sr-only peer" />
-              <Label htmlFor="kmh" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                km/h
-              </Label>
-            </div>
-            <div>
-              <RadioGroupItem value="mph" id="mph" className="sr-only peer" />
-              <Label htmlFor="mph" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                mph
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
+        ) : (
+            <>
+                <div>
+                    <Label className="text-xs text-muted-foreground font-semibold">Temperature</Label>
+                    <RadioGroup
+                        value={units.temperature}
+                        onValueChange={(value) => setUnits({ temperature: value as TemperatureUnit })}
+                        className="grid grid-cols-2 gap-2 mt-1"
+                    >
+                        <div>
+                        <RadioGroupItem value="celsius" id="celsius" className="sr-only peer" />
+                        <Label htmlFor="celsius" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            Celsius (°C)
+                        </Label>
+                        </div>
+                        <div>
+                        <RadioGroupItem value="fahrenheit" id="fahrenheit" className="sr-only peer" />
+                        <Label htmlFor="fahrenheit" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            Fahrenheit (°F)
+                        </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+                <div>
+                    <Label className="text-xs text-muted-foreground font-semibold">Wind Speed</Label>
+                    <RadioGroup
+                        value={units.windSpeed}
+                        onValueChange={(value) => setUnits({ windSpeed: value as WindSpeedUnit })}
+                        className="grid grid-cols-2 gap-2 mt-1"
+                    >
+                        <div>
+                        <RadioGroupItem value="kmh" id="kmh" className="sr-only peer" />
+                        <Label htmlFor="kmh" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            km/h
+                        </Label>
+                        </div>
+                        <div>
+                        <RadioGroupItem value="mph" id="mph" className="sr-only peer" />
+                        <Label htmlFor="mph" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                            mph
+                        </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+                 <div>
+                  <Label className="text-xs text-muted-foreground font-semibold">Time Format</Label>
+                  <RadioGroup
+                    value={units.timeFormat}
+                    onValueChange={(value) => setUnits({ timeFormat: value as TimeFormatUnit })}
+                    className="grid grid-cols-2 gap-2 mt-1"
+                  >
+                    <div>
+                      <RadioGroupItem value="12h" id="12h" className="sr-only peer" />
+                      <Label htmlFor="12h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                        12-hour (4 PM)
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem value="24h" id="24h" className="sr-only peer" />
+                      <Label htmlFor="24h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                        24-hour (16:00)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+            </>
+        )}
       </div>
     </div>
   );

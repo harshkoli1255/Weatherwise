@@ -106,15 +106,8 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: 
       return { data: [], error: null, status: 200 }; 
     }
     
-    const timezoneOffsetSeconds = data.city?.timezone ?? 0;
-
     const forecastList = data.list.map(item => {
-      const localTimestamp = (item.dt + timezoneOffsetSeconds) * 1000;
-      const localDate = new Date(localTimestamp);
-      const time = format(localDate, 'ha', { useAdditionalWeekYearTokens: false, useAdditionalDayOfYearTokens: false });
-
       return {
-        time: time,
         timestamp: item.dt,
         temp: Math.round(item.main.temp),
         feelsLike: Math.round(item.main.feels_like),

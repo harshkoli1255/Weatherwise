@@ -2,7 +2,6 @@
 import { z } from 'zod';
 
 export interface HourlyForecastData {
-  time: string; // Formatted time e.g., "3 PM" or "15:00"
   timestamp: number; // UNIX timestamp
   temp: number;
   feelsLike: number;
