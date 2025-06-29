@@ -64,40 +64,17 @@ Weatherwise is built with a modern tech stack designed for performance, scalabil
 Follow these steps to get the project running on your local machine.
 
 ### 1. Prerequisites
-Before you begin, you must have **Git** and **Node.js** (the latest Long-Term Support version is recommended) installed on your system.
+You will need **Git** and **Node.js** (latest LTS version recommended) installed on your system. The most reliable way to install Node.js is with a version manager.
 
-#### Recommended: Install via a Version Manager
-The most reliable way to install and manage Node.js versions is with a version manager. This is the recommended approach for all operating systems because it makes it easy to switch between different Node.js versions for different projects.
-
-**Step 1: Install `nvm` (Node Version Manager)**
-
-First, you need to install `nvm`. This tool manages your Node.js installations.
-*   **On macOS or Linux:** Run the official install script by opening your terminal and pasting the following command:
+1.  **Install Git:** Download and install from the [**official Git website**](https://git-scm.com/downloads).
+2.  **Install a Node Version Manager:**
+    *   **macOS / Linux:** Install [**nvm**](https://github.com/nvm-sh/nvm) by running: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`
+    *   **Windows:** Install [**nvm-for-windows**](https://github.com/coreybutler/nvm-for-windows) using the latest release installer.
+3.  **Install & Use Node.js:** After installing nvm, **close and reopen your terminal**, then run:
     ```bash
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    nvm install --lts
     ```
-    *This script automatically adds the necessary configuration to your shell profile (`~/.bash_profile`, `~/.zshrc`, etc.). If you don't have `curl`, you can use `wget` instead: `wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`*
-*   **On Windows:** The `nvm` project does not officially support Windows, but the community has created a great alternative.
-    1.  Go to the [**nvm-for-windows releases page**](https://github.com/coreybutler/nvm-for-windows/releases).
-    2.  Download the `nvm-setup.zip` or `nvm-setup.exe` file from the latest release.
-    3.  Run the installer.
-
-> **⚠️ Important:** After installing `nvm`, you **must close and reopen your terminal window** for the `nvm` command to become available.
-
-**Step 2: Install Node.js LTS**
-
-Once `nvm` is installed and you've opened a new terminal, you can install the latest Long-Term Support (LTS) version of Node.js with this command:
-```bash
-# Installs and uses the latest LTS version of Node.js
-nvm install --lts
-```
-This single command handles both installing and setting the new version as the one to use.
-
-> **Note on `npm`:** The Node Package Manager (`npm`) is installed automatically with Node.js. When using a version manager like `nvm`, you **do not need** to update `npm` separately using `sudo npm install -g npm@latest`. The `nvm install --lts` command gives you a version of `npm` that is tested and compatible with your Node.js version, and `nvm` manages its path for you without requiring `sudo`. Using `sudo` for global installations is strongly discouraged as it can lead to permission errors.
-
-**Step 3: Install Git**
-
-If you don't already have Git installed, download it from the [**official Git website**](https://git-scm.com/downloads).
+    > **Note:** The Node Package Manager (`npm`) is included automatically with Node.js. You do not need to install it separately.
 
 ---
 
@@ -186,5 +163,3 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ### How to Verify
 Check your application's logs in the Firebase Console. If you see the log message `[CRON-AUTH-SUCCESS] Cron job authorized successfully`, it's working!
-
-    
