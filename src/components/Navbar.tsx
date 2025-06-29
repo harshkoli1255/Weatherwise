@@ -63,10 +63,10 @@ export function Navbar() {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-x-2 md:flex">
+            <div className="hidden items-center gap-x-4 md:flex">
               <TooltipProvider>
                 <SignedIn>
-                  <div className="flex items-center gap-x-2">
+                  <div className="flex items-center gap-2">
                     <FavoriteCitiesDropdown />
                     <Tooltip>
                       <TooltipTrigger asChild>
