@@ -267,3 +267,27 @@ export interface UnitPreferences {
   windSpeed: 'kmh' | 'mph';
   timeFormat: '12h' | '24h';
 }
+
+// AI Schema: Summarize Error
+export const SummarizeErrorInputSchema = z.object({
+  errorMessage: z.string().describe('The technical error message caught by the application.'),
+});
+export type SummarizeErrorInput = z.infer<typeof SummarizeErrorInputSchema>;
+
+export const SummarizeErrorOutputSchema = z.object({
+  userFriendlyMessage: z.string().describe('A polite, easy-to-understand message for the user that explains the issue without technical jargon.'),
+});
+export type SummarizeErrorOutput = z.infer<typeof SummarizeErrorOutputSchema>;
+
+// AI Schema: Generate Weather Image
+export const WeatherImageInputSchema = z.object({
+  condition: z.string().describe('The current weather condition, e.g., "sunny", "light rain".'),
+  activitySuggestion: z.string().describe('The AI-generated activity suggestion, e.g., "a great day for a picnic".'),
+  city: z.string().describe('The name of the city.'),
+});
+export type WeatherImageInput = z.infer<typeof WeatherImageInputSchema>;
+
+export const WeatherImageOutputSchema = z.object({
+  imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
+});
+export type WeatherImageOutput = z.infer<typeof WeatherImageOutputSchema>;

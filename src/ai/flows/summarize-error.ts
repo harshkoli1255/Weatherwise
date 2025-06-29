@@ -1,26 +1,19 @@
+
 'use server';
 
 /**
  * @fileOverview An AI flow to convert technical error messages into user-friendly explanations.
  *
  * - summarizeError - The primary exported function.
- * - SummarizeErrorInput - The Zod schema for the input.
- * - SummarizeErrorOutput - The Zod schema for the output.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'zod';
 import { generateWithFallback } from '@/services/aiGenerationService';
-
-export const SummarizeErrorInputSchema = z.object({
-  errorMessage: z.string().describe('The technical error message caught by the application.'),
-});
-export type SummarizeErrorInput = z.infer<typeof SummarizeErrorInputSchema>;
-
-export const SummarizeErrorOutputSchema = z.object({
-  userFriendlyMessage: z.string().describe('A polite, easy-to-understand message for the user that explains the issue without technical jargon.'),
-});
-export type SummarizeErrorOutput = z.infer<typeof SummarizeErrorOutputSchema>;
+import {
+  type SummarizeErrorInput,
+  SummarizeErrorInputSchema,
+  type SummarizeErrorOutput,
+  SummarizeErrorOutputSchema,
+} from '@/lib/types';
 
 const summarizeErrorPromptTemplate = `You are a helpful UX writer for a modern weather application called Weatherwise. Your task is to convert a technical, internal error message into a user-friendly, polite, and helpful message for a toast notification.
 

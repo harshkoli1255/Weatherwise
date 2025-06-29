@@ -1,25 +1,17 @@
+
 'use server';
 /**
  * @fileOverview An AI flow to generate a visual representation of the weather and a suggested activity.
  *
  * - generateWeatherImage - The primary exported function.
- * - WeatherImageInput - The Zod schema for the input.
- * - WeatherImageOutput - The Zod schema for the output.
  */
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-const WeatherImageInputSchema = z.object({
-  condition: z.string().describe('The current weather condition, e.g., "sunny", "light rain".'),
-  activitySuggestion: z.string().describe('The AI-generated activity suggestion, e.g., "a great day for a picnic".'),
-  city: z.string().describe('The name of the city.'),
-});
-export type WeatherImageInput = z.infer<typeof WeatherImageInputSchema>;
-
-const WeatherImageOutputSchema = z.object({
-  imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
-});
-export type WeatherImageOutput = z.infer<typeof WeatherImageOutputSchema>;
+import {
+  type WeatherImageInput,
+  WeatherImageInputSchema,
+  type WeatherImageOutput,
+  WeatherImageOutputSchema,
+} from '@/lib/types';
 
 const generateWeatherImageFlow = ai.defineFlow(
   {
