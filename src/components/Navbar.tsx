@@ -24,7 +24,6 @@ import { FavoriteCitiesDropdown } from './FavoriteCitiesDropdown';
 export function Navbar() {
   const pathname = usePathname();
 
-  // 'Settings' is now separate from the main nav items for a cleaner layout
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/alerts', label: 'Alerts' },
@@ -33,10 +32,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="w-full flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="grid h-16 w-full grid-cols-3 items-center px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-start gap-4">
             <Link href="/" className="flex items-center space-x-2.5 group">
                 <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
                 <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
@@ -45,8 +44,8 @@ export function Navbar() {
             </Link>
         </div>
 
-        {/* Center: Main Nav (Absolutely positioned for perfect centering on desktop) */}
-        <nav className="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+        {/* Center: Main Nav */}
+        <nav className="hidden md:flex items-center justify-center gap-2">
             {navItems.map((item) => (
                 <Button 
                     key={item.href}
@@ -63,9 +62,9 @@ export function Navbar() {
         </nav>
 
         {/* Right Side: User Actions */}
-        <div className="flex items-center">
+        <div className="flex items-center justify-end gap-x-4">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-x-4">
               <TooltipProvider>
                 <SignedIn>
                   <FavoriteCitiesDropdown />
