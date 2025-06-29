@@ -32,7 +32,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="grid h-16 w-full grid-cols-3 items-center px-4 sm:px-6 lg:px-8">
+      <div className="relative flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Logo */}
         <div className="flex items-center justify-start gap-4">
@@ -45,7 +45,7 @@ export function Navbar() {
         </div>
 
         {/* Center: Main Nav */}
-        <nav className="hidden md:flex items-center justify-center gap-2">
+        <nav className="hidden md:flex items-center justify-center gap-2 absolute left-1/2 -translate-x-1/2">
             {navItems.map((item) => (
                 <Button 
                     key={item.href}
@@ -62,7 +62,7 @@ export function Navbar() {
         </nav>
 
         {/* Right Side: User Actions */}
-        <div className="flex items-center justify-end gap-x-4">
+        <div className="flex items-center justify-end">
             {/* Desktop User Actions */}
             <div className="hidden md:flex items-center gap-x-4">
               <TooltipProvider>
