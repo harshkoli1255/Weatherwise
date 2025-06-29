@@ -2,7 +2,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -95,7 +95,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="pt-6 pb-4 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2 px-4">
-          <div className="w-9" /> {/* Spacer to balance the pin icon and ensure title is centered */}
+          <div className="w-9" /> {/* Spacer to balance the save icon and ensure title is centered */}
           <CardTitle className="min-w-0 text-center text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
@@ -107,14 +107,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     variant="ghost"
                     size="icon"
                     onClick={onSaveCityToggle}
-                    aria-label={isLocationSaved ? 'Unpin this city' : 'Pin this city'}
+                    aria-label={isLocationSaved ? 'Remove this location' : 'Save this location'}
                     className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
                     disabled={isSyncing}
                   >
                     {isSyncing ? (
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     ) : (
-                        <Pin className={cn(
+                        <Bookmark className={cn(
                             "h-6 w-6 transition-all duration-300",
                             isLocationSaved ? "fill-primary text-primary" : "fill-none"
                         )} />
@@ -122,7 +122,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isSyncing ? "Syncing..." : isLocationSaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
+                  <p>{isSyncing ? "Syncing..." : isLocationSaved ? `Remove ${weatherData.city}` : `Save ${weatherData.city}`}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
