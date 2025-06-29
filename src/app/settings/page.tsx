@@ -1,14 +1,15 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle } from 'lucide-react';
+import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useUnits } from '@/hooks/useUnits';
-import type { TemperatureUnit, WindSpeedUnit, TimeFormatUnit } from '@/hooks/useUnits.tsx';
+import type { TemperatureUnit, WindSpeedUnit, TimeFormatUnit } from '@/hooks/useUnits';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
 import { useState, useEffect } from 'react';
 import type { CitySuggestion } from '@/lib/types';

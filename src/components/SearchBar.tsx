@@ -216,9 +216,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     <div className="flex flex-col items-start truncate">
                       <span className="font-medium text-foreground">{suggestion.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        City
-                        {suggestion.state && ` in ${suggestion.state}`}
-                        {suggestion.country && `, ${suggestion.country}`}
+                        {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
                       </span>
                     </div>
                   </div>
