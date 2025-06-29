@@ -32,60 +32,60 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="relative flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        {/* Left Side: Logo */}
-        <div className="flex items-center justify-start gap-4">
+        {/* Left Side: Logo & Main Nav */}
+        <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2.5 group">
                 <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
                 <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
                     Weatherwise
                 </span>
             </Link>
+            <nav className="hidden lg:flex items-center justify-center gap-2">
+                {navItems.map((item) => (
+                    <Button 
+                        key={item.href}
+                        variant="ghost"
+                        asChild
+                        className={cn(
+                            'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
+                            pathname === item.href && 'text-primary'
+                        )}
+                    >
+                        <Link href={item.href}>{item.label}</Link>
+                    </Button>
+                ))}
+            </nav>
         </div>
 
-        {/* Center: Main Nav */}
-        <nav className="hidden md:flex items-center justify-center gap-2 absolute left-1/2 -translate-x-1/2">
-            {navItems.map((item) => (
-                <Button 
-                    key={item.href}
-                    variant="ghost"
-                    asChild
-                    className={cn(
-                        'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
-                        pathname === item.href && 'text-primary'
-                    )}
-                >
-                    <Link href={item.href}>{item.label}</Link>
-                </Button>
-            ))}
-        </nav>
-
         {/* Right Side: User Actions */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center">
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-x-4">
+            <div className="hidden lg:flex items-center gap-x-4">
               <TooltipProvider>
                 <SignedIn>
-                  <FavoriteCitiesDropdown />
-                   <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          asChild
-                          className={cn(pathname === '/settings' && 'bg-accent text-accent-foreground')}
-                        >
-                          <Link href="/settings" aria-label="Settings">
-                            <Settings className="h-5 w-5" />
-                          </Link>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Settings</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  <UserButton />
+                  <>
+                    <FavoriteCitiesDropdown />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            className={cn(pathname === '/settings' && 'bg-accent text-accent-foreground')}
+                          >
+                            <Link href="/settings" aria-label="Settings">
+                              <Settings className="h-5 w-5" />
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Settings</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    <UserButton />
+                  </>
                 </SignedIn>
                 <SignedOut>
                     <SignInButton mode="modal">
@@ -97,7 +97,7 @@ export function Navbar() {
             </div>
 
             {/* Mobile navigation menu */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
                 <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -130,28 +130,30 @@ export function Navbar() {
                             </SheetClose>
                             ))}
                             <SignedIn>
-                                <SheetClose asChild>
-                                    <Link
-                                        href="/settings"
-                                        className={cn(
-                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                            pathname === '/settings' && "bg-accent text-primary"
-                                        )}
-                                    >
-                                        Settings
-                                    </Link>
-                                </SheetClose>
-                                <SheetClose asChild>
-                                    <Link
-                                        href="/profile"
-                                        className={cn(
-                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                            pathname === '/profile' && "bg-accent text-primary"
-                                        )}
-                                    >
-                                        Profile
-                                    </Link>
-                                </SheetClose>
+                                <>
+                                  <SheetClose asChild>
+                                      <Link
+                                          href="/settings"
+                                          className={cn(
+                                              "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                              pathname === '/settings' && "bg-accent text-primary"
+                                          )}
+                                      >
+                                          Settings
+                                      </Link>
+                                  </SheetClose>
+                                  <SheetClose asChild>
+                                      <Link
+                                          href="/profile"
+                                          className={cn(
+                                              "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                              pathname === '/profile' && "bg-accent text-primary"
+                                          )}
+                                      >
+                                          Profile
+                                      </Link>
+                                  </SheetClose>
+                                </>
                             </SignedIn>
                         </nav>
                         
@@ -173,9 +175,8 @@ export function Navbar() {
                                 <SheetClose asChild>
                                     <SignInButton mode="modal">
                                         <Button className="w-full">Sign In</Button>
-                                    </SignInButton>
-                                </SheetClose>
-                            </SignedOut>
+                                    </SheetClose>
+                                </SignedOut>
                         </div>
                     </div>
                 </SheetContent>
