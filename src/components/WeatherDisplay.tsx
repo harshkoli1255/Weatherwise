@@ -2,14 +2,16 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2 } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useFavoriteCities } from '@/hooks/useFavorites';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -61,10 +63,17 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   );
 }
 
+const chartConfig = {
+  temperature: {
+    label: "Temperature",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
 
 export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel } = useUnits();
+  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime } = useUnits();
   const { isSyncing } = useFavoriteCities();
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
@@ -73,6 +82,14 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   } else if (weatherData.weatherSentiment === 'bad') {
     sentimentColorClass = 'text-destructive';
   }
+
+  const chartData = useMemo(() => {
+    if (!weatherData.hourlyForecast) return [];
+    return weatherData.hourlyForecast.map(hour => ({
+      time: formatTime(hour.timestamp, weatherData.timezone),
+      temperature: convertTemperature(hour.temp),
+    }));
+  }, [weatherData.hourlyForecast, weatherData.timezone, formatTime, convertTemperature]);
 
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
@@ -135,9 +152,79 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
           <div className="pt-4 border-t border-border/50">
             <div className="flex items-center mb-4">
+              <AreaChartIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+              <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
+                24-Hour Temperature Trend
+              </h3>
+            </div>
+             <ChartContainer config={chartConfig} className="h-48 w-full">
+              <AreaChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: -20,
+                  right: 10,
+                }}
+              >
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value, index) => index % 2 === 0 ? value : ''}
+                />
+                 <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    domain={['dataMin - 2', 'dataMax + 2']}
+                    tickFormatter={(value) => `${value}°`}
+                  />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      indicator="dot"
+                      labelFormatter={(label, payload) => {
+                        return payload?.[0]?.payload.time;
+                      }}
+                       formatter={(value) => `${value}${getTemperatureUnitSymbol()}`}
+                    />
+                  }
+                />
+                 <defs>
+                  <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-temperature)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-temperature)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="temperature"
+                  type="natural"
+                  fill="url(#fillTemperature)"
+                  stroke="var(--color-temperature)"
+                  stackId="a"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </div>
+        )}
+
+        {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
+          <div className="pt-4 border-t border-border/50">
+            <div className="flex items-center mb-4">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
               <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
-                Hourly Forecast
+                Hourly Details
               </h3>
             </div>
             <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
