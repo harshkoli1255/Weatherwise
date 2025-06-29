@@ -261,7 +261,7 @@ function WeatherPageContent() {
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-      <section className="relative z-10 w-full max-w-3xl mb-8 text-center">
+      <section className="relative z-10 w-full max-w-2xl mb-8 text-center">
         <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
           Weatherwise
         </h1>
@@ -280,7 +280,7 @@ function WeatherPageContent() {
       </section>
 
       {isLoadingDisplay && (
-        <Card className="w-full max-w-3xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
+        <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
           <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
             <WeatherLoadingAnimation className="h-20 w-20 sm:h-24 sm:w-24 text-primary" />
             <p className="text-lg sm:text-xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
@@ -310,7 +310,7 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && weatherState.error && (
-           <Card className="w-full max-w-3xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
+           <Card className="w-full max-w-2xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
                     {weatherState.error.toLowerCase().includes("location") || weatherState.cityNotFound ?
@@ -334,7 +334,7 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && !weatherState.error && (
-           <Card className="w-full max-w-3xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-primary/20 rounded-full mb-4 border border-primary/30">
                     <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
