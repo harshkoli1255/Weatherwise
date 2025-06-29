@@ -223,7 +223,7 @@ export const WeatherSummaryOutputSchema = z.object({
   subjectLine: z.string().describe('A detailed and engaging email subject line, starting with one or more relevant weather emojis (e.g., ☀️, 🌧️, 💨).'),
   weatherSentiment: z.enum(['good', 'bad', 'neutral']).describe("The overall sentiment of the weather: 'good', 'bad', or 'neutral'."),
   activitySuggestion: z.string().describe('A creative, specific, and friendly suggestion for an activity that suits the weather. Go beyond generic advice and offer a concrete idea (e.g., "perfect for a bike ride," "a great day to visit the library"). Should be a single, encouraging sentence.'),
-  aiInsights: z.array(z.string()).optional().describe("A short list (2-3 bullet points) of the most important, non-obvious insights from the data. Examples: 'Feels like temperature is significantly colder due to wind.', 'High chance of rain starting this evening.'"),
+  aiInsights: z.array(z.string()).optional().describe("A short list (2-3 bullet points) of the most important, non-obvious insights from the data, with the key part of each insight wrapped in <strong> tags. Examples: 'Feels like temperature is <strong>5°C colder</strong> due to wind.', '<strong>High chance of rain</strong> starting this evening.'"),
 });
 export type WeatherSummaryOutput = z.infer<typeof WeatherSummaryOutputSchema>;
 

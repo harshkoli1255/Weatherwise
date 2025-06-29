@@ -272,7 +272,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                      <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
                         <Sparkles className="h-3 w-3 text-primary" />
                      </div>
-                    <span className="text-base text-foreground/90 flex-1">{insight}</span>
+                    <span
+                      className="text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                      dangerouslySetInnerHTML={{ __html: insight }}
+                    />
                   </li>
                 ))}
               </ul>
