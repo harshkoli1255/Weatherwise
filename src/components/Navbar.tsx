@@ -66,7 +66,7 @@ export function Navbar() {
             <div className="hidden items-center gap-x-2 md:flex">
               <TooltipProvider>
                 <SignedIn>
-                  <>
+                  <div className="flex items-center gap-x-2">
                     <FavoriteCitiesDropdown />
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -86,7 +86,7 @@ export function Navbar() {
                       </TooltipContent>
                     </Tooltip>
                     <UserButton />
-                  </>
+                  </div>
                 </SignedIn>
                 <SignedOut>
                   <SignInButton mode="modal">
