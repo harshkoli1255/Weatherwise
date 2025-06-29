@@ -33,31 +33,33 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="flex h-16 items-center justify-between w-full px-4 sm:px-6 lg:px-8">
-        {/* Left Side: Logo & Main Nav */}
+      <div className="relative flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left Side: Logo */}
         <div className="flex items-center gap-4">
-          <Link href="/" className="mr-6 flex items-center space-x-2.5 group">
+          <Link href="/" className="flex items-center space-x-2.5 group">
             <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
             <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
               Weatherwise
             </span>
           </Link>
-          <nav className="hidden items-center gap-2 md:flex">
-            {navItems.map((item) => (
-              <Button
-                key={item.href}
-                variant="ghost"
-                asChild
-                className={cn(
-                  'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
-                  pathname === item.href && 'text-primary'
-                )}
-              >
-                <Link href={item.href}>{item.label}</Link>
-              </Button>
-            ))}
-          </nav>
         </div>
+
+        {/* Center: Main Nav */}
+        <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden items-center gap-2 md:flex">
+          {navItems.map((item) => (
+            <Button
+              key={item.href}
+              variant="ghost"
+              asChild
+              className={cn(
+                'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
+                pathname === item.href && 'text-primary'
+              )}
+            >
+              <Link href={item.href}>{item.label}</Link>
+            </Button>
+          ))}
+        </nav>
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2">
