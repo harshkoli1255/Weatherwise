@@ -29,14 +29,12 @@ export function Toaster() {
           <Toast key={id} variant={variant} {...props}>
             <div className="flex items-start gap-3 flex-grow">
                <div className={cn("p-1 rounded-full flex-shrink-0 mt-0.5", {
-                'bg-success/20': variant === 'success',
+                'bg-primary/20': variant === 'success' || variant === 'default',
                 'bg-destructive/20': variant === 'destructive',
-                'bg-primary/20': variant === 'default'
               })}>
                 <Icon className={cn("h-5 w-5", {
-                  'text-success-foreground': variant === 'success',
+                  'text-primary': variant === 'success' || variant === 'default',
                   'text-destructive': variant === 'destructive',
-                  'text-primary': variant === 'default'
                 })} />
               </div>
               <div className="grid gap-1">
