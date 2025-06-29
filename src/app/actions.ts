@@ -17,6 +17,7 @@ import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
+import { summarizeError } from '@/ai/flows/summarize-error';
 
 function isAiConfigured() {
   const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
@@ -434,4 +435,18 @@ export async function fetchWeatherForSavedLocationsAction(
   });
 
   return results;
+}
+
+export async function getAIErrorSummaryAction(errorMessage: string): Promise<string> {
+  if (!isAiConfigured()) {
+    // Return a generic message if AI isn't set up, to avoid breaking the UI flow.
+    return 'An unexpected error occurred. Please try again later.';
+  }
+  try {
+    const result = await summarizeError({ errorMessage });
+    return result.userFriendlyMessage;
+  } catch (err) {
+    console.error("The AI error summarization action itself failed:", err);
+    return 'An unexpected error occurred. Please try again later.';
+  }
 }

@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { saveUnitPreferences } from '@/app/settings/actions';
 import { useToast } from './use-toast';
 import type { UnitPreferences } from '@/lib/types';
+import { getAIErrorSummaryAction } from '@/app/actions';
 
 const UNITS_STORAGE_KEY = 'weatherwise-unit-preferences';
 
@@ -67,11 +68,15 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
       startTransition(async () => {
         const result = await saveUnitPreferences(newUnits);
         if (result.error) {
-          toast({
+          const t = toast({
             variant: 'destructive',
             title: 'Sync Error',
-            description: result.error,
+            description: 'Analyzing error...',
           });
+          getAIErrorSummaryAction(result.error)
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
           setUnitsState(originalUnits); // Revert on failure.
         }
       });
@@ -80,7 +85,16 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(UNITS_STORAGE_KEY, JSON.stringify(updatedUnits));
       } catch (error) {
-        console.error("Error saving unit preferences to localStorage", error);
+        const t = toast({
+            variant: 'destructive',
+            title: "Storage Error",
+            description: 'Analyzing error...',
+          });
+          const errorMessage = error instanceof Error ? error.message : "Could not save your preferences.";
+          getAIErrorSummaryAction(errorMessage)
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
       }
     }
   }, [units, user, toast]);

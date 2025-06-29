@@ -5,6 +5,7 @@ import type { CitySuggestion, WeatherSummaryData } from '@/lib/types';
 import { useToast } from './use-toast';
 import { useUser } from '@clerk/nextjs';
 import { saveSavedLocations } from '@/app/settings/actions';
+import { getAIErrorSummaryAction } from '@/app/actions';
 
 const SAVED_LOCATIONS_STORAGE_KEY = 'weatherwise-saved-locations';
 
@@ -53,7 +54,17 @@ export function SavedLocationsProvider({ children }: { children: ReactNode }) {
         if (result.success) {
           if (successMessage) toast({ title: "Success", description: successMessage, variant: 'success' });
         } else {
-          toast({ variant: 'destructive', title: 'Sync Error', description: result.error });
+          // AI Error Handling
+          const t = toast({
+            variant: 'destructive',
+            title: 'Sync Error',
+            description: 'Analyzing error...',
+          });
+          getAIErrorSummaryAction(result.error || 'An unknown sync error occurred.')
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
+            
           // If sync fails, revert to the original state
           setSavedLocations(originalLocations);
         }
@@ -64,7 +75,17 @@ export function SavedLocationsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(SAVED_LOCATIONS_STORAGE_KEY, JSON.stringify(newLocations));
         if (successMessage) toast({ title: "Success", description: successMessage, variant: 'success' });
       } catch (error) {
-        toast({ variant: 'destructive', title: 'Storage Error', description: 'Could not save your locations.' });
+        // AI Error handling for guest users too
+        const t = toast({
+            variant: 'destructive',
+            title: 'Storage Error',
+            description: 'Analyzing error...',
+          });
+          const errorMessage = error instanceof Error ? error.message : "Could not save your locations.";
+          getAIErrorSummaryAction(errorMessage)
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
       }
     }
   }, [user, toast, savedLocations]);

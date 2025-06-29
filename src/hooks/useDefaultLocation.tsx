@@ -5,6 +5,7 @@ import type { CitySuggestion } from '@/lib/types';
 import { useToast } from './use-toast';
 import { useUser } from '@clerk/nextjs';
 import { saveDefaultLocation } from '@/app/settings/actions';
+import { getAIErrorSummaryAction } from '@/app/actions';
 
 const DEFAULT_LOCATION_KEY = 'weatherwise-default-location';
 
@@ -58,11 +59,15 @@ export function DefaultLocationProvider({ children }: { children: ReactNode }) {
             variant: 'success',
           });
         } else {
-          toast({
+          const t = toast({
             variant: 'destructive',
             title: 'Sync Error',
-            description: result.error,
+            description: 'Analyzing error...',
           });
+          getAIErrorSummaryAction(result.error || 'An unknown sync error occurred.')
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
           setDefaultLocationState(originalLocation); // Revert on failure
         }
       });
@@ -80,12 +85,16 @@ export function DefaultLocationProvider({ children }: { children: ReactNode }) {
           variant: 'success',
         });
       } catch (error) {
-        console.error("Error saving default location to localStorage", error);
-         toast({
+         const t = toast({
           variant: 'destructive',
           title: "Storage Error",
-          description: "Could not save your default location.",
+          description: 'Analyzing error...',
         });
+        const errorMessage = error instanceof Error ? error.message : "Could not save your default location.";
+        getAIErrorSummaryAction(errorMessage)
+            .then(aiDescription => {
+              t.update({ description: aiDescription });
+            });
       }
     }
   }, [user, toast, defaultLocation]);
