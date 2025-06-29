@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -32,7 +33,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-16 items-center">
+      <div className="flex h-16 items-center justify-between w-full px-4 sm:px-6 lg:px-8">
         {/* Left Side: Logo & Main Nav */}
         <div className="flex items-center gap-4">
           <Link href="/" className="mr-6 flex items-center space-x-2.5 group">
@@ -58,8 +59,8 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* Right Side: Spacer and Actions */}
-        <div className="ml-auto flex items-center gap-2">
+        {/* Right Side: Actions */}
+        <div className="flex items-center gap-2">
             <div className="hidden items-center gap-x-2 md:flex">
               <TooltipProvider>
                 <SignedIn>
