@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { SavedLocationsDropdown } from './FavoriteCitiesDropdown';
+import { SavedLocationsDropdown } from './SavedLocationsDropdown';
 
 export function Navbar() {
   const pathname = usePathname();

@@ -6,7 +6,7 @@ import {
   AreaChart,
   BrainCircuit,
   BellRing,
-  Star,
+  Bookmark,
   UserCheck,
   Sparkles,
   Layers,
@@ -82,13 +82,13 @@ export default function AboutPage() {
                             Tailor the app with your preferred units for temperature (°C/°F), wind speed (km/h/mph), and time format (12/24h).
                         </FeatureItem>
                         <FeatureItem icon={CloudCog} title="Synced Preferences">
-                            Your favorites, unit settings, and default location are saved to your account and sync seamlessly across all your devices.
+                            Your saved locations, unit settings, and default location are saved to your account and sync seamlessly across all your devices.
                         </FeatureItem>
                          <FeatureItem icon={UserCheck} title="Secure Authentication">
                             Full sign-up, sign-in, and profile management powered by Clerk, complete with a modern settings hub.
                         </FeatureItem>
-                        <FeatureItem icon={Star} title="Live Favorites">
-                            Your favorites dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
+                        <FeatureItem icon={Bookmark} title="Live Saved Locations">
+                            Your "Saved Locations" dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
                         </FeatureItem>
                     </div>
                 </section>
