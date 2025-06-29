@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { FavoriteCitiesDropdown } from './FavoriteCitiesDropdown';
+import { SavedLocationsDropdown } from './FavoriteCitiesDropdown';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -67,7 +67,7 @@ export function Navbar() {
               <TooltipProvider>
                 <SignedIn>
                   <div className="flex items-center gap-2">
-                    <FavoriteCitiesDropdown />
+                    <SavedLocationsDropdown />
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -163,7 +163,7 @@ export function Navbar() {
                                   <div className="flex items-center justify-between">
                                       <div className="text-base font-medium">My Account</div>
                                       <div className="flex items-center gap-4">
-                                          <FavoriteCitiesDropdown />
+                                          <SavedLocationsDropdown />
                                           <UserButton />
                                       </div>
                                   </div>

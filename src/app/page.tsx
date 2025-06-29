@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useFavoriteCities } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useFavorites';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
@@ -44,7 +44,7 @@ function WeatherPageContent() {
   const [initialSearchTerm, setInitialSearchTerm] = useState('');
   
   const { toast } = useToast();
-  const { addFavorite, removeFavorite, isFavorite } = useFavoriteCities();
+  const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -249,14 +249,14 @@ function WeatherPageContent() {
       lon: weatherState.data.lon,
     };
 
-    if (isFavorite(cityData)) {
-      removeFavorite(cityData);
+    if (isLocationSaved(cityData)) {
+      removeLocation(cityData);
     } else {
-      addFavorite(cityData);
+      saveLocation(cityData);
     }
-  }, [weatherState.data, isFavorite, addFavorite, removeFavorite]);
+  }, [weatherState.data, isLocationSaved, saveLocation, removeLocation]);
 
-  const isCurrentCitySaved = weatherState.data ? isFavorite(weatherState.data) : false;
+  const isCurrentLocationSaved = weatherState.data ? isLocationSaved(weatherState.data) : false;
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   return (
@@ -292,7 +292,7 @@ function WeatherPageContent() {
         <SignedIn>
             <WeatherDisplay
             weatherData={weatherState.data}
-            isCitySaved={isCurrentCitySaved}
+            isLocationSaved={isCurrentLocationSaved}
             onSaveCityToggle={handleSaveCityToggle}
             />
         </SignedIn>
@@ -303,8 +303,8 @@ function WeatherPageContent() {
         <SignedOut>
              <WeatherDisplay
                 weatherData={weatherState.data}
-                isCitySaved={false}
-                onSaveCityToggle={() => toast({ title: "Sign in to save cities", description: "Create an account to save and manage your favorite cities."})}
+                isLocationSaved={false}
+                onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
             />
         </SignedOut>
       )}

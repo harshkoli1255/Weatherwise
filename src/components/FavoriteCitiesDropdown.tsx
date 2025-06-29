@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useFavoriteCities } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useFavorites';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,16 +27,16 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/comp
 import { Star, Trash2, Inbox, RefreshCw, AlertCircle, Bell, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import type { CitySuggestion, FavoritesWeatherMap } from '@/lib/types';
+import type { CitySuggestion, SavedLocationsWeatherMap } from '@/lib/types';
 import { SignedIn } from '@clerk/nextjs';
-import { fetchWeatherForFavoritesAction } from '@/app/actions';
+import { fetchWeatherForSavedLocationsAction } from '@/app/actions';
 import { WeatherIcon } from './WeatherIcon';
 import { Skeleton } from './ui/skeleton';
 import { setAlertCityAction } from '@/app/alerts/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useUnits } from '@/hooks/useUnits';
 
-const FavoriteItemSkeleton = () => (
+const SavedLocationItemSkeleton = () => (
   <div className="flex items-center justify-between p-2 m-1">
     <div className="flex items-center min-w-0 gap-3">
       <Skeleton className="h-4 w-4 rounded-md flex-shrink-0" />
@@ -52,12 +52,12 @@ const FavoriteItemSkeleton = () => (
 );
 
 
-export function FavoriteCitiesDropdown() {
-  const { favorites, removeMultipleFavorites, isSyncing } = useFavoriteCities();
+export function SavedLocationsDropdown() {
+  const { savedLocations, removeMultipleLocations, isSyncing } = useSavedLocations();
   const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedCities, setSelectedCities] = useState<CitySuggestion[]>([]);
-  const [weatherData, setWeatherData] = useState<FavoritesWeatherMap>({});
+  const [weatherData, setWeatherData] = useState<SavedLocationsWeatherMap>({});
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [isPendingAlert, startAlertTransition] = React.useTransition();
   const [pendingCityKey, setPendingCityKey] = useState<string | null>(null);
@@ -68,17 +68,17 @@ export function FavoriteCitiesDropdown() {
     setIsMounted(true);
   }, []);
 
-  const loadFavoritesWeather = useCallback(async () => {
-    if (favorites.length === 0) return;
+  const loadSavedLocationsWeather = useCallback(async () => {
+    if (savedLocations.length === 0) return;
     setIsLoadingWeather(true);
-    const data = await fetchWeatherForFavoritesAction(favorites);
+    const data = await fetchWeatherForSavedLocationsAction(savedLocations);
     setWeatherData(data);
     setIsLoadingWeather(false);
-  }, [favorites]);
+  }, [savedLocations]);
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen && favorites.length > 0) {
-      loadFavoritesWeather();
+    if (isOpen && savedLocations.length > 0) {
+      loadSavedLocationsWeather();
     } else if (!isAlertOpen) {
       setSelectedCities([]);
     }
@@ -97,14 +97,14 @@ export function FavoriteCitiesDropdown() {
   
   const handleSelectAll = (isChecked: boolean) => {
     if (isChecked) {
-      setSelectedCities([...favorites]);
+      setSelectedCities([...savedLocations]);
     } else {
       setSelectedCities([]);
     }
   };
 
   const handleDelete = () => {
-    removeMultipleFavorites(selectedCities);
+    removeMultipleLocations(selectedCities);
     setSelectedCities([]);
     setIsAlertOpen(false);
   };
@@ -133,7 +133,7 @@ export function FavoriteCitiesDropdown() {
   }, [toast]);
 
 
-  const isAllSelected = useMemo(() => favorites.length > 0 && selectedCities.length === favorites.length, [favorites, selectedCities]);
+  const isAllSelected = useMemo(() => savedLocations.length > 0 && selectedCities.length === savedLocations.length, [savedLocations, selectedCities]);
   
   const handleCityClick = (city: CitySuggestion) => {
     const event = new CustomEvent('weather-search', { detail: city });
@@ -145,13 +145,13 @@ export function FavoriteCitiesDropdown() {
         <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <Star className={cn("h-5 w-5 transition-colors", isMounted && favorites.length > 0 && "text-primary fill-primary")} />
-                <span className="hidden md:inline">Favorites</span>
+                <Star className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
+                <span className="hidden md:inline">Saved</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between p-3">
-                <span className="font-bold text-base">Favorite Cities</span>
+                <span className="font-bold text-base">Saved Locations</span>
                 <div className="flex items-center gap-1">
                     {selectedCities.length > 0 && (
                     <Button variant="destructive" size="sm" className="h-7 rounded-md" onClick={(e) => {
@@ -165,7 +165,7 @@ export function FavoriteCitiesDropdown() {
                      <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={loadFavoritesWeather} disabled={isLoadingWeather || isSyncing}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={loadSavedLocationsWeather} disabled={isLoadingWeather || isSyncing}>
                                     <RefreshCw className={cn("h-4 w-4 text-muted-foreground", isLoadingWeather && "animate-spin")} />
                                 </Button>
                             </TooltipTrigger>
@@ -178,11 +178,11 @@ export function FavoriteCitiesDropdown() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {favorites.length === 0 ? (
+            {savedLocations.length === 0 ? (
                 <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-4">
                     <Inbox className="h-10 w-10 text-muted-foreground/50" />
                     <div>
-                        <p className="font-semibold text-foreground/90">No Favorite Cities Yet</p>
+                        <p className="font-semibold text-foreground/90">No Saved Locations Yet</p>
                         <p className="text-xs mt-1">Click the pin next to a city name to save it for quick access.</p>
                     </div>
                 </div>
@@ -197,7 +197,7 @@ export function FavoriteCitiesDropdown() {
                                 id="select-all"
                                 checked={isAllSelected}
                                 onCheckedChange={handleSelectAll}
-                                aria-label="Select all cities"
+                                aria-label="Select all locations"
                                 disabled={isSyncing}
                             />
                             <label
@@ -213,9 +213,9 @@ export function FavoriteCitiesDropdown() {
                     <ScrollArea className="h-[250px]">
                         <DropdownMenuGroup className="p-1">
                         {isLoadingWeather ? (
-                            Array.from({ length: Math.min(favorites.length, 3) || 3 }).map((_, i) => <FavoriteItemSkeleton key={i} />)
+                            Array.from({ length: Math.min(savedLocations.length, 3) || 3 }).map((_, i) => <SavedLocationItemSkeleton key={i} />)
                         ) : (
-                            favorites.map((city) => {
+                            savedLocations.map((city) => {
                                 const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
                                 const weather = weatherData[cityKey];
                                 const isSelected = selectedCities.some(c => `${c.lat.toFixed(4)},${c.lon.toFixed(4)}` === cityKey);
@@ -311,7 +311,7 @@ export function FavoriteCitiesDropdown() {
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete {selectedCities.length} favorite {selectedCities.length === 1 ? 'city' : 'cities'}. This action cannot be undone.
+                  This will permanently delete {selectedCities.length} saved {selectedCities.length === 1 ? 'location' : 'locations'}. This action cannot be undone.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

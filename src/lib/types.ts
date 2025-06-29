@@ -259,8 +259,8 @@ export interface EmailTemplatePayload {
   alertTriggers?: string[];
 }
 
-export type FavoriteCityWeatherResult = WeatherData | { error: string };
-export type FavoritesWeatherMap = Record<string, FavoriteCityWeatherResult>;
+export type SavedLocationWeatherResult = WeatherData | { error: string };
+export type SavedLocationsWeatherMap = Record<string, SavedLocationWeatherResult>;
 
 export interface UnitPreferences {
   temperature: 'celsius' | 'fahrenheit';

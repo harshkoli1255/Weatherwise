@@ -61,7 +61,7 @@ export async function saveDefaultLocation(location: CitySuggestion | null) {
   }
 }
 
-export async function saveFavorites(favorites: CitySuggestion[]) {
+export async function saveSavedLocations(locations: CitySuggestion[]) {
   const { userId } = auth();
   if (!userId) {
     return { success: false, error: 'User not authenticated.' };
@@ -75,16 +75,16 @@ export async function saveFavorites(favorites: CitySuggestion[]) {
       publicMetadata: {
         ...existingPublicMetadata,
         // Clerk metadata can't store undefined, so ensure it's an array.
-        favoriteCities: favorites || [],
+        savedLocations: locations || [],
       },
     });
 
-    // Revalidate paths where favorites might be displayed to ensure consistency
+    // Revalidate paths where saved locations might be displayed to ensure consistency
     revalidatePath('/');
     return { success: true };
   } catch (error) {
-    console.error('Failed to save favorites:', error);
+    console.error('Failed to save saved locations:', error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred.";
-    return { success: false, error: `Failed to save favorites: ${message}` };
+    return { success: false, error: `Failed to save locations: ${message}` };
   }
 }

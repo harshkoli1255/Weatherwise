@@ -8,7 +8,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Inter, Poppins } from 'next/font/google';
 import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
-import { FavoritesProvider } from '@/hooks/useFavorites';
+import { SavedLocationsProvider } from '@/hooks/useFavorites';
 import { UnitsProvider } from '@/hooks/useUnits';
 import { DefaultLocationProvider } from '@/hooks/useDefaultLocation';
 
@@ -57,7 +57,7 @@ export default function RootLayout({
           >
             <UnitsProvider>
               <DefaultLocationProvider>
-                <FavoritesProvider>
+                <SavedLocationsProvider>
                   <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
                     <Navbar />
                     <main className="flex-grow">
@@ -68,7 +68,7 @@ export default function RootLayout({
                     </footer>
                   </div>
                   <Toaster />
-                </FavoritesProvider>
+                </SavedLocationsProvider>
               </DefaultLocationProvider>
             </UnitsProvider>
           </ThemeProvider>

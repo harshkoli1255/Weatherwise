@@ -9,8 +9,8 @@ import {
   type OpenWeatherCurrentAPIResponse,
   type WeatherSummaryInput,
   type InterpretSearchQueryOutput,
-  FavoritesWeatherMap,
-  FavoriteCityWeatherResult,
+  SavedLocationsWeatherMap,
+  SavedLocationWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
@@ -394,14 +394,14 @@ export async function getCityFromCoordsAction(
 }
 
 
-export async function fetchWeatherForFavoritesAction(
+export async function fetchWeatherForSavedLocationsAction(
   cities: CitySuggestion[]
-): Promise<FavoritesWeatherMap> {
+): Promise<SavedLocationsWeatherMap> {
   const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
-  const results: FavoritesWeatherMap = {};
+  const results: SavedLocationsWeatherMap = {};
 
   if (!apiKey) {
-    console.error("[Server Config Error] OpenWeather API keys are not set for favorites action.");
+    console.error("[Server Config Error] OpenWeather API keys are not set for saved locations action.");
     for (const city of cities) {
       const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
       results[key] = { error: "Server not configured" };
@@ -413,7 +413,7 @@ export async function fetchWeatherForFavoritesAction(
     fetchCurrentWeather({ type: 'coords', lat: city.lat, lon: city.lon }, apiKey)
       .then(weatherResult => {
         const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
-        const result: { key: string; value: FavoriteCityWeatherResult } = {
+        const result: { key: string; value: SavedLocationWeatherResult } = {
           key,
           value: weatherResult.data ? weatherResult.data : { error: weatherResult.error || 'Failed to load' }
         };

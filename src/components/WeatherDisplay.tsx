@@ -9,13 +9,13 @@ import React, { useState, useMemo } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
-import { useFavoriteCities } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useFavorites';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
-  isCitySaved: boolean;
+  isLocationSaved: boolean;
   onSaveCityToggle: () => void;
 }
 
@@ -71,10 +71,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 
-export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: WeatherDisplayProps) {
+export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime } = useUnits();
-  const { isSyncing } = useFavoriteCities();
+  const { isSyncing } = useSavedLocations();
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
@@ -107,7 +107,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                     variant="ghost"
                     size="icon"
                     onClick={onSaveCityToggle}
-                    aria-label={isCitySaved ? 'Unpin this city' : 'Pin this city'}
+                    aria-label={isLocationSaved ? 'Unpin this city' : 'Pin this city'}
                     className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
                     disabled={isSyncing}
                   >
@@ -116,13 +116,13 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
                     ) : (
                         <Pin className={cn(
                             "h-6 w-6 transition-all duration-300",
-                            isCitySaved ? "fill-primary text-primary" : "fill-none"
+                            isLocationSaved ? "fill-primary text-primary" : "fill-none"
                         )} />
                     )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isSyncing ? "Syncing..." : isCitySaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
+                  <p>{isSyncing ? "Syncing..." : isLocationSaved ? `Unpin ${weatherData.city}` : `Pin ${weatherData.city}`}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
