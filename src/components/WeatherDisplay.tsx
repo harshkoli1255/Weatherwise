@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -132,38 +132,23 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         <CardDescription className="text-center text-lg capitalize text-muted-foreground mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 sm:p-5">
-        {weatherData.aiImageUrl && (
-          <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-             <div className="flex items-center mb-4">
-              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-                Visual Story
-              </h3>
-            </div>
-            <img
-              src={weatherData.aiImageUrl}
-              alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-              className="w-full h-auto aspect-[16/9] object-cover rounded-lg shadow-lg border border-border/20"
-            />
-          </div>
-        )}
-
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
-          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
+          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
             <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
               {convertTemperature(weatherData.temperature)}°
               <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
             </div>
           </div>
-          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '300ms' }}>
+          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
             <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
@@ -282,9 +267,14 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
               </h3>
             </div>
             <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
-              <ul className="space-y-2 list-disc list-inside text-base text-foreground/90">
+              <ul className="space-y-3">
                 {weatherData.aiInsights.map((insight, index) => (
-                  <li key={index}>{insight}</li>
+                  <li key={index} className="flex items-start">
+                     <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                     </div>
+                    <span className="text-base text-foreground/90 flex-1">{insight}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -294,15 +284,26 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         {weatherData.activitySuggestion && (
           <div className="pt-4 border-t border-border/50">
             <div className="flex items-center mb-4">
-              <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-                Activity Suggestion
-              </h3>
+                <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+                <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                    Activity Suggestion
+                </h3>
             </div>
-            <div
-              className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-            />
+            <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                <div
+                    className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                    dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                />
+                {weatherData.aiImageUrl && (
+                    <div className="animate-in fade-in zoom-in-95">
+                        <img
+                            src={weatherData.aiImageUrl}
+                            alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                            className="w-full h-auto aspect-[16/9] object-cover rounded-md shadow-md border border-border/30"
+                        />
+                    </div>
+                )}
+            </div>
           </div>
         )}
       </CardContent>
