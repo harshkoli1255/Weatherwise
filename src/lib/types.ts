@@ -39,6 +39,7 @@ export interface WeatherSummaryData extends WeatherData {
   weatherSentiment?: 'good' | 'bad' | 'neutral';
   activitySuggestion?: string;
   aiInsights?: string[];
+  aiImageUrl?: string;
 }
 
 // For current weather from /data/2.5/weather

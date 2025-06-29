@@ -1,8 +1,9 @@
+
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -131,6 +132,22 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         <CardDescription className="text-center text-lg capitalize text-muted-foreground mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 sm:p-5">
+        {weatherData.aiImageUrl && (
+          <div className="animate-in fade-in zoom-in-95">
+             <div className="flex items-center mb-4">
+              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                Visual Story
+              </h3>
+            </div>
+            <img
+              src={weatherData.aiImageUrl}
+              alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+              className="w-full h-auto aspect-[16/9] object-cover rounded-lg shadow-lg border border-border/20"
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
           <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
             <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">

@@ -15,6 +15,7 @@ import {
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
+import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
 import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 
@@ -118,7 +119,7 @@ export async function fetchWeatherAndSummaryAction(
     // Fetch hourly forecast first, as it's now an input for the AI.
     const hourlyForecastResult = await fetchHourlyForecast(locationIdentifier, apiKey);
     
-    const aiResult = await (isAiConfigured()
+    const aiSummaryResult = await (isAiConfigured()
       ? summarizeWeather({
           city: finalDisplayName,
           temperature: currentWeatherData.temperature,
@@ -131,10 +132,26 @@ export async function fetchWeatherAndSummaryAction(
           console.error("Error generating AI weather summary:", err);
           const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
           const userFacingError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
-          return { summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: userFacingError };
+          return { summary: userFacingError, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: userFacingError };
         })
-      : Promise.resolve({ summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: "AI summary service is not configured." })
+      : Promise.resolve({ summary: "AI summary not available.", subjectLine: null, weatherSentiment: 'neutral', activitySuggestion: "Check conditions before planning activities.", aiInsights: [], error: "AI summary service is not configured." })
     );
+
+    let aiImageUrl: string | undefined = undefined;
+    if (isAiConfigured() && aiSummaryResult.activitySuggestion && !aiSummaryResult.error) {
+      try {
+        console.log("[AI] Generating weather image based on activity suggestion.");
+        const imageResult = await generateWeatherImage({
+          city: finalDisplayName,
+          condition: currentWeatherData.description,
+          activitySuggestion: aiSummaryResult.activitySuggestion,
+        });
+        aiImageUrl = imageResult.imageUrl;
+      } catch (err) {
+        console.error("Error generating AI weather image, continuing without it.", err);
+        // Fail gracefully, the image is a bonus.
+      }
+    }
 
     const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${finalDisplayName}`;
     
@@ -143,12 +160,13 @@ export async function fetchWeatherAndSummaryAction(
         city: finalDisplayName,
         lat: locationIdentifier.lat,
         lon: locationIdentifier.lon,
-        aiSummary: aiResult.summary || aiResult.error || "AI summary not available.",
-        aiSubject: aiResult.subjectLine || fallbackSubject,
-        weatherSentiment: aiResult.weatherSentiment || 'neutral',
-        activitySuggestion: aiResult.activitySuggestion || "Check conditions before planning activities.",
-        aiInsights: aiResult.aiInsights ?? [],
+        aiSummary: aiSummaryResult.summary || "AI summary not available.",
+        aiSubject: aiSummaryResult.subjectLine || fallbackSubject,
+        weatherSentiment: aiSummaryResult.weatherSentiment || 'neutral',
+        activitySuggestion: aiSummaryResult.activitySuggestion || "Check conditions before planning activities.",
+        aiInsights: aiSummaryResult.aiInsights ?? [],
         hourlyForecast: hourlyForecastResult.data ?? [], 
+        aiImageUrl: aiImageUrl,
     };
 
     cacheService.set(cacheKey, finalData);
