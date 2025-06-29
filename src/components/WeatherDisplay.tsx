@@ -1,4 +1,3 @@
-
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -76,7 +75,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
   }
 
   return (
-    <Card className="w-full bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-4xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="pt-6 pb-4 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2 px-4">
           <div className="w-9" /> {/* Spacer to balance the pin icon and ensure title is centered */}
