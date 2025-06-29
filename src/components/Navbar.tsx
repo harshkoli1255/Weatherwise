@@ -34,7 +34,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="container flex h-16 items-center">
         {/* Left Side: Logo & Main Nav */}
-        <div className="mr-auto flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <Link href="/" className="mr-6 flex items-center space-x-2.5 group">
             <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
             <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
@@ -58,7 +58,7 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* Right Side: User Actions */}
+        {/* Right Side: Spacer and Actions */}
         <div className="ml-auto flex items-center gap-2">
             <div className="hidden items-center gap-x-2 md:flex">
               <TooltipProvider>
