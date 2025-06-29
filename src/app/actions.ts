@@ -115,26 +115,26 @@ export async function fetchWeatherAndSummaryAction(
     // The final display name is the user-friendly one from AI/suggestion click if available. Otherwise, it's the name from the weather API.
     const finalDisplayName = userFriendlyDisplayName || currentWeatherData.city;
 
-    const aiInput: WeatherSummaryInput = {
-      city: finalDisplayName,
-      temperature: currentWeatherData.temperature,
-      feelsLike: currentWeatherData.feelsLike,
-      humidity: currentWeatherData.humidity,
-      windSpeed: currentWeatherData.windSpeed,
-      condition: currentWeatherData.description,
-    };
+    // Fetch hourly forecast first, as it's now an input for the AI.
+    const hourlyForecastResult = await fetchHourlyForecast(locationIdentifier, apiKey);
     
-    const [hourlyForecastResult, aiResult] = await Promise.all([
-      fetchHourlyForecast(locationIdentifier, apiKey),
-      isAiConfigured()
-        ? summarizeWeather(aiInput).then(res => ({ ...res, error: null })).catch(err => {
-            console.error("Error generating AI weather summary:", err);
-            const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
-            const userFacingError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
-            return { summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, error: userFacingError };
-          })
-        : Promise.resolve({ summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, error: "AI summary service is not configured." })
-    ]);
+    const aiResult = await (isAiConfigured()
+      ? summarizeWeather({
+          city: finalDisplayName,
+          temperature: currentWeatherData.temperature,
+          feelsLike: currentWeatherData.feelsLike,
+          humidity: currentWeatherData.humidity,
+          windSpeed: currentWeatherData.windSpeed,
+          condition: currentWeatherData.description,
+          hourlyForecast: hourlyForecastResult.data ?? [],
+        }).then(res => ({ ...res, error: null })).catch(err => {
+          console.error("Error generating AI weather summary:", err);
+          const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+          const userFacingError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
+          return { summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: userFacingError };
+        })
+      : Promise.resolve({ summary: null, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: "AI summary service is not configured." })
+    );
 
     const fallbackSubject = `${currentWeatherData.temperature}°C & ${currentWeatherData.description} in ${finalDisplayName}`;
     
@@ -147,6 +147,7 @@ export async function fetchWeatherAndSummaryAction(
         aiSubject: aiResult.subjectLine || fallbackSubject,
         weatherSentiment: aiResult.weatherSentiment || 'neutral',
         activitySuggestion: aiResult.activitySuggestion || "Check conditions before planning activities.",
+        aiInsights: aiResult.aiInsights ?? [],
         hourlyForecast: hourlyForecastResult.data ?? [], 
     };
 

@@ -2,7 +2,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Pin, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -255,6 +255,24 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
             dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
           />
         </div>
+
+        {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+          <div className="pt-4 border-t border-border/50">
+            <div className="flex items-center mb-4">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                Key Insights
+              </h3>
+            </div>
+            <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
+              <ul className="space-y-2 list-disc list-inside text-base text-foreground/90">
+                {weatherData.aiInsights.map((insight, index) => (
+                  <li key={index}>{insight}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {weatherData.activitySuggestion && (
           <div className="pt-4 border-t border-border/50">
