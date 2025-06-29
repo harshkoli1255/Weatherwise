@@ -257,3 +257,9 @@ export interface EmailTemplatePayload {
 
 export type FavoriteCityWeatherResult = WeatherData | { error: string };
 export type FavoritesWeatherMap = Record<string, FavoriteCityWeatherResult>;
+
+export interface UnitPreferences {
+  temperature: 'celsius' | 'fahrenheit';
+  windSpeed: 'kmh' | 'mph';
+  timeFormat: '12h' | '24h';
+}

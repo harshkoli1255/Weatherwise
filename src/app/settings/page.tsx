@@ -8,7 +8,8 @@ import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useUnits, type TemperatureUnit, type WindSpeedUnit, type TimeFormatUnit } from '@/hooks/useUnits';
+import { useUnits } from '@/hooks/useUnits';
+import type { TemperatureUnit, WindSpeedUnit, TimeFormatUnit } from '@/hooks/useUnits.tsx';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
 import { useState, useEffect } from 'react';
 import type { CitySuggestion } from '@/lib/types';
@@ -111,6 +112,13 @@ function UnitSettings() {
             <div className="space-y-4">
                 <div className="space-y-2">
                     <Skeleton className="h-3 w-16" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-9 w-full rounded-md" />
+                        <Skeleton className="h-9 w-full rounded-md" />
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-3 w-20" />
                     <div className="flex gap-2">
                         <Skeleton className="h-9 w-full rounded-md" />
                         <Skeleton className="h-9 w-full rounded-md" />

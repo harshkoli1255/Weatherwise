@@ -1,21 +1,17 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { saveUnitPreferences } from '@/app/settings/actions';
 import { useToast } from './use-toast';
+import type { UnitPreferences } from '@/lib/types';
 
 const UNITS_STORAGE_KEY = 'weatherwise-unit-preferences';
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
 export type WindSpeedUnit = 'kmh' | 'mph';
 export type TimeFormatUnit = '12h' | '24h';
-
-interface UnitPreferences {
-  temperature: TemperatureUnit;
-  windSpeed: WindSpeedUnit;
-  timeFormat: TimeFormatUnit;
-}
 
 interface UnitsContextType {
   units: UnitPreferences;
