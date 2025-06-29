@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -53,7 +52,7 @@ const SummarizeTriggersOutputSchema = z.object({
   reason: z
     .string()
     .describe(
-      'A concise, user-facing reason why the alert was triggered. For example, "High temperature: 32°C" or "High winds and rain." If no alert, this should be empty.'
+      'A concise, user-facing reason why the alert was triggered, using <strong> tags for emphasis. For example, "<strong>High temperature</strong>: 32°C" or "High winds and <strong>rain</strong>." If no alert, this should be empty.'
     ),
 });
 

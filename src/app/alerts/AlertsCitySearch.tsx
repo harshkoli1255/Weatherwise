@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
@@ -11,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { WeatherIcon } from '@/components/WeatherIcon';
+import { useUnits } from '@/hooks/useUnits';
 
 interface AlertsCitySearchProps {
   value: string;
@@ -30,6 +30,12 @@ export function AlertsCitySearch({ value, onValueChange, onSelectSuggestion, nam
   const commandRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleUseLocation = async () => {
     if (!navigator.geolocation) {
@@ -207,15 +213,13 @@ export function AlertsCitySearch({ value, onValueChange, onSelectSuggestion, nam
                             <div className="flex flex-col items-start truncate">
                               <span className="font-medium text-foreground">{suggestion.name}</span>
                               <span className="text-xs text-muted-foreground">
-                                City
-                                {suggestion.state && ` in ${suggestion.state}`}
-                                {suggestion.country && `, ${suggestion.country}`}
+                                {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
                               </span>
                             </div>
                           </div>
-                          {typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                           {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
                             <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
-                              <span className="font-semibold text-foreground">{suggestion.temperature}°C</span>
+                              <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
                               <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useToast } from "@/hooks/use-toast"
@@ -28,7 +27,7 @@ export function Toaster() {
 
         return (
           <Toast key={id} variant={variant} {...props}>
-            <div className="flex items-start gap-4 flex-grow">
+            <div className="flex items-start gap-3 flex-grow">
                <div className={cn("p-1 rounded-full flex-shrink-0 mt-0.5", {
                 'bg-success/20': variant === 'success',
                 'bg-destructive/20': variant === 'destructive',
@@ -36,7 +35,7 @@ export function Toaster() {
               })}>
                 <Icon className={cn("h-5 w-5", {
                   'text-success-foreground': variant === 'success',
-                  'text-destructive-foreground': variant === 'destructive',
+                  'text-destructive': variant === 'destructive',
                   'text-primary': variant === 'default'
                 })} />
               </div>

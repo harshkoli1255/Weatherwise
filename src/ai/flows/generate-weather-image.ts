@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to generate a visual representation of the weather and a suggested activity.

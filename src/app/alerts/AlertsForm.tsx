@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -259,21 +258,21 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
                   <Label>Active Days of the Week</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">
                       {daysOfWeek.map(day => (
-                          <Label
-                            key={day.id}
-                            htmlFor={`day-${day.id}`}
-                            className="flex items-center justify-center space-x-2 rounded-lg border-2 border-input p-3 transition-colors duration-200 ease-in-out has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm cursor-pointer"
-                          >
-                              <Checkbox 
+                          <div key={day.id} className="relative">
+                            <Checkbox 
                                 id={`day-${day.id}`} 
                                 name={`scheduleDay${day.id}`}
                                 checked={selectedDays.includes(day.id)}
                                 onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
-                              />
-                              <span className="text-sm font-medium leading-none select-none">
+                                className="sr-only peer"
+                            />
+                            <Label
+                                htmlFor={`day-${day.id}`}
+                                className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                            >
                                 {day.label}
-                              </span>
-                          </Label>
+                            </Label>
+                          </div>
                       ))}
                   </div>
               </div>
