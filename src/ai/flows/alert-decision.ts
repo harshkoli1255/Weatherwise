@@ -64,7 +64,7 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
   // --- Deterministic Weather Checks ---
 
   // 1. Significant Precipitation Event
-  const severePrecipitationKeywords = ["heavy rain", "thunderstorm", "snow", "freezing rain", "hail", "tornado", "squall"];
+  const severePrecipitationKeywords = ["rain", "thunderstorm", "snow", "drizzle", "hail", "tornado", "squall", "sleet"];
   if (severePrecipitationKeywords.some(keyword => input.description.toLowerCase().includes(keyword))) {
     triggers.push(`Current condition is significant: ${input.description}`);
   }
