@@ -15,31 +15,47 @@
 
 <br/>
 
+**Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
+
 <div align="center">
   <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">&nbsp;&nbsp;
   <img src="./public/WeatherwiseDarkThemeScreenshot.png" alt="The Weatherwise dashboard in Dark Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
 </div>
 
-**Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
-
 ---
 
 ## ✨ Core Features
 
-*   **Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide, with an interactive hourly forecast.
-*   **AI-Powered Search & Insights:**
-    *   **Intelligent Search:** Our AI understands natural language, corrects typos, and interprets complex queries like landmarks or businesses (e.g., `"weather at the eiffel tower"`). Live weather data is shown directly in the search suggestions.
+*   **🌐 Dynamic Weather Dashboard:** Get real-time weather data for any city worldwide, complete with an interactive hourly forecast and beautiful data visualizations.
+*   **🧠 AI-Powered Search & Insights:**
+    *   **Intelligent Search:** Our AI understands natural language, corrects typos, and interprets complex queries like landmarks or businesses (e.g., `"weather at the eiffel tower"`).
     *   **Conversational Summaries:** Get friendly, easy-to-read weather summaries and creative activity suggestions tailored to the current conditions.
-*   **Synced & Personalized Experience:**
-    *   **Cross-Device Sync:** Your favorite cities, unit preferences, and default location are saved to your account and sync seamlessly across all your devices.
+    *   **Visual Weather Story:** A unique, AI-generated image brings the weather and activity suggestion to life for a more immersive experience.
+*   **☁️ Synced & Personalized Experience:**
+    *   **Cross-Device Sync:** Your saved locations, unit preferences, and default location are saved to your account and sync seamlessly across all your devices.
     *   **Customizable Display:** Choose between Celsius/Fahrenheit, km/h/mph, and 12/24-hour time formats.
-    *   **Default Location:** Set a default city to load automatically every time you open the app.
-*   **Intelligent, Customizable Alerts:**
-    *   **AI-Driven Decisions:** The AI analyzes weather conditions to decide if an alert is significant enough to send.
-    *   **Custom Schedules & Sensitivity:** Define specific days, times, and a timezone to receive alerts, and control notification frequency to prevent fatigue.
-*   **Live Favorites Dashboard:** Your "Favorites" dropdown shows live weather for all your saved cities at a glance and allows you to set any favorite as your primary alert city with one click.
-*   **Secure User Authentication:** Full sign-up, sign-in, and profile management powered by Clerk.
-*   **Modern, Responsive UI:** A polished, responsive interface built with Tailwind CSS and ShadCN UI, featuring light and dark modes.
+*   **🔔 Intelligent, Customizable Alerts:**
+    *   **AI-Driven Decisions:** An AI agent analyzes weather conditions to decide if an alert is significant enough to send, preventing notification fatigue.
+    *   **Custom Schedules & Sensitivity:** Define specific days, times, and a timezone to receive alerts, and control notification frequency.
+*   **🔖 Live Saved Locations:** Your "Saved Locations" dropdown shows live weather for all your saved cities at a glance and allows you to set any location as your primary alert city with one click.
+*   **🔒 Secure User Authentication:** Full sign-up, sign-in, and profile management powered by Clerk.
+*   **🎨 Modern, Responsive UI:** A polished, responsive interface built with Tailwind CSS and ShadCN UI, featuring beautifully matched light and dark modes.
+
+---
+
+## 🛠️ Built With
+
+Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience:
+
+| Technology | Role |
+| :--- | :--- |
+| **Next.js** | Full-stack React framework with App Router |
+| **React & TypeScript**| Core UI library and language |
+| **Tailwind CSS & ShadCN UI** | Styling and component library |
+| **Genkit & Gemini**| Generative AI flows and models |
+| **Firebase App Hosting** | Deployment and hosting |
+| **Clerk** | User authentication and management |
+| **Nodemailer** | Email alert delivery |
 
 ---
 
@@ -170,3 +186,5 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ### How to Verify
 Check your application's logs in the Firebase Console. If you see the log message `[CRON-AUTH-SUCCESS] Cron job authorized successfully`, it's working!
+
+    
