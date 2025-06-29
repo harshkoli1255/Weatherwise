@@ -1,4 +1,3 @@
-
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -6,6 +5,9 @@ import { z } from 'zod';
 import type { AlertPreferences, CitySuggestion, SaveAlertsFormState } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { processUserForAlerts } from '@/services/alertProcessing';
+import { fetchWeatherAndSummaryAction } from '../actions';
+import { generateWeatherAlertEmailHtml } from '@/lib/email-templates';
+import { sendEmail } from '@/services/emailService';
 
 export async function saveAlertPreferencesAction(
   prevState: SaveAlertsFormState,
@@ -169,6 +171,50 @@ export async function testAlertsAction(): Promise<{ message: string; error: bool
   }
 }
 
+export async function forceTestAlertAction(): Promise<{ message: string; error: boolean }> {
+  const { userId } = auth();
+  if (!userId) {
+    return { message: 'You must be signed in to perform this action.', error: true };
+  }
+
+  try {
+    const user = await clerkClient().users.getUser(userId);
+    const prefsRaw = user.privateMetadata?.alertPreferences;
+    if (!prefsRaw) {
+        return { message: 'Please save your alert preferences before sending a test.', error: true };
+    }
+    const preferences = JSON.parse(JSON.stringify(prefsRaw)) as AlertPreferences;
+    const email = preferences.email;
+
+    if (!preferences.alertsEnabled || !preferences.city || !email) {
+        return { message: 'Please enable alerts and set a city before sending a test.', error: true };
+    }
+
+    const weatherResult = await fetchWeatherAndSummaryAction({ city: preferences.city });
+    if (weatherResult.error || !weatherResult.data) {
+      return { message: `Could not fetch weather data for your city. Error: ${weatherResult.error}`, error: true };
+    }
+    
+    const emailHtml = generateWeatherAlertEmailHtml({ 
+        weatherData: weatherResult.data, 
+        alertTriggers: ["This is a <strong>manually requested</strong> test alert from Weatherwise."]
+    });
+    const emailSubject = `[Test] Weatherwise Alert for ${weatherResult.data.city}`;
+
+    const emailResult = await sendEmail({ to: email, subject: emailSubject, html: emailHtml });
+    
+    if (emailResult.success) {
+      return { message: 'A test alert has been successfully sent to your email.', error: false };
+    } else {
+      return { message: `Email sending failed. Please check your server configuration. Details: ${emailResult.error}`, error: true };
+    }
+
+  } catch (error) {
+    console.error('Failed to run forced test alert:', error);
+    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { message: `An unexpected error occurred: ${message}`, error: true };
+  }
+}
 
 export async function getAlertPreferencesAction(): Promise<{ preferences: AlertPreferences | null; error: string | null }> {
   const { userId } = auth();

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import type { AlertPreferences, SaveAlertsFormState } from '@/lib/types';
-import { saveAlertPreferencesAction, testAlertsAction } from './actions';
+import { saveAlertPreferencesAction, testAlertsAction, forceTestAlertAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,11 +12,17 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, MailQuestion, Info } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TimezoneSearch } from './TimezoneSearch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AlertsFormProps {
   preferences: AlertPreferences;
@@ -63,6 +69,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [selectedDays, setSelectedDays] = useState<number[]>(preferences.schedule?.days ?? []);
   
   const [isTesting, startTestTransition] = useTransition();
+  const [isForceSending, startForceSendTransition] = useTransition();
   const { pending: isSaving } = useFormStatus();
 
   // State to prevent hydration mismatch from client-side only logic
@@ -119,6 +126,18 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
     });
   };
 
+  const handleForceSend = async () => {
+    startForceSendTransition(async () => {
+        toast({ title: "Sending Forced Test...", description: "This will send an email regardless of weather conditions." });
+        const result = await forceTestAlertAction();
+        toast({
+            title: result.error ? "Error" : "Forced Test Sent",
+            description: result.message,
+            variant: result.error ? "destructive" : "success"
+        });
+    });
+  }
+
   const handleDayChange = (dayId: number, checked: boolean) => {
     setSelectedDays(prev => 
       checked ? [...prev, dayId] : prev.filter(d => d !== dayId)
@@ -126,6 +145,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   };
   
   const canTest = alertsEnabled && city.trim().length > 0;
+  const isAnyActionPending = isTesting || isForceSending || isSaving;
 
   return (
     <form action={saveAction} className="space-y-8">
@@ -284,17 +304,52 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
       
       <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
         <SubmitButton />
-         <Button
-            type="button"
-            variant="outline"
-            onClick={handleTestAlert}
-            disabled={!canTest || isTesting || isSaving}
-            title={!canTest ? "Please enable alerts and set a city to send a test." : "Send a test alert to your email"}
-          >
-            <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !isTesting })} />
-            {!isTesting && <MailQuestion className="mr-2 h-4 w-4" />}
-            {isTesting ? 'Testing...' : 'Send Test Alert'}
-          </Button>
+         <div className="inline-flex rounded-md shadow-sm">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTestAlert}
+              disabled={!canTest || isAnyActionPending}
+              title={!canTest ? "Please enable alerts and set a city to send a test." : "Send a test alert to your email"}
+              className="relative rounded-r-none"
+            >
+              <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !isTesting })} />
+              {!isTesting && <MailQuestion className="mr-2 h-4 w-4" />}
+              {isTesting ? 'Testing...' : 'Send Test Alert'}
+            </Button>
+            <DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        className="w-10 rounded-l-none border-l-0" 
+                        disabled={!canTest || isAnyActionPending}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>More options</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  onClick={handleForceSend}
+                  disabled={isAnyActionPending}
+                  className="cursor-pointer"
+                >
+                  <Loader2 className={cn("mr-2 h-4 w-4 animate-spin", { "hidden": !isForceSending })} />
+                  {isForceSending ? 'Sending...' : 'Send Anyway (Force)'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       </div>
     </form>
   );
