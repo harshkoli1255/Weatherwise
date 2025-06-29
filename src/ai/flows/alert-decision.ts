@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -17,8 +18,7 @@ import {
 import { generateWithFallback } from '@/services/aiGenerationService';
 import { z } from 'zod';
 
-// New, simpler prompt to summarize the deterministic checks.
-const summarizeAlertTriggersPromptTemplate = `You are a professional meteorologist. Your task is to combine a list of raw weather alert triggers into a single, concise, and clear sentence for a user notification. Use HTML <strong> tags to highlight the most critical information.
+const summarizeAlertTriggersPromptTemplate = `You are a professional and friendly meteorologist. Your task is to combine a list of raw weather alert triggers into a single, concise, and clear sentence for a user notification.
 
 The user is in {{city}}.
 
@@ -27,17 +27,18 @@ Combine the following triggers into one coherent reason:
 - {{this}}
 {{/each}}
 
-Rules:
+Rules for Significant Weather:
+- Use HTML <strong> tags to highlight the most critical information.
 - If there's an upcoming event, mention the timing (e.g., "by this evening", "in the next 2 hours").
 - If multiple conditions are met, combine them naturally (e.g., "Heavy rain and strong winds are expected...").
-- The output MUST be just the JSON object with the 'reason' field. Do not add any other text or markdown.
+- Example: "<strong>Heavy rain and strong winds</strong> (40 km/h) are expected soon, with a <strong>70% chance of precipitation</strong>."
 
-Example:
-Input Triggers:
-- "Heavy rain is forecast with a 70% chance"
-- "Winds are forecast to be 40 km/h"
-Output Reason:
-"<strong>Heavy rain and strong winds</strong> (40 km/h) are expected soon, with a <strong>70% chance of precipitation</strong>."
+Rules for Good Weather:
+- If the trigger is about pleasant weather, craft a friendly and positive message.
+- Example: "Enjoy the beautiful weather in {{city}}! It's currently <strong>22°C with clear skies</strong>."
+
+Final Output Rule:
+- The output MUST be just the JSON object with the 'reason' field. Do not add any other text or markdown.
 `;
 
 // Input for the new summarization prompt
@@ -123,7 +124,30 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
   // --- Decision and AI-Powered Summarization ---
   
   // Remove duplicate triggers to keep the list clean
-  const uniqueTriggers = [...new Set(triggers)];
+  let uniqueTriggers = [...new Set(triggers)];
+
+  // --- Good Weather Check (if applicable) ---
+  if (uniqueTriggers.length === 0 && input.alertScope === 'all') {
+      const isPleasantTemp = input.temperature >= 18 && input.temperature <= 25;
+      const isPleasantFeelsLike = input.feelsLike >= 18 && input.feelsLike <= 25;
+      const isLightWind = input.windSpeed < 15;
+      const isClearSkies = input.description.toLowerCase().includes('clear') || input.description.toLowerCase().includes('few clouds');
+      
+      // Check if rain is unlikely in the near future
+      let isRainUnlikely = true;
+      if (input.hourlyForecast && input.hourlyForecast.length > 0) {
+          // Check next 6 hours (2 points)
+          const immediateForecast = input.hourlyForecast.slice(0, 2);
+          if (immediateForecast.some(hour => hour.precipitationChance > 30)) {
+              isRainUnlikely = false;
+          }
+      }
+
+      if (isPleasantTemp && isPleasantFeelsLike && isLightWind && isClearSkies && isRainUnlikely) {
+          console.log(`[Alerts] Good weather conditions met for ${input.city}.`);
+          uniqueTriggers.push(`It's a beautiful day! Currently ${input.temperature}°C and ${input.description}.`);
+      }
+  }
 
   if (uniqueTriggers.length === 0) {
     // No significant weather, no need to call AI.

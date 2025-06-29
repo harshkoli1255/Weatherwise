@@ -157,6 +157,7 @@ export interface AlertPreferences {
   notificationFrequency?: 'everyHour' | 'balanced' | 'oncePerDay';
   lastAlertSentTimestamp?: number;
   timezone?: string; // IANA timezone string e.g., "America/New_York"
+  alertScope?: 'significant' | 'all';
 }
 
 export interface IpApiLocationResponse {
@@ -233,6 +234,7 @@ export const AlertDecisionInputSchema = z.object({
   condition: z.string(),
   description: z.string(),
   hourlyForecast: z.array(HourlyForecastDataSchema).optional().describe("An array of hourly forecast data for the next few hours."),
+  alertScope: z.enum(['significant', 'all']).optional().default('significant'),
 });
 export type AlertDecisionInput = z.infer<typeof AlertDecisionInputSchema>;
 
