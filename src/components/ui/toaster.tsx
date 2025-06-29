@@ -10,7 +10,6 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 import { AlertTriangle, CheckCircle, Info } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export function Toaster() {
   const { toasts } = useToast()
@@ -27,17 +26,9 @@ export function Toaster() {
 
         return (
           <Toast key={id} variant={variant} {...props}>
-            <div className="flex items-start gap-3 flex-grow">
-               <div className={cn("p-1 rounded-full flex-shrink-0 mt-0.5", {
-                'bg-primary/20': variant === 'success' || variant === 'default',
-                'bg-destructive/20': variant === 'destructive',
-              })}>
-                <Icon className={cn("h-5 w-5", {
-                  'text-primary': variant === 'success' || variant === 'default',
-                  'text-destructive': variant === 'destructive',
-                })} />
-              </div>
-              <div className="grid gap-1">
+            <div className="flex items-start gap-4 flex-grow">
+              <Icon className="h-6 w-6 flex-shrink-0 mt-0.5" />
+              <div className="grid gap-1 flex-grow">
                 {title && <ToastTitle>{title}</ToastTitle>}
                 {description && (
                   <ToastDescription>{description}</ToastDescription>
