@@ -23,7 +23,6 @@ export async function saveAlertPreferencesAction(
     city: z.string().optional(),
     alertsEnabled: z.boolean(),
     notificationFrequency: z.enum(['everyHour', 'balanced', 'oncePerDay']).default('balanced'),
-    alertScope: z.enum(['significant', 'all']).default('significant'),
     timezone: z.string().optional(),
     schedule: z.object({
       enabled: z.boolean(),
@@ -65,7 +64,6 @@ export async function saveAlertPreferencesAction(
     city: formData.get('city') as string,
     alertsEnabled: formData.get('alertsEnabled') === 'on',
     notificationFrequency: formData.get('notificationFrequency'),
-    alertScope: formData.get('alertScope'),
     timezone: formData.get('timezone') as string,
     schedule: {
       enabled: formData.get('scheduleEnabled') === 'on',
@@ -234,7 +232,6 @@ export async function getAlertPreferencesAction(): Promise<{ preferences: AlertP
       city: '',
       alertsEnabled: false,
       notificationFrequency: 'balanced',
-      alertScope: 'significant',
       timezone: '',
       schedule: {
         enabled: false,
@@ -298,7 +295,6 @@ export async function setAlertCityAction(
       city: city.name, // Set the new city
       alertsEnabled: true, // Enable alerts by default when setting a city this way
       notificationFrequency: existingPrefs.notificationFrequency ?? 'balanced',
-      alertScope: existingPrefs.alertScope ?? 'significant',
       timezone: existingPrefs.timezone ?? '',
       schedule: existingPrefs.schedule ?? {
         enabled: false,

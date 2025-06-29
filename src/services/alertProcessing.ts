@@ -124,7 +124,6 @@ export async function processUserForAlerts(user: User, errors: string[]): Promis
       condition: weatherData.condition,
       description: weatherData.description,
       hourlyForecast: weatherData.hourlyForecast,
-      alertScope: preferences.alertScope ?? 'significant',
     });
     console.log(`[Alerts] AI decision for ${user.id}: shouldSendAlert=${decisionResult.shouldSendAlert}. Reason: "${decisionResult.reason}"`);
 

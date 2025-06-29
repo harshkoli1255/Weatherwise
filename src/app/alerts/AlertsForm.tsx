@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown, MapPin, Sparkles } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown, MapPin } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -178,32 +178,6 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
             required={alertsEnabled} 
           />
           <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
-        </div>
-        
-        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
-          <div className="flex items-center gap-3 mb-1">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <div className="space-y-0.5">
-              <h4 className="font-medium">Alert Scope</h4>
-              <p className="text-sm text-muted-foreground">Choose what kind of weather updates you want to receive.</p>
-            </div>
-          </div>
-          <RadioGroup name="alertScope" defaultValue={preferences.alertScope ?? 'significant'} className="space-y-2 pt-2">
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
-              <RadioGroupItem value="significant" id="scope-sig" />
-              <div className="grid gap-1.5 leading-normal">
-                <Label htmlFor="scope-sig" className="font-semibold cursor-pointer">Significant Weather Only (Recommended)</Label>
-                <p className="text-sm text-muted-foreground">Receive alerts for major events like heavy rain, high winds, or extreme temperatures.</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
-              <RadioGroupItem value="all" id="scope-all" />
-              <div className="grid gap-1.5 leading-normal">
-                <Label htmlFor="scope-all" className="font-semibold cursor-pointer">Good Weather Updates</Label>
-                <p className="text-sm text-muted-foreground">Also receive a friendly notification when the weather is particularly pleasant.</p>
-              </div>
-            </div>
-          </RadioGroup>
         </div>
         
         <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">

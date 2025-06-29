@@ -126,8 +126,8 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
   // Remove duplicate triggers to keep the list clean
   let uniqueTriggers = [...new Set(triggers)];
 
-  // --- Good Weather Check (if applicable) ---
-  if (uniqueTriggers.length === 0 && input.alertScope === 'all') {
+  // --- Good Weather Check (if no significant weather found) ---
+  if (uniqueTriggers.length === 0) {
       const isPleasantTemp = input.temperature >= 18 && input.temperature <= 25;
       const isPleasantFeelsLike = input.feelsLike >= 18 && input.feelsLike <= 25;
       const isLightWind = input.windSpeed < 15;
