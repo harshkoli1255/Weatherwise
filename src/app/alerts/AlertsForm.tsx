@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -12,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown, MapPin } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -165,7 +166,10 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
       <div className={`space-y-8 pt-4 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
         <div>
-          <Label htmlFor="city">City for Alerts</Label>
+          <Label htmlFor="city" className="flex items-center gap-2 font-medium text-base mb-1">
+            <MapPin className="h-5 w-5 text-primary" />
+            <span>City for Alerts</span>
+          </Label>
           <AlertsCitySearch 
             id="city" 
             name="city" 
@@ -255,20 +259,21 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
                   <Label>Active Days of the Week</Label>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-2">
                       {daysOfWeek.map(day => (
-                          <div key={day.id} className="flex items-center justify-center space-x-2 rounded-lg border border-input p-3 transition-all duration-200 ease-in-out has-[:checked]:scale-[1.03] has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-md">
+                          <Label
+                            key={day.id}
+                            htmlFor={`day-${day.id}`}
+                            className="flex items-center justify-center space-x-2 rounded-lg border-2 border-input p-3 transition-colors duration-200 ease-in-out has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm cursor-pointer"
+                          >
                               <Checkbox 
                                 id={`day-${day.id}`} 
                                 name={`scheduleDay${day.id}`}
                                 checked={selectedDays.includes(day.id)}
                                 onCheckedChange={(checked) => handleDayChange(day.id, !!checked)}
                               />
-                              <Label 
-                                htmlFor={`day-${day.id}`} 
-                                className="text-sm font-medium leading-none cursor-pointer"
-                              >
+                              <span className="text-sm font-medium leading-none select-none">
                                 {day.label}
-                              </Label>
-                          </div>
+                              </span>
+                          </Label>
                       ))}
                   </div>
               </div>

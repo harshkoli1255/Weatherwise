@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useToast } from "@/hooks/use-toast"
@@ -27,17 +28,20 @@ export function Toaster() {
 
         return (
           <Toast key={id} variant={variant} {...props}>
-            <div className="flex items-start gap-3 flex-grow">
-              <Icon className={cn("h-6 w-6 mt-0.5 flex-shrink-0", {
-                'text-success': variant === 'success',
-                'text-destructive': variant === 'destructive',
-                'text-primary': variant === 'default'
-              })} />
+            <div className="flex items-start gap-4 flex-grow">
+              <div className={cn("p-1.5 rounded-full flex-shrink-0", {
+                'bg-success/20': variant === 'success',
+                'bg-destructive/20': variant === 'destructive',
+                'bg-primary/20': variant === 'default'
+              })}>
+                <Icon className={cn("h-5 w-5", {
+                  'text-success': variant === 'success',
+                  'text-destructive': variant === 'destructive',
+                  'text-primary': variant === 'default'
+                })} />
+              </div>
               <div className="grid gap-1">
-                {title && <ToastTitle className={cn({
-                    'text-success': variant === 'success',
-                    'text-destructive': variant === 'destructive',
-                  })}>{title}</ToastTitle>}
+                {title && <ToastTitle>{title}</ToastTitle>}
                 {description && (
                   <ToastDescription>{description}</ToastDescription>
                 )}
