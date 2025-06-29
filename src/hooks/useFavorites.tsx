@@ -43,6 +43,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   }, [user, isLoaded]);
 
   const syncFavorites = useCallback((newFavorites: CitySuggestion[], successMessage: string) => {
+    const originalFavorites = favorites;
     // Optimistically update the local state for a snappy UI
     setFavorites(newFavorites);
 
@@ -54,8 +55,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         } else {
           toast({ variant: 'destructive', title: 'Sync Error', description: result.error });
           // If sync fails, revert to the state from user.publicMetadata
-          const previousSyncedState = user.publicMetadata?.favoriteCities as CitySuggestion[] | undefined;
-          setFavorites(previousSyncedState || []);
+          setFavorites(originalFavorites);
         }
       });
     } else {
@@ -67,7 +67,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         toast({ variant: 'destructive', title: 'Storage Error', description: 'Could not save your favorites.' });
       }
     }
-  }, [user, toast]);
+  }, [user, toast, favorites]);
 
   const addFavorite = useCallback((city: CitySuggestion) => {
     const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
