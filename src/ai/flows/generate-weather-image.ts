@@ -33,7 +33,17 @@ const generateWeatherImageFlow = ai.defineFlow(
     // Example: "A great opportunity to visit a <strong>local museum</strong> or cozy up with a movie marathon at home." -> "visit a local museum"
     const sanitizedActivity = input.activitySuggestion.replace(/<[^>]*>/g, '').split(/ or |,/)[0].trim();
 
-    const imagePrompt = `A beautiful, photorealistic image representing this scene: In ${input.city}, the weather is ${input.condition}. It's a perfect moment to ${sanitizedActivity}. Capture the mood and environment accurately.`;
+    // New, more artistic and descriptive prompt for better image quality.
+    const imagePrompt = `Create a single, visually compelling, artistic image that tells a story.
+- Scene: The city of ${input.city}.
+- Weather: The current weather is ${input.condition}.
+- Activity: This weather inspired a suggestion to '${sanitizedActivity}'.
+
+Instructions for the AI:
+- Combine the atmosphere of the city, the mood of the weather, and the essence of the activity into one beautiful picture.
+- For indoor activities, you could show a view from a window looking out at the weather, or creatively hint at the weather's influence on the indoor scene (e.g., people reading in a cozy cafe as rain streams down the window).
+- The style should be a vibrant and artistic digital illustration, not a plain photograph. Make it pop with color and light, even if the weather is gloomy.
+- Focus on creating an aesthetically pleasing and evocative image that feels premium and well-crafted.`;
 
     console.log(`[AI/Image] Generating image with prompt: "${imagePrompt}"`);
     

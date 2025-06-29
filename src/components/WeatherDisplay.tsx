@@ -133,7 +133,7 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
       </CardHeader>
       <CardContent className="space-y-6 p-4 sm:p-5">
         {weatherData.aiImageUrl && (
-          <div className="animate-in fade-in zoom-in-95">
+          <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
              <div className="flex items-center mb-4">
               <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
               <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
@@ -149,21 +149,21 @@ export function WeatherDisplay({ weatherData, isCitySaved, onSaveCityToggle }: W
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
-          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
+          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
             <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
               {convertTemperature(weatherData.temperature)}°
               <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
             </div>
           </div>
-          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
+          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '300ms' }}>
             <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
