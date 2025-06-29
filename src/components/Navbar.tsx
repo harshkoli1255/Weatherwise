@@ -32,154 +32,153 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        
+      <div className="container flex h-16 items-center">
         {/* Left Side: Logo & Main Nav */}
-        <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center space-x-2.5 group">
-                <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
-                <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
-                    Weatherwise
-                </span>
-            </Link>
-            <nav className="hidden lg:flex items-center justify-center gap-2">
-                {navItems.map((item) => (
-                    <Button 
-                        key={item.href}
-                        variant="ghost"
-                        asChild
-                        className={cn(
-                            'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
-                            pathname === item.href && 'text-primary'
-                        )}
-                    >
-                        <Link href={item.href}>{item.label}</Link>
-                    </Button>
-                ))}
-            </nav>
+        <div className="mr-auto flex items-center gap-4">
+          <Link href="/" className="mr-6 flex items-center space-x-2.5 group">
+            <CloudSun className="h-8 w-8 text-primary transition-transform group-hover:scale-110 drop-shadow-sm" />
+            <span className="font-headline text-2xl font-bold text-foreground group-hover:text-primary transition-colors hidden sm:inline-block">
+              Weatherwise
+            </span>
+          </Link>
+          <nav className="hidden items-center gap-2 md:flex">
+            {navItems.map((item) => (
+              <Button
+                key={item.href}
+                variant="ghost"
+                asChild
+                className={cn(
+                  'text-base font-medium text-muted-foreground transition-colors hover:text-primary',
+                  pathname === item.href && 'text-primary'
+                )}
+              >
+                <Link href={item.href}>{item.label}</Link>
+              </Button>
+            ))}
+          </nav>
         </div>
 
         {/* Right Side: User Actions */}
-        <div className="flex items-center">
-            {/* Desktop User Actions */}
-            <div className="hidden lg:flex items-center gap-x-4">
+        <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-x-2 md:flex">
               <TooltipProvider>
                 <SignedIn>
                   <>
                     <FavoriteCitiesDropdown />
                     <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className={cn(pathname === '/settings' && 'bg-accent text-accent-foreground')}
-                          >
-                            <Link href="/settings" aria-label="Settings">
-                              <Settings className="h-5 w-5" />
-                            </Link>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Settings</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          className={cn(pathname === '/settings' && 'bg-accent text-accent-foreground')}
+                        >
+                          <Link href="/settings" aria-label="Settings">
+                            <Settings className="h-5 w-5" />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Settings</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <UserButton />
                   </>
                 </SignedIn>
                 <SignedOut>
-                    <SignInButton mode="modal">
-                        <Button>Sign In</Button>
-                    </SignInButton>
+                  <SignInButton mode="modal">
+                    <Button>Sign In</Button>
+                  </SignInButton>
                 </SignedOut>
                 <ThemeToggle />
               </TooltipProvider>
             </div>
 
             {/* Mobile navigation menu */}
-            <div className="lg:hidden">
+            <div className="md:hidden">
                 <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full max-w-xs p-0">
-                    <div className="flex flex-col h-full">
-                        <div className="p-6 pb-4 border-b">
-                            <Link href="/" className="flex items-center space-x-2.5 group">
-                                <CloudSun className="h-7 w-7 text-primary" />
-                                <span className="font-headline text-xl font-bold text-foreground">
-                                    Weatherwise
-                                </span>
-                            </Link>
-                        </div>
-                        <nav className="flex flex-col space-y-2 p-4">
-                            {navItems.map((item) => (
-                            <SheetClose key={item.href} asChild>
-                                <Link 
-                                    href={item.href} 
-                                    className={cn(
-                                        "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                        pathname === item.href && "bg-accent text-primary"
-                                    )}
-                                >
-                                    {item.label}
-                                </Link>
-                            </SheetClose>
-                            ))}
-                            <SignedIn>
-                                <>
-                                  <SheetClose asChild>
-                                      <Link
-                                          href="/settings"
-                                          className={cn(
-                                              "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                              pathname === '/settings' && "bg-accent text-primary"
-                                          )}
-                                      >
-                                          Settings
-                                      </Link>
-                                  </SheetClose>
-                                  <SheetClose asChild>
-                                      <Link
-                                          href="/profile"
-                                          className={cn(
-                                              "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                              pathname === '/profile' && "bg-accent text-primary"
-                                          )}
-                                      >
-                                          Profile
-                                      </Link>
-                                  </SheetClose>
-                                </>
-                            </SignedIn>
-                        </nav>
-                        
-                        <div className="mt-auto p-6 border-t space-y-6">
-                             <SignedIn>
-                                <div className="flex items-center justify-between">
-                                    <div className="text-base font-medium">My Account</div>
-                                    <div className="flex items-center gap-4">
-                                        <FavoriteCitiesDropdown />
-                                        <UserButton />
-                                    </div>
-                                </div>
-                            </SignedIn>
-                            <div className="flex items-center justify-between">
-                                <div className="text-base font-medium">Theme</div>
-                                <ThemeToggle />
-                            </div>
-                           <SignedOut>
-                                <SheetClose asChild>
-                                    <SignInButton mode="modal">
-                                        <Button className="w-full">Sign In</Button>
+                  <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                          <Menu className="h-6 w-6" />
+                          <span className="sr-only">Toggle navigation menu</span>
+                      </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full max-w-xs p-0">
+                      <div className="flex flex-col h-full">
+                          <div className="p-6 pb-4 border-b">
+                              <Link href="/" className="flex items-center space-x-2.5 group">
+                                  <CloudSun className="h-7 w-7 text-primary" />
+                                  <span className="font-headline text-xl font-bold text-foreground">
+                                      Weatherwise
+                                  </span>
+                              </Link>
+                          </div>
+                          <nav className="flex flex-col space-y-2 p-4">
+                              {navItems.map((item) => (
+                              <SheetClose key={item.href} asChild>
+                                  <Link 
+                                      href={item.href} 
+                                      className={cn(
+                                          "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                          pathname === item.href && "bg-accent text-primary"
+                                      )}
+                                  >
+                                      {item.label}
+                                  </Link>
+                              </SheetClose>
+                              ))}
+                              <SignedIn>
+                                  <>
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/settings"
+                                            className={cn(
+                                                "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                                pathname === '/settings' && "bg-accent text-primary"
+                                            )}
+                                        >
+                                            Settings
+                                        </Link>
                                     </SheetClose>
-                                </SignedOut>
-                        </div>
-                    </div>
-                </SheetContent>
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/profile"
+                                            className={cn(
+                                                "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                                pathname === '/profile' && "bg-accent text-primary"
+                                            )}
+                                        >
+                                            Profile
+                                        </Link>
+                                    </SheetClose>
+                                  </>
+                              </SignedIn>
+                          </nav>
+                          
+                          <div className="mt-auto p-6 border-t space-y-6">
+                               <SignedIn>
+                                  <div className="flex items-center justify-between">
+                                      <div className="text-base font-medium">My Account</div>
+                                      <div className="flex items-center gap-4">
+                                          <FavoriteCitiesDropdown />
+                                          <UserButton />
+                                      </div>
+                                  </div>
+                              </SignedIn>
+                              <div className="flex items-center justify-between">
+                                  <div className="text-base font-medium">Theme</div>
+                                  <ThemeToggle />
+                              </div>
+                             <SignedOut>
+                                  <SheetClose asChild>
+                                      <SignInButton mode="modal">
+                                          <Button className="w-full">Sign In</Button>
+                                      </SignInButton>
+                                  </SheetClose>
+                              </SignedOut>
+                          </div>
+                      </div>
+                  </SheetContent>
                 </Sheet>
             </div>
         </div>
