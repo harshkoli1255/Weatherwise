@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useSavedLocations } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,

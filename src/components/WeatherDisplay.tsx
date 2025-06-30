@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
-import { useSavedLocations } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceDot } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Progress } from './ui/progress';
@@ -390,7 +390,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </TabsList>
             </div>
             
-            <div className="p-4 sm:px-6">
+            <div className="p-4 sm:p-6">
               <TabsContent value="forecast" className="space-y-4 pt-0">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">

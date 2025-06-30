@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SavedLocationsDropdown } from './SavedLocationsDropdown';
-import { useSavedLocations } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { useEffect, useState } from 'react';
 
 export function Navbar() {

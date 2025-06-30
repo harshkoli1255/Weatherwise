@@ -8,7 +8,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Inter, Poppins } from 'next/font/google';
 import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
-import { SavedLocationsProvider } from '@/hooks/useFavorites';
+import { SavedLocationsProvider } from '@/hooks/useSavedLocations';
 import { UnitsProvider } from '@/hooks/useUnits';
 import { DefaultLocationProvider } from '@/hooks/useDefaultLocation';
 

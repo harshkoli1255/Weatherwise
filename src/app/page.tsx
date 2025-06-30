@@ -7,7 +7,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useSavedLocations } from '@/hooks/useFavorites';
+import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
