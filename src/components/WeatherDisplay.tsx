@@ -124,16 +124,47 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       time: "Now",
       temperature: convertTemperature(weatherData.temperature),
       feelsLike: convertTemperature(weatherData.feelsLike),
+      iconCode: weatherData.iconCode,
     };
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
       time: formatTime(hour.timestamp, weatherData.timezone),
       temperature: convertTemperature(hour.temp),
       feelsLike: convertTemperature(hour.feelsLike),
+      iconCode: hour.iconCode,
     }));
 
     return [nowData, ...forecastPoints];
   }, [weatherData, convertTemperature, formatTime]);
+
+
+  // Custom component for rendering X-axis ticks with icons
+  const CustomXAxisTick = (props: any) => {
+    const { x, y, payload, index } = props;
+    // The data for the tick is in `chartData` at the given index.
+    const tickData = chartData[index];
+  
+    if (!tickData) return null;
+  
+    // We only want to show every other label to prevent clutter.
+    const timeLabel = index % 2 === 0 ? payload.value : '';
+  
+    return (
+      <g transform={`translate(${x},${y})`}>
+        {/* Render the time label */}
+        <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={12}>
+          {timeLabel}
+        </text>
+        {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
+        <foreignObject x={-12} y={20} width={24} height={24}>
+          <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
+            <WeatherIcon iconCode={tickData.iconCode} className="h-5 w-5 text-muted-foreground" />
+          </div>
+        </foreignObject>
+      </g>
+    );
+  };
+
 
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
@@ -210,6 +241,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   left: -20,
                   right: 10,
                   top: 10,
+                  bottom: 30, // Increased margin for icons
                 }}
               >
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -218,7 +250,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(value, index) => (index % 2 === 0 ? value : '')}
+                  tick={<CustomXAxisTick />} // Use our custom tick component
+                  interval={0} // Ensure every tick is rendered for our custom logic
                 />
                 <YAxis
                   tickLine={false}
