@@ -429,15 +429,15 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         
         <TabsContent value="forecast" className="p-2 sm:p-4 md:p-6">
             <div className="space-y-4 sm:space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-4 sm:gap-6">
-                <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-                  <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-foreground drop-shadow-lg">
-                    {convertTemperature(weatherData.temperature)}°
-                    <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
-                  </div>
-                </div>
-                <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
+                <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
+                </div>
+                <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
+                   <div className="flex items-baseline justify-center text-5xl sm:text-6xl md:text-7xl font-bold text-foreground drop-shadow-lg">
+                      <span>{convertTemperature(weatherData.temperature)}</span>
+                      <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
+                    </div>
                 </div>
               </div>
 
