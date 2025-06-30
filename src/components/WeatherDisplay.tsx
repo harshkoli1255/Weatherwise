@@ -6,7 +6,6 @@ import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Load
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useSavedLocations } from '@/hooks/useFavorites';
@@ -411,7 +410,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       </CardHeader>
 
       <Tabs defaultValue="forecast" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-4">
+        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-2">
           <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
             <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Forecast
@@ -426,7 +425,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="p-2 sm:p-4 md:p-6">
+        <TabsContent value="forecast" className="p-4 sm:p-6">
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
                 <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
@@ -466,13 +465,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </div>
                 {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
                 <>
-                <ChartContainer config={chartConfig} className="h-52 w-full sm:h-60 md:h-64">
+                <ChartContainer config={chartConfig} className="h-52 w-full sm:h-60 md:h-64 -mx-4 sm:-mx-6 px-0 sm:px-0">
                   <AreaChart
                     accessibilityLayer
                     data={chartData}
                     margin={{
-                      left: isMobile ? -30 : -20,
-                      right: 10,
+                      left: isMobile ? -10 : -5,
+                      right: isMobile ? 15 : 20,
                       top: 10,
                       bottom: 40,
                     }}
@@ -484,7 +483,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       axisLine={false}
                       tickMargin={8}
                       tick={<CustomXAxisTick />}
-                      interval={isMobile ? 1 : 0}
+                      interval={0}
                       height={60}
                     />
                     <YAxis
@@ -561,26 +560,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     )}
                   </AreaChart>
                 </ChartContainer>
-                <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-                  <div className="flex flex-nowrap space-x-2 sm:space-x-3 pb-4">
-                    {weatherData.hourlyForecast.map((hour, index) => (
-                      <ForecastCard 
-                        key={index} 
-                        data={hour}
-                        timezone={weatherData.timezone}
-                        onClick={() => setSelectedHour(hour)}
-                      />
-                    ))}
+                <div className="-mx-4 sm:-mx-6">
+                  <div className="w-full overflow-x-auto pb-2">
+                      <div className="flex flex-nowrap space-x-3 px-4 sm:px-6">
+                          {weatherData.hourlyForecast.map((hour, index) => (
+                          <ForecastCard 
+                              key={index} 
+                              data={hour}
+                              timezone={weatherData.timezone}
+                              onClick={() => setSelectedHour(hour)}
+                          />
+                          ))}
+                      </div>
                   </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                </div>
                 </>
                 ) : null}
               </div>
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="p-3 sm:p-4 md:p-6">
+        <TabsContent value="insights" className="p-4 sm:p-6">
             <div className="space-y-4 sm:space-y-6">
                  <div>
                     <div className="flex items-center mb-3 sm:mb-4">
@@ -649,7 +649,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="p-3 sm:p-4 md:p-6">
+        <TabsContent value="health" className="p-4 sm:p-6">
            <div className="space-y-4 sm:space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
