@@ -11,7 +11,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useSavedLocations } from '@/hooks/useFavorites';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceDot } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface WeatherDisplayProps {
@@ -90,12 +90,22 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
   const chartData = useMemo(() => {
     if (!weatherData.hourlyForecast) return [];
-    return weatherData.hourlyForecast.map(hour => ({
+    
+    // Add current time as the first data point
+    const nowData = {
+      time: "Now",
+      temperature: convertTemperature(weatherData.temperature),
+      feelsLike: convertTemperature(weatherData.feelsLike),
+    };
+
+    const forecastPoints = weatherData.hourlyForecast.map(hour => ({
       time: formatTime(hour.timestamp, weatherData.timezone),
       temperature: convertTemperature(hour.temp),
       feelsLike: convertTemperature(hour.feelsLike),
     }));
-  }, [weatherData.hourlyForecast, weatherData.timezone, formatTime, convertTemperature]);
+
+    return [nowData, ...forecastPoints];
+  }, [weatherData, convertTemperature, formatTime]);
 
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
@@ -202,6 +212,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   }
                 />
                 <ChartLegend content={<ChartLegendContent />} />
+                <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="4 4" />
                 <defs>
                   <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
                     <stop
@@ -235,6 +246,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   stroke="var(--color-feelsLike)"
                   strokeWidth={2}
                   strokeDasharray="5 5"
+                  dot={false}
                 />
                 <Area
                   dataKey="temperature"
@@ -242,7 +254,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   fill="url(#fillTemperature)"
                   stroke="var(--color-temperature)"
                   strokeWidth={2}
+                  dot={false}
                 />
+                 {chartData.length > 0 && (
+                  <>
+                    <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
+                    <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                  </>
+                )}
               </AreaChart>
             </ChartContainer>
           </div>
