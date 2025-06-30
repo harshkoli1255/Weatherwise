@@ -86,6 +86,10 @@ export default {
           '0%, 100%': { transform: 'translateX(-10px)' },
           '50%': { transform: 'translateX(10px)' },
         },
+        'pulse-search': {
+          '0%, 100%': { transform: 'scale(0.5)', opacity: '0.5' },
+          '50%': { transform: 'scale(1.2)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -93,7 +97,7 @@ export default {
         'weather-float': 'weather-float 4s ease-in-out infinite',
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
-        'spin-slow': 'spin 3s linear infinite',
+        'pulse-search': 'pulse-search 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },
