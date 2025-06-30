@@ -12,7 +12,7 @@ import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useSavedLocations } from '@/hooks/useFavorites';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -69,6 +69,10 @@ const chartConfig = {
     label: "Temperature",
     color: "hsl(var(--chart-1))",
   },
+  feelsLike: {
+    label: "Feels Like",
+    color: "hsl(var(--chart-2))",
+  },
 } satisfies ChartConfig;
 
 
@@ -89,6 +93,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     return weatherData.hourlyForecast.map(hour => ({
       time: formatTime(hour.timestamp, weatherData.timezone),
       temperature: convertTemperature(hour.temp),
+      feelsLike: convertTemperature(hour.feelsLike),
     }));
   }, [weatherData.hourlyForecast, weatherData.timezone, formatTime, convertTemperature]);
 
@@ -159,13 +164,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 24-Hour Temperature Trend
               </h3>
             </div>
-             <ChartContainer config={chartConfig} className="h-48 w-full">
+            <ChartContainer config={chartConfig} className="h-64 w-full">
               <AreaChart
                 accessibilityLayer
                 data={chartData}
                 margin={{
                   left: -20,
                   right: 10,
+                  top: 10,
                 }}
               >
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -174,28 +180,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tickFormatter={(value, index) => index % 2 === 0 ? value : ''}
+                  tickFormatter={(value, index) => (index % 2 === 0 ? value : '')}
                 />
-                 <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    domain={['dataMin - 2', 'dataMax + 2']}
-                    tickFormatter={(value) => `${value}°`}
-                  />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  domain={['dataMin - 5', 'dataMax + 5']}
+                  tickFormatter={(value) => `${value}°`}
+                />
                 <ChartTooltip
-                  cursor={false}
+                  cursor={true}
                   content={
                     <ChartTooltipContent
                       indicator="dot"
-                      labelFormatter={(label, payload) => {
-                        return payload?.[0]?.payload.time;
-                      }}
-                       formatter={(value) => `${value}${getTemperatureUnitSymbol()}`}
+                      labelFormatter={(label) => `Time: ${label}`}
+                      formatter={(value) => `${value}${getTemperatureUnitSymbol()}`}
                     />
                   }
                 />
-                 <defs>
+                <ChartLegend content={<ChartLegendContent />} />
+                <defs>
                   <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
@@ -208,13 +213,33 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       stopOpacity={0.1}
                     />
                   </linearGradient>
+                  <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-feelsLike)"
+                      stopOpacity={0.4}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-feelsLike)"
+                      stopOpacity={0.05}
+                    />
+                  </linearGradient>
                 </defs>
+                <Area
+                  dataKey="feelsLike"
+                  type="natural"
+                  fill="url(#fillFeelsLike)"
+                  stroke="var(--color-feelsLike)"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                />
                 <Area
                   dataKey="temperature"
                   type="natural"
                   fill="url(#fillTemperature)"
                   stroke="var(--color-temperature)"
-                  stackId="a"
+                  strokeWidth={2}
                 />
               </AreaChart>
             </ChartContainer>
