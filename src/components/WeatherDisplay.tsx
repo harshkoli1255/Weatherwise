@@ -15,6 +15,7 @@ import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from './ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea } from './ui/scroll-area';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -367,6 +368,18 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       </g>
     );
   };
+  
+  const handleChartClick = (e: any) => {
+    if (e && e.activeTooltipIndex !== undefined) {
+      const index = e.activeTooltipIndex;
+      // The chart data has a "Now" point at index 0. The hourly forecast data
+      // corresponds to indices 1 and onwards in the chartData array.
+      if (index > 0 && weatherData.hourlyForecast && index <= weatherData.hourlyForecast.length) {
+        const correspondingForecast = weatherData.hourlyForecast[index - 1];
+        setSelectedHour(correspondingForecast);
+      }
+    }
+  };
 
 
   return (
@@ -410,7 +423,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       </CardHeader>
 
       <Tabs defaultValue="forecast" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-4">
+        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-2">
           <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
             <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Forecast
@@ -425,13 +438,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="px-4 pt-6 sm:px-6">
-            <div className="space-y-6">
+        <TabsContent value="forecast" className="px-4 pt-4 sm:px-6 sm:pt-6">
+            <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
-                <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
+                <div className="animate-in fade-in zoom-in-95 order-2 sm:order-1" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
                 </div>
-                <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
+                <div className="animate-in fade-in zoom-in-95 order-1 sm:order-2" style={{ animationDelay: '100ms' }}>
                    <div className="flex items-baseline justify-center text-5xl sm:text-6xl md:text-7xl font-bold text-foreground drop-shadow-lg">
                       <span>{convertTemperature(weatherData.temperature)}</span>
                       <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
@@ -455,9 +468,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 )}
               </div>
               
-              <div className="pt-4">
-                <Separator />
-                <div className="flex items-center my-4">
+              <div className="pt-2">
+                <Separator className="my-4" />
+                <div className="flex items-center mb-4">
                   <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                     24-Hour Forecast
@@ -465,7 +478,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </div>
                 {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
                 <>
-                <div className="w-full overflow-x-auto">
+                <ScrollArea className="w-full whitespace-nowrap rounded-lg">
                     <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
                     <AreaChart
                         accessibilityLayer
@@ -476,6 +489,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         top: 10,
                         bottom: 40,
                         }}
+                        onClick={handleChartClick}
                     >
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis
@@ -561,9 +575,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         )}
                     </AreaChart>
                     </ChartContainer>
-                </div>
-                <div className="w-full overflow-x-auto pb-2">
-                    <div className="flex flex-nowrap space-x-3 px-1 py-2">
+                </ScrollArea>
+                <ScrollArea className="w-full overflow-x-auto pb-2">
+                    <div className="flex w-max flex-nowrap space-x-3 px-1 py-2">
                         {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 
                             key={index} 
@@ -573,14 +587,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         />
                         ))}
                     </div>
-                </div>
+                </ScrollArea>
                 </>
                 ) : null}
               </div>
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="px-4 pt-6 sm:px-6">
+        <TabsContent value="insights" className="px-4 pt-4 sm:px-6 sm:pt-6">
             <div className="space-y-6">
                  <div>
                     <div className="flex items-center mb-4">
@@ -649,7 +663,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="px-4 pt-6 sm:px-6">
+        <TabsContent value="health" className="px-4 pt-4 sm:px-6 sm:pt-6">
            <div className="space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
