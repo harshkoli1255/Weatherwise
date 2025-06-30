@@ -386,15 +386,15 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       <Tabs defaultValue="forecast" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md mt-4">
           <TabsTrigger value="forecast">
-            <AreaChartIcon className="mr-2 h-4 w-4" />
+            <AreaChartIcon className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Forecast
           </TabsTrigger>
           <TabsTrigger value="insights">
-            <Brain className="mr-2 h-4 w-4" />
+            <Brain className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             AI Insights
           </TabsTrigger>
           <TabsTrigger value="health">
-            <Leaf className="mr-2 h-4 w-4" />
+            <Leaf className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Health
           </TabsTrigger>
         </TabsList>
