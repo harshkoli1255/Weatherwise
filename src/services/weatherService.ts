@@ -1,7 +1,6 @@
 
-import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, HourlyForecastData, LocationIdentifier } from '@/lib/types';
+import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, HourlyForecastData, LocationIdentifier, OpenWeatherAirPollutionAPIResponse, AirQualityData } from '@/lib/types';
 import { z } from 'zod';
-import { format } from 'date-fns';
 
 export async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
   const CoordinatesSchema = z.object({
@@ -124,4 +123,59 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: 
     console.error("Unexpected error in fetchHourlyForecast:", error);
     return { data: null, error: message, status: 500 };
   }
+}
+
+export async function fetchAirQuality(lat: number, lon: number, apiKey: string): Promise<{ data: AirQualityData | null, error: string | null, status?: number }> {
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+
+    try {
+        const response = await fetch(url, { cache: 'no-store' });
+        const responseStatus = response.status;
+        const data: OpenWeatherAirPollutionAPIResponse = await response.json();
+
+        if (!response.ok) {
+            const errorMessage = `Failed to fetch air quality data (status: ${responseStatus})`;
+            console.error("OpenWeather Air Pollution API error:", { status: responseStatus, message: errorMessage, url });
+            return { data: null, error: errorMessage, status: responseStatus };
+        }
+
+        if (!data.list || data.list.length === 0) {
+            return { data: null, error: "Air quality data not available for this location.", status: 404 };
+        }
+
+        const aqiData = data.list[0];
+        const aqiIndex = aqiData.main.aqi;
+
+        const getAqiLevel = (index: number): AirQualityData['level'] => {
+            switch (index) {
+                case 1: return 'Good';
+                case 2: return 'Fair';
+                case 3: return 'Moderate';
+                case 4: return 'Poor';
+                case 5: return 'Very Poor';
+                default: return 'Unknown';
+            }
+        };
+
+        return {
+            data: {
+                aqi: aqiIndex,
+                level: getAqiLevel(aqiIndex),
+                components: {
+                    co: aqiData.components.co,
+                    no2: aqiData.components.no2,
+                    o3: aqiData.components.o3,
+                    so2: aqiData.components.so2,
+                    pm2_5: aqiData.components.pm2_5,
+                    pm10: aqiData.components.pm10,
+                },
+            },
+            error: null,
+            status: 200,
+        };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error in fetchAirQuality";
+        console.error("Unexpected error in fetchAirQuality:", error);
+        return { data: null, error: message, status: 500 };
+    }
 }

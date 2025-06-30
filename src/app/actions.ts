@@ -1,23 +1,18 @@
+
 'use server';
 
 import { 
   type WeatherSummaryData, 
-  type HourlyForecastData, 
-  type IpApiLocationResponse, 
-  type CitySuggestion, 
-  type LocationIdentifier, 
-  type OpenWeatherCurrentAPIResponse,
-  type WeatherSummaryInput,
   type InterpretSearchQueryOutput,
-  SavedLocationsWeatherMap,
-  SavedLocationWeatherResult,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
-import { fetchCurrentWeather, fetchHourlyForecast } from '@/services/weatherService';
+import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 import { summarizeError } from '@/ai/flows/summarize-error';
+import { summarizeAirQuality } from '@/ai/flows/summarize-air-quality';
+import type { LocationIdentifier, IpApiLocationResponse, CitySuggestion, SavedLocationsWeatherMap, SavedLocationWeatherResult } from '@/lib/types';
 
 function isAiConfigured() {
   const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
@@ -45,25 +40,18 @@ export async function fetchWeatherAndSummaryAction(
 
     // --- Step 1: Resolve the query into precise coordinates ---
     if (typeof params.lat === 'number' && typeof params.lon === 'number') {
-      // User provided coordinates directly (e.g., from "use my location" or a suggestion click)
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
-      // If a friendly name was also provided (from a suggestion click), use it.
-      // Otherwise, we'll fetch the name from the weather data later.
       userFriendlyDisplayName = params.city; 
       console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
     } else if (params.city) {
-      // User provided a text query. We need to interpret and geocode it.
       let queryForGeocoding = params.city;
       
       if (isAiConfigured()) {
         try {
           console.log(`[AI] Interpreting search query for geocoding: "${params.city}"`);
           const interpretation = await interpretSearchQuery({ query: params.city });
-          
-          // The AI now returns the reliable city name in `searchQueryForApi`
           queryForGeocoding = interpretation.cityName || interpretation.searchQueryForApi;
           
-          // Construct the friendly display name from the AI's parsed components
           if (interpretation.isSpecificLocation && interpretation.locationName && interpretation.cityName) {
             userFriendlyDisplayName = `${interpretation.locationName}, ${interpretation.cityName}`;
           } else {
@@ -76,7 +64,6 @@ export async function fetchWeatherAndSummaryAction(
         }
       }
 
-      // Geocode the text query to get coordinates
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForGeocoding)}&limit=1&appid=${apiKey}`;
       const geoResponse = await fetch(geoUrl);
       if (!geoResponse.ok) {
@@ -105,40 +92,78 @@ export async function fetchWeatherAndSummaryAction(
     }
     console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
 
-    // --- Step 3: Fetch all data using coordinates ---
-    const weatherResult = await fetchCurrentWeather(locationIdentifier, apiKey);
+    // --- Step 3: Fetch all data in parallel ---
+    const [weatherResult, hourlyForecastResult, airQualityResult] = await Promise.all([
+        fetchCurrentWeather(locationIdentifier, apiKey),
+        fetchHourlyForecast(locationIdentifier, apiKey),
+        fetchAirQuality(locationIdentifier.lat, locationIdentifier.lon, apiKey)
+    ]);
     
     if (!weatherResult.data || !weatherResult.rawResponse) {
       return { data: null, error: weatherResult.error, cityNotFound: weatherResult.status === 404 };
     }
-
+    
     const currentWeatherData = weatherResult.data;
-    // The final display name is the user-friendly one from AI/suggestion click if available. Otherwise, it's the name from the weather API.
     const finalDisplayName = userFriendlyDisplayName || currentWeatherData.city;
 
-    // Fetch hourly forecast first, as it's now an input for the AI.
-    const hourlyForecastResult = await fetchHourlyForecast(locationIdentifier, apiKey);
-    
-    const aiSummaryResult = await (isAiConfigured()
-      ? summarizeWeather({
-          city: finalDisplayName,
-          temperature: currentWeatherData.temperature,
-          feelsLike: currentWeatherData.feelsLike,
-          humidity: currentWeatherData.humidity,
-          windSpeed: currentWeatherData.windSpeed,
-          condition: currentWeatherData.description,
-          hourlyForecast: hourlyForecastResult.data ?? [],
-        }).then(res => ({ ...res, error: null })).catch(err => {
-          console.error("Error generating AI weather summary:", err);
-          const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
-          const userFacingError = `<strong>AI Summary Error</strong>: ${errorMessage}`;
-          return { summary: userFacingError, subjectLine: null, weatherSentiment: null, activitySuggestion: null, aiInsights: [], error: userFacingError };
-        })
-      : Promise.resolve({ summary: "AI summary not available.", subjectLine: null, weatherSentiment: 'neutral', activitySuggestion: "Check conditions before planning activities.", aiInsights: [], error: "AI summary service is not configured." })
-    );
+    // --- Step 4: Generate AI summaries and images ---
+    let aiSummaryResult;
+    let airQualitySummaryResult;
+
+    if (isAiConfigured()) {
+        const aiPromises = [];
+
+        // Weather Summary AI call
+        aiPromises.push(
+            summarizeWeather({
+                city: finalDisplayName,
+                temperature: currentWeatherData.temperature,
+                feelsLike: currentWeatherData.feelsLike,
+                humidity: currentWeatherData.humidity,
+                windSpeed: currentWeatherData.windSpeed,
+                condition: currentWeatherData.description,
+                hourlyForecast: hourlyForecastResult.data ?? [],
+            }).then(res => ({ type: 'weather', data: res })).catch(err => {
+                console.error("Error generating AI weather summary:", err);
+                const userFacingError = `<strong>AI Summary Error</strong>: ${err.message || "An unexpected error occurred."}`;
+                return { type: 'weather', error: userFacingError };
+            })
+        );
+
+        // Air Quality AI call
+        if (airQualityResult.data) {
+            aiPromises.push(
+                summarizeAirQuality(airQualityResult.data).then(res => ({ type: 'aqi', data: res })).catch(err => {
+                    console.error("Error generating AI air quality summary:", err);
+                    return { type: 'aqi', error: err.message || "Could not generate air quality summary." };
+                })
+            );
+        }
+
+        const allAiResults = await Promise.all(aiPromises);
+
+        const weatherAi = allAiResults.find(r => r.type === 'weather');
+        aiSummaryResult = weatherAi && !weatherAi.error ? weatherAi.data : {
+            summary: weatherAi?.error || "AI summary not available.",
+            subjectLine: null,
+            weatherSentiment: 'neutral',
+            activitySuggestion: "Check conditions before planning activities.",
+            aiInsights: []
+        };
+        
+        const aqiAi = allAiResults.find(r => r.type === 'aqi');
+        airQualitySummaryResult = aqiAi && !aqiAi.error ? aqiAi.data : {
+            summary: "AI air quality summary is currently unavailable.",
+            recommendation: "Please refer to local health advisories."
+        };
+
+    } else {
+        aiSummaryResult = { summary: "AI summary not available.", subjectLine: null, weatherSentiment: 'neutral', activitySuggestion: "Check conditions before planning activities.", aiInsights: [] };
+        airQualitySummaryResult = { summary: "AI air quality summary is not configured.", recommendation: "" };
+    }
 
     let aiImageUrl: string | undefined = undefined;
-    if (isAiConfigured() && aiSummaryResult.activitySuggestion && !aiSummaryResult.error) {
+    if (isAiConfigured() && aiSummaryResult.activitySuggestion) {
       try {
         console.log("[AI] Generating weather image based on activity suggestion.");
         const imageResult = await generateWeatherImage({
@@ -149,7 +174,6 @@ export async function fetchWeatherAndSummaryAction(
         aiImageUrl = imageResult.imageUrl;
       } catch (err) {
         console.error("Error generating AI weather image, continuing without it.", err);
-        // Fail gracefully, the image is a bonus.
       }
     }
 
@@ -160,22 +184,20 @@ export async function fetchWeatherAndSummaryAction(
         city: finalDisplayName,
         lat: locationIdentifier.lat,
         lon: locationIdentifier.lon,
-        aiSummary: aiSummaryResult.summary || "AI summary not available.",
+        aiSummary: aiSummaryResult.summary,
         aiSubject: aiSummaryResult.subjectLine || fallbackSubject,
-        weatherSentiment: aiSummaryResult.weatherSentiment || 'neutral',
-        activitySuggestion: aiSummaryResult.activitySuggestion || "Check conditions before planning activities.",
-        aiInsights: aiSummaryResult.aiInsights ?? [],
+        weatherSentiment: aiSummaryResult.weatherSentiment,
+        activitySuggestion: aiSummaryResult.activitySuggestion,
+        aiInsights: aiSummaryResult.aiInsights,
         hourlyForecast: hourlyForecastResult.data ?? [], 
         aiImageUrl: aiImageUrl,
+        airQuality: airQualityResult.data ?? undefined,
+        airQualitySummary: airQualitySummaryResult ?? undefined,
     };
 
     cacheService.set(cacheKey, finalData);
     
-    return {
-      data: finalData,
-      error: null, 
-      cityNotFound: false
-    };
+    return { data: finalData, error: null, cityNotFound: false };
 
   } catch (error) {
     console.error("An unexpected error occurred in fetchWeatherAndSummaryAction:", error);
@@ -360,7 +382,7 @@ export async function getCityFromCoordsAction(
       try {
         const response = await fetch(url);
         if (response.ok) {
-          const data: OpenWeatherCurrentAPIResponse = await response.json();
+          const data = await response.json();
           if (data.name) {
             resultCity = data.name;
             lastTechnicalError = null;

@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -174,6 +174,19 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
+  const getAqiInfo = (aqi: number) => {
+    switch (aqi) {
+        case 1: return { level: 'Good', colorClass: 'text-success' };
+        case 2: return { level: 'Fair', colorClass: 'text-yellow-500' };
+        case 3: return { level: 'Moderate', colorClass: 'text-orange-500' };
+        case 4: return { level: 'Poor', colorClass: 'text-red-500' };
+        case 5: return { level: 'Very Poor', colorClass: 'text-purple-600' };
+        default: return { level: 'Unknown', colorClass: 'text-muted-foreground' };
+    }
+  };
+
+  const aqiInfo = weatherData.airQuality ? getAqiInfo(weatherData.airQuality.aqi) : null;
+
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
     sentimentColorClass = 'text-success';
@@ -220,7 +233,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     if (!tickData) return null;
   
     // Show all time labels for a more detailed, professional look.
-    // The use of `formatShortTime` keeps them concise to avoid clutter.
     const timeLabel = payload.value;
   
     const condition = tickData.condition.toLowerCase();
@@ -307,10 +319,20 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+        <div className="grid grid-cols-2 gap-3 text-center">
           <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
           <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
           <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+           {aqiInfo && (
+            <WeatherDetailItem 
+                icon={GaugeCircle} 
+                label="Air Quality" 
+                value={aqiInfo.level} 
+                iconColor={aqiInfo.colorClass} 
+                className="animate-in fade-in" 
+                style={{ animationDelay: '600ms' }}
+            />
+          )}
         </div>
         
         {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
@@ -430,6 +452,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
+        )}
+
+        {weatherData.airQuality && weatherData.airQualitySummary && (
+            <div className="pt-4 border-t border-border/50">
+                <div className="flex items-center mb-4">
+                    <Leaf className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+                    <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                        Air Quality & Health
+                    </h3>
+                </div>
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-3">
+                    <p
+                        className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                    />
+                    <p
+                        className="text-sm text-muted-foreground leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                    />
+                </div>
+            </div>
         )}
 
         <div className="pt-4 border-t border-border/50">
