@@ -105,13 +105,15 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const CustomChartTooltipContent = ({ active, payload, label }: any) => {
-  const { getTemperatureUnitSymbol, getWindSpeedUnitLabel } = useUnits();
+  const { getTemperatureUnitSymbol, getWindSpeedUnitLabel, formatTime, timezone } = useUnits();
 
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const titleTime = data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`;
+
     return (
-      <div className="grid gap-1.5 rounded-lg border bg-popover p-3 text-xs shadow-xl min-w-[12rem]">
-        <div className="font-bold text-foreground mb-1 capitalize">{data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`}</div>
+      <div className="grid min-w-[12rem] gap-1.5 rounded-lg border bg-popover p-3 text-xs shadow-xl">
+        <div className="font-bold text-foreground mb-1 capitalize">{titleTime}</div>
         <div className="w-full h-px bg-border/50" />
         <div className="grid gap-1.5">
           {payload.map((item: any) => (

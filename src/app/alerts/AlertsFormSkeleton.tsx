@@ -9,9 +9,9 @@ export function AlertsFormSkeleton() {
       <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-2xl">
         <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
            <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-              <Bell className="h-12 w-12 text-primary drop-shadow-lg" />
+              <Bell className="h-10 w-10 text-primary drop-shadow-lg" />
            </div>
-          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-2 px-4">
             Loading your preferences...
           </CardDescription>

@@ -23,6 +23,7 @@ interface UnitsContextType {
   getWindSpeedUnitLabel: () => 'km/h' | 'mph';
   formatTime: (timestamp: number, timezoneOffset: number) => string;
   formatShortTime: (timestamp: number, timezoneOffset: number) => string;
+  timezone: number;
 }
 
 const UnitsContext = createContext<UnitsContextType | undefined>(undefined);
@@ -167,6 +168,7 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
     getWindSpeedUnitLabel,
     formatTime,
     formatShortTime,
+    timezone: 0,
   }), [units, setUnits, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime]);
 
   return (
