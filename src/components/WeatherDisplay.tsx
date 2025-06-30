@@ -46,7 +46,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:bg-primary/10 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-accent hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         borderColor
       )}
       aria-label={`View forecast for ${preciseTime}`}
@@ -93,7 +93,6 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
     const data = payload[0].payload;
     const itemConfig = chartConfig[payload[0].name as keyof typeof chartConfig];
     
-    // Determine the title based on "Now" or a forecasted time
     const title = data.time === "Now" 
         ? "Current Conditions" 
         : `Forecast for ${formatTime(data.originalData.timestamp, data.originalData.timezone || 0)}`;
@@ -332,7 +331,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   };
   
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2">
           <div className="w-8 sm:w-9" /> 
@@ -544,104 +543,80 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </TabsContent>
               
               <TabsContent value="insights" className="space-y-4">
-                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '150ms' }}>
-                      <CardHeader className="flex flex-row items-center p-0 mb-3">
-                          <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
-                          <CardTitle className="text-base font-headline font-semibold text-primary p-0">AI Summary</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                          <div
-                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                          dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
-                          />
-                      </CardContent>
-                  </Card>
+                  <InfoCard icon={Brain} title="AI Summary" animationDelay="150ms">
+                      <div
+                        className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                        dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
+                      />
+                  </InfoCard>
 
                   {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '250ms' }}>
-                          <CardHeader className="flex flex-row items-center p-0 mb-3">
-                              <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
-                              <CardTitle className="text-base font-headline font-semibold text-primary p-0">Key Insights</CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-0">
-                              <ul className="space-y-3">
-                              {weatherData.aiInsights.map((insight, index) => (
-                                  <li key={index} className="flex items-start animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${index * 100}ms`}}>
-                                  <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
-                                      <Sparkles className="h-3 w-3 text-primary" />
-                                  </div>
-                                  <span
-                                      className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                                      dangerouslySetInnerHTML={{ __html: insight }}
-                                  />
-                                  </li>
-                              ))}
-                              </ul>
-                          </CardContent>
-                      </Card>
+                      <InfoCard icon={Sparkles} title="Key Insights" animationDelay="250ms">
+                          <ul className="space-y-3">
+                            {weatherData.aiInsights.map((insight, index) => (
+                                <li key={index} className="flex items-start animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${index * 100}ms`}}>
+                                <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
+                                    <Sparkles className="h-3 w-3 text-primary" />
+                                </div>
+                                <span
+                                    className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                                    dangerouslySetInnerHTML={{ __html: insight }}
+                                />
+                                </li>
+                            ))}
+                          </ul>
+                      </InfoCard>
                   )}
 
                   {weatherData.activitySuggestion && (
-                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '350ms' }}>
-                          <CardHeader className="flex flex-row items-center p-0 mb-3">
-                              <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
-                              <CardTitle className="text-base font-headline font-semibold text-primary p-0">Activity Suggestion</CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-0">
-                          <div
-                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-                          />
-                          {weatherData.aiImageUrl && (
-                              <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
-                                  <Image
-                                      src={weatherData.aiImageUrl}
-                                      alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                                      width={600}
-                                      height={400}
-                                      className="w-full h-auto aspect-[16/9] object-cover"
-                                  />
-                              </div>
-                          )}
-                          </CardContent>
-                      </Card>
+                      <InfoCard icon={Lightbulb} title="Activity Suggestion" animationDelay="350ms">
+                        <div
+                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                            dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                        />
+                        {weatherData.aiImageUrl && (
+                            <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                                <Image
+                                    src={weatherData.aiImageUrl}
+                                    alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                                    width={600}
+                                    height={400}
+                                    className="w-full h-auto aspect-[16/9] object-cover"
+                                />
+                            </div>
+                        )}
+                      </InfoCard>
                   )}
               </TabsContent>
               
               <TabsContent value="health" className="space-y-4">
               {aqiComponents && weatherData.airQualitySummary ? (
-                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '150ms' }}>
-                      <CardHeader className="flex flex-row items-center p-0 mb-3">
-                          <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
-                          <CardTitle className="text-base font-headline font-semibold text-primary p-0">Air Quality & Health</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                          <div
-                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                              dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                          />
-                          <p
-                              className="mt-2 text-xs text-muted-foreground leading-relaxed"
-                              dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                          />
+                  <InfoCard icon={Leaf} title="Air Quality & Health" animationDelay="150ms">
+                      <div
+                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                          dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                      />
+                      <p
+                          className="mt-2 text-xs text-muted-foreground leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                      />
 
-                          <div className="pt-4 mt-4 border-t border-border/50">
-                              <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                                  {Object.keys(pollutantConfig).map((key) => {
-                                      if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
-                                          const value = aqiComponents[key as keyof typeof aqiComponents];
-                                          const config = pollutantConfig[key];
-                                          if (typeof value === 'number') {
-                                              return <PollutantDetail key={key} {...config} value={value} />;
-                                          }
+                      <div className="pt-4 mt-4 border-t border-border/50">
+                          <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                              {Object.keys(pollutantConfig).map((key) => {
+                                  if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
+                                      const value = aqiComponents[key as keyof typeof aqiComponents];
+                                      const config = pollutantConfig[key];
+                                      if (typeof value === 'number') {
+                                          return <PollutantDetail key={key} {...config} value={value} />;
                                       }
-                                      return null;
-                                  })}
-                              </div>
+                                  }
+                                  return null;
+                              })}
                           </div>
-                      </CardContent>
-                  </Card>
+                      </div>
+                  </InfoCard>
                   ) : (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground animate-in fade-in">
                       <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
@@ -701,4 +676,25 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
       </div>
     </div>
   );
+}
+
+interface InfoCardProps {
+    icon: React.ElementType;
+    title: string;
+    children: React.ReactNode;
+    animationDelay?: string;
+}
+
+function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps) {
+    return (
+        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
+            <div className="flex flex-row items-center mb-3">
+                <Icon className="h-5 w-5 mr-2.5 text-primary flex-shrink-0" />
+                <h3 className="text-base font-headline font-semibold text-primary">{title}</h3>
+            </div>
+            <div className="pl-[2.125rem]">
+                {children}
+            </div>
+        </div>
+    );
 }
