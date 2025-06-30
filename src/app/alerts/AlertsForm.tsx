@@ -269,7 +269,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
                             />
                             <Label
                                 htmlFor={`day-${day.id}`}
-                                className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
                             >
                                 {day.label}
                             </Label>

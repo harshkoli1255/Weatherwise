@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu, Settings } from 'lucide-react';
+import { CloudSun, Menu, Settings, Bookmark } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
@@ -71,10 +71,10 @@ export function Navbar() {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-x-4 md:flex">
+            <div className="hidden items-center gap-x-1 md:flex">
               <TooltipProvider>
                 <SignedIn>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <SavedLocationsDropdown />
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -93,15 +93,19 @@ export function Navbar() {
                         <p>Settings</p>
                       </TooltipContent>
                     </Tooltip>
-                    <UserButton />
                   </div>
                 </SignedIn>
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <Button>Sign In</Button>
-                  </SignInButton>
-                </SignedOut>
-                <ThemeToggle />
+                <div className="flex items-center gap-2">
+                   <SignedIn>
+                      <UserButton />
+                   </SignedIn>
+                   <SignedOut>
+                    <SignInButton mode="modal">
+                      <Button>Sign In</Button>
+                    </SignInButton>
+                  </SignedOut>
+                  <ThemeToggle />
+                </div>
               </TooltipProvider>
             </div>
 
