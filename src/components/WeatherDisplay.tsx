@@ -16,6 +16,7 @@ import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTool
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from './ui/separator';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -251,6 +252,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
+  const isMobile = useIsMobile();
 
   const getAqiInfo = (aqi: number) => {
     switch (aqi) {
@@ -355,13 +357,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     return (
       <g transform={`translate(${x},${y})`}>
         {/* Render the time label */}
-        <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={12}>
+        <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={isMobile ? 11 : 12}>
           {timeLabel}
         </text>
         {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
-        <foreignObject x={-12} y={20} width={24} height={24}>
+        <foreignObject x={-10} y={22} width={20} height={20}>
           <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
-            <WeatherIcon iconCode={tickData.iconCode} className={cn("h-5 w-5", iconColorClass)} />
+            <WeatherIcon iconCode={tickData.iconCode} className={cn("h-4 w-4", iconColorClass)} />
           </div>
         </foreignObject>
       </g>
@@ -482,7 +484,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         axisLine={false}
                         tickMargin={8}
                         tick={<CustomXAxisTick />}
-                        interval={0}
+                        interval={isMobile ? 1 : 0}
                         height={60}
                       />
                       <YAxis
@@ -496,7 +498,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         cursor={true}
                         content={<CustomChartTooltipContent />}
                       />
-                      <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />
+                      {!isMobile && <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />}
                       <defs>
                         <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
                           {tempGradientOffset >= 1 && (
