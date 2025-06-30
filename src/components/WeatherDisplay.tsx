@@ -28,35 +28,38 @@ interface ForecastCardProps {
 
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   const { convertTemperature, formatTime } = useUnits();
-  const showPrecipitation = data.precipitationChance > 0;
+  // Only show precipitation icon if chance is non-trivial (e.g., > 10%)
+  const showPrecipitation = data.precipitationChance > 10;
   const displayTime = formatTime(data.timestamp, timezone);
   
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-between text-center p-2 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 w-24 shrink-0 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none h-36"
+        "group flex h-full w-24 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-3 text-center text-left shadow-lg transition-all duration-300 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
       aria-label={`View forecast for ${displayTime}`}
     >
-      {/* Group top content to push it up */}
-      <div className="flex flex-col items-center space-y-1">
-        <p className="text-xs font-medium text-muted-foreground">{displayTime}</p>
-        <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 text-primary drop-shadow-lg" />
-        <p className="text-lg sm:text-xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
+      {/* Top Part: Time */}
+      <p className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-primary">{displayTime}</p>
+      
+      {/* Middle Part: Icon and Temperature */}
+      <div className="flex flex-col items-center">
+        <WeatherIcon iconCode={data.iconCode} className="h-10 w-10 text-primary drop-shadow-lg" />
+        <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
 
-      {/* Group bottom content to push it down, showing precipitation or humidity */}
-      <div className="flex items-center justify-center gap-1.5 text-xs font-medium pt-1 min-h-[20px]">
+      {/* Bottom Part: Precipitation / Humidity */}
+      <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-3 w-3 text-sky-400" />
-            <span className="text-sky-400">{data.precipitationChance}%</span>
+            <Droplets className="h-4 w-4 text-sky-400" />
+            <span className="font-semibold text-sky-400">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
-            <Droplets className="h-3 w-3 text-muted-foreground/80" />
-            <span className="text-muted-foreground/80">{data.humidity}%</span>
+            <Droplets className="h-4 w-4" />
+            <span>{data.humidity}%</span>
           </>
         )}
       </div>
@@ -205,9 +208,17 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     <ChartTooltipContent
                       indicator="dot"
                       labelFormatter={(label) => `Time: ${label}`}
-                      valueFormatter={(value) =>
-                        `${value}${getTemperatureUnitSymbol()}`
-                      }
+                      formatter={(value, name, item) => {
+                          const config = chartConfig[name as keyof typeof chartConfig];
+                          return (
+                            <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-x-2">
+                                <span className="text-muted-foreground">{config.label}</span>
+                                <span className="font-mono font-medium tabular-nums text-foreground">
+                                    {value}{getTemperatureUnitSymbol()}
+                                </span>
+                            </div>
+                          )
+                      }}
                     />
                   }
                 />
@@ -276,7 +287,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </h3>
             </div>
             <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-              <div className="flex w-max space-x-3 pb-4">
+              <div className="flex h-40 w-max space-x-3 pb-4">
                 {weatherData.hourlyForecast.map((hour, index) => (
                   <ForecastCard 
                     key={index} 
