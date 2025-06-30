@@ -13,6 +13,7 @@ import { useUnits } from '@/hooks/useUnits';
 import { useSavedLocations } from '@/hooks/useFavorites';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceDot } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Progress } from './ui/progress';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -168,6 +169,79 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Configuration for pollutant details, including health thresholds and display settings.
+const pollutantConfig: Record<string, Omit<PollutantDetailProps, 'value'>> = {
+  pm2_5: {
+    name: "PM₂.₅",
+    description: "Fine Particles",
+    unit: "µg/m³",
+    thresholds: { good: 12, moderate: 35.4, usg: 55.4, unhealthy: 150.4 },
+    progressMax: 150,
+  },
+  o3: {
+    name: "O₃",
+    description: "Ozone",
+    unit: "µg/m³",
+    thresholds: { good: 100, moderate: 168, usg: 208, unhealthy: 785 },
+    progressMax: 250,
+  },
+  no2: {
+    name: "NO₂",
+    description: "Nitrogen Dioxide",
+    unit: "µg/m³",
+    thresholds: { good: 100, moderate: 200, usg: 1130, unhealthy: 1620 },
+    progressMax: 250,
+  },
+  co: {
+    name: "CO",
+    description: "Carbon Monoxide",
+    unit: "µg/m³",
+    thresholds: { good: 5000, moderate: 10000, usg: 17000, unhealthy: 34000 },
+    progressMax: 15000,
+  },
+};
+
+
+// Component to display details for a single pollutant.
+interface PollutantDetailProps {
+  name: string;
+  description: string;
+  value: number;
+  unit: string;
+  thresholds: { good: number; moderate: number; usg: number; unhealthy: number };
+  progressMax: number;
+}
+
+const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, value, unit, thresholds, progressMax }) => {
+  const percentage = Math.min((value / progressMax) * 100, 100);
+  
+  // Determine color based on Environmental Protection Agency (EPA) guidelines.
+  let indicatorColorClass = "bg-success"; // Good
+  if (value > thresholds.unhealthy) indicatorColorClass = "bg-purple-600"; // Very Unhealthy
+  else if (value > thresholds.usg) indicatorColorClass = "bg-destructive"; // Unhealthy
+  else if (value > thresholds.moderate) indicatorColorClass = "bg-orange-500"; // Unhealthy for Sensitive Groups
+  else if (value > thresholds.good) indicatorColorClass = "bg-yellow-500"; // Moderate
+
+  return (
+    <div className="flex flex-col space-y-1.5 p-3 rounded-md bg-muted/50 border border-border/70">
+      <div className="flex justify-between items-baseline">
+        <span className="text-sm font-semibold text-foreground" dangerouslySetInnerHTML={{ __html: name }}></span>
+        <span className="text-xs text-muted-foreground">{description}</span>
+      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Progress value={percentage} indicatorClassName={indicatorColorClass} className="h-2" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{value.toFixed(1)} {unit}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
@@ -186,6 +260,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   };
 
   const aqiInfo = weatherData.airQuality ? getAqiInfo(weatherData.airQuality.aqi) : null;
+  const aqiComponents = weatherData.airQuality?.components;
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
   if (weatherData.weatherSentiment === 'good') {
@@ -232,7 +307,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   
     if (!tickData) return null;
   
-    // Show all time labels for a more detailed, professional look.
     const timeLabel = payload.value;
   
     const condition = tickData.condition.toLowerCase();
@@ -454,7 +528,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </div>
         )}
 
-        {weatherData.airQuality && weatherData.airQualitySummary && (
+        {aqiComponents && weatherData.airQualitySummary && (
             <div className="pt-4 border-t border-border/50">
                 <div className="flex items-center mb-4">
                     <Leaf className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
@@ -462,7 +536,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         Air Quality & Health
                     </h3>
                 </div>
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-3">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
                     <p
                         className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
                         dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
@@ -471,6 +545,16 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         className="text-sm text-muted-foreground leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
                     />
+
+                     <div className="pt-4 mt-4 border-t border-border/50">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                           {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
+                           {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
+                           {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
+                           {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
+                        </div>
+                    </div>
                 </div>
             </div>
         )}
