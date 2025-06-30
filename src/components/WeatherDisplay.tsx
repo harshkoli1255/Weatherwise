@@ -482,7 +482,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </div>
                 {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
                 <>
-                <div className="w-full overflow-x-auto pb-2">
+                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                     <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
                     <AreaChart
                         accessibilityLayer
@@ -580,7 +580,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     </AreaChart>
                     </ChartContainer>
                 </div>
-                <ScrollArea className="w-full overflow-x-auto pb-2">
+                <ScrollArea className="w-full pb-2 horizontal-scrollbar">
                     <div className="flex w-max flex-nowrap space-x-3 px-1 py-2">
                         {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 

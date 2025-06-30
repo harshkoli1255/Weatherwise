@@ -87,4 +87,23 @@
     background-image: radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1px);
     background-size: 16px 16px;
   }
+  
+  /* Custom horizontal scrollbar */
+  .horizontal-scrollbar {
+    -ms-overflow-style: auto; /* IE and Edge */
+    scrollbar-width: thin; /* Firefox */
+  }
+
+  .horizontal-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    background-color: hsl(var(--muted) / 0.5);
+    border-radius: 10px;
+  }
+  .horizontal-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.7);
+    border-radius: 10px;
+  }
+  .horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary));
+  }
 }
