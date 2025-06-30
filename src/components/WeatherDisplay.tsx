@@ -2,7 +2,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -431,8 +431,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="pt-3 sm:pt-4 px-4 sm:px-6">
-            <div className="space-y-4">
+        <TabsContent value="forecast" className="pt-2 px-0 sm:pt-4 sm:px-0">
+            <div className="space-y-4 px-4 sm:px-6">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
                 <div className="animate-in fade-in zoom-in-95 order-2 sm:order-1" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
@@ -460,17 +460,37 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   />
                 )}
               </div>
-              
-              <div>
-                <Separator className="my-3" />
-                <div className="flex items-center mb-3">
-                  <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
+            </div>
+            
+            <div className="pt-4">
+              {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
+              <>
+                {/* HOURLY CARDS (First) */}
+                <div className="flex items-center mb-3 px-4 sm:px-6">
+                  <Clock className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                    24-Hour Forecast
+                    Hourly Details
                   </h3>
                 </div>
-                {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
-                <>
+                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
+                    <div className="flex w-max flex-nowrap space-x-3 px-4 sm:px-6 py-2">
+                        {weatherData.hourlyForecast.map((hour, index) => (
+                        <ForecastCard 
+                            key={index} 
+                            data={hour}
+                            timezone={weatherData.timezone}
+                            onClick={() => setSelectedHour(hour)}
+                        />
+                        ))}
+                    </div>
+                </div>
+                {/* 24-HOUR CHART (Second) */}
+                <div className="flex items-center mt-4 mb-3 px-4 sm:px-6">
+                  <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
+                  <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
+                    24-Hour Timeline
+                  </h3>
+                </div>
                 <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                     <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
                     <AreaChart
@@ -483,33 +503,32 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         bottom: 40,
                         }}
                         onClick={(state) => {
-                          if (state?.activePayload?.[0]?.payload?.originalData) {
+                          if (isMobile && state?.activePayload?.[0]?.payload?.originalData) {
                             setSelectedHour(state.activePayload[0].payload.originalData as HourlyForecastData)
                           }
                         }}
                     >
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis
-                        dataKey="time"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={<CustomXAxisTick />}
-                        interval={isMobile ? 1 : 0}
-                        height={60}
+                          dataKey="time"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          tick={<CustomXAxisTick />}
+                          interval={0}
+                          height={60}
                         />
                         <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        domain={['dataMin - 5', 'dataMax + 5']}
-                        tickFormatter={(value) => `${value}°`}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          domain={['dataMin - 5', 'dataMax + 5']}
+                          tickFormatter={(value) => `${value}°`}
                         />
                         <ChartTooltip
-                        cursor={true}
-                        content={<CustomChartTooltipContent config={chartConfig} />}
+                          cursor={true}
+                          content={<CustomChartTooltipContent config={chartConfig} />}
                         />
-                        {!isMobile && <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />}
                         <defs>
                         <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
                             {tempGradientOffset >= 1 && (
@@ -583,26 +602,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     </AreaChart>
                     </ChartContainer>
                 </div>
-                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                    <div className="flex w-max flex-nowrap space-x-3 px-1 py-2">
-                        {weatherData.hourlyForecast.map((hour, index) => (
-                        <ForecastCard 
-                            key={index} 
-                            data={hour}
-                            timezone={weatherData.timezone}
-                            onClick={() => setSelectedHour(hour)}
-                        />
-                        ))}
-                    </div>
-                </div>
-                </>
-                ) : null}
-              </div>
+              </>
+              ) : null}
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="pt-3 sm:pt-4 px-4 sm:px-6">
-            <div className="space-y-6">
+        <TabsContent value="insights" className="pt-2 sm:pt-4">
+            <div className="space-y-6 px-4 sm:px-6">
                  <div>
                     <div className="flex items-center mb-4">
                       <Brain className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
@@ -670,8 +676,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="pt-3 sm:pt-4 px-4 sm:px-6">
-           <div className="space-y-6">
+        <TabsContent value="health" className="pt-2 sm:pt-4">
+           <div className="space-y-6 px-4 sm:px-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
                     <div className="flex items-center mb-4">

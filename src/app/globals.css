@@ -88,22 +88,12 @@
     background-size: 16px 16px;
   }
   
-  /* Custom horizontal scrollbar */
+  /* Custom horizontal scrollbar - visually hidden */
   .horizontal-scrollbar {
-    -ms-overflow-style: auto; /* IE and Edge */
-    scrollbar-width: thin; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
-
   .horizontal-scrollbar::-webkit-scrollbar {
-    height: 8px;
-    background-color: hsl(var(--muted) / 0.5);
-    border-radius: 10px;
-  }
-  .horizontal-scrollbar::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--primary) / 0.7);
-    border-radius: 10px;
-  }
-  .horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--primary));
+    display: none; /* Safari and Chrome */
   }
 }
