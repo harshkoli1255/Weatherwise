@@ -1,3 +1,4 @@
+
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -370,7 +371,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         <CardDescription className="text-center text-base capitalize text-muted-foreground mt-1 sm:mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="p-0 pb-4">
+      <CardContent className="p-0">
         <Tabs defaultValue="forecast" className="w-full">
             <div className="px-4 pt-4">
                 <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-9 sm:h-10">
@@ -389,267 +390,266 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </TabsList>
             </div>
             
-            <TabsContent value="forecast" className="pt-4 px-4 sm:px-6 space-y-4">
-                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                   <div className="flex w-max space-x-3 py-2">
-                        {weatherData.hourlyForecast.map((hour, index) => (
-                          <ForecastCard 
-                              key={index} 
-                              data={hour}
-                              timezone={weatherData.timezone}
-                              onClick={() => setSelectedHour(hour)}
+            <div className="p-4 sm:px-6">
+              <TabsContent value="forecast" className="space-y-4 pt-0">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
+                      <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
+                          <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
+                              <span>{convertTemperature(weatherData.temperature)}</span>
+                              <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
+                          </div>
+                          <span className="text-base text-muted-foreground -mt-1">
+                              Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
+                          </span>
+                      </div>
+                      <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
+                      <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+                      <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                      {aqiInfo && (
+                          <WeatherDetailItem 
+                              icon={GaugeCircle} 
+                              label="Air Quality" 
+                              value={aqiInfo.level} 
+                              iconColor={aqiInfo.colorClass} 
+                              className="animate-in fade-in" 
+                              style={{ animationDelay: '500ms' }}
                           />
-                        ))}
-                   </div>
-                </div>
-
-                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                    <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64 mt-2">
-                    <AreaChart
-                        accessibilityLayer
-                        data={chartData}
-                        onClick={(e) => {
-                            if (isMobile && e?.activePayload?.[0]?.payload) {
-                                setActiveChartData(e.activePayload[0].payload);
-                            }
-                        }}
-                        margin={{
-                        left: -5,
-                        right: 20,
-                        top: 10,
-                        bottom: 40,
-                        }}
-                    >
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="time"
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={8}
-                          tick={<CustomXAxisTick />}
-                          interval={0}
-                          height={60}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={8}
-                          domain={['dataMin - 5', 'dataMax + 5']}
-                          tickFormatter={(value) => `${value}°`}
-                        />
-                        <ChartTooltip
-                          cursor={true}
-                          content={<CustomChartTooltipContent />}
+                      )}
+                  </div>
+                  <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
+                      <div className="flex w-max space-x-3 py-2">
+                          {weatherData.hourlyForecast.map((hour, index) => (
+                            <ForecastCard 
+                                key={index} 
+                                data={hour}
+                                timezone={weatherData.timezone}
+                                onClick={() => setSelectedHour(hour)}
+                            />
+                          ))}
+                      </div>
+                  </div>
+                  <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
+                      <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64 mt-2">
+                      <AreaChart
+                          accessibilityLayer
+                          data={chartData}
+                          onClick={(e) => {
+                              if (e?.activePayload?.[0]?.payload) {
+                                  setActiveChartData(e.activePayload[0].payload);
+                              }
+                          }}
+                          margin={{
+                          left: -5,
+                          right: 20,
+                          top: 10,
+                          bottom: 40,
+                          }}
+                      >
+                          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="time"
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tick={<CustomXAxisTick />}
+                            interval={0}
+                            height={60}
                           />
-                        <defs>
-                        <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                            {tempGradientOffset >= 1 && (
-                                <>
-                                    <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
-                                </>
-                            )}
-                            {tempGradientOffset <= 0 && (
-                                <>
-                                    <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
-                                </>
-                            )}
-                            {tempGradientOffset > 0 && tempGradientOffset < 1 && (
-                                <>
-                                    <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                    <stop offset={tempGradientOffset} stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                    <stop offset={tempGradientOffset} stopColor="var(--color-temperature)" stopOpacity={0.8} />
-                                    <stop offset="1" stopColor="var(--color-temperature)" stopOpacity={0.1} />
-                                </>
-                            )}
-                        </linearGradient>
-                        <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
-                            <stop
-                            offset="5%"
-                            stopColor="var(--color-feelsLike)"
-                            stopOpacity={0.4}
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            domain={['dataMin - 5', 'dataMax + 5']}
+                            tickFormatter={(value) => `${value}°`}
+                          />
+                          <ChartTooltip
+                            cursor={true}
+                            content={<CustomChartTooltipContent />}
                             />
-                            <stop
-                            offset="95%"
-                            stopColor="var(--color-feelsLike)"
-                            stopOpacity={0.05}
-                            />
-                        </linearGradient>
-                        </defs>
-                        <Area
-                        dataKey="feelsLike"
-                        type="natural"
-                        fill="url(#fillFeelsLike)"
-                        stroke="var(--color-feelsLike)"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={false}
-                        activeDot={{
-                            r: 6,
-                            strokeWidth: 2,
-                            fill: "hsl(var(--background))",
-                        }}
-                        />
-                        <Area
-                        dataKey="temperature"
-                        type="natural"
-                        fill="url(#tempGradient)"
-                        stroke="var(--color-temperature)"
-                        strokeWidth={2}
-                        activeDot={{
-                            r: 8,
-                            strokeWidth: 2,
-                            fill: "hsl(var(--background))",
-                        }}
-                        />
-                        {chartData.length > 0 && (
-                        <>
-                            <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
-                            <ReferenceDot x="Now" y={chartData[0].temperature} r={8} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                            <ReferenceDot x="Now" y={chartData[0].feelsLike} r={6} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
-                        </>
-                        )}
-                    </AreaChart>
-                    </ChartContainer>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left pt-4">
-                    <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
-                        <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
-                            <span>{convertTemperature(weatherData.temperature)}</span>
-                            <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
-                        </div>
-                        <span className="text-base text-muted-foreground -mt-1">
-                            Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
-                        </span>
-                    </div>
-                    <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
-                </div>
+                          <defs>
+                          <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                              {tempGradientOffset >= 1 && (
+                                  <>
+                                      <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                      <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                                  </>
+                              )}
+                              {tempGradientOffset <= 0 && (
+                                  <>
+                                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                                  </>
+                              )}
+                              {tempGradientOffset > 0 && tempGradientOffset < 1 && (
+                                  <>
+                                      <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                      <stop offset={tempGradientOffset} stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                      <stop offset={tempGradientOffset} stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                      <stop offset="1" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                                  </>
+                              )}
+                          </linearGradient>
+                          <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
+                              <stop
+                              offset="5%"
+                              stopColor="var(--color-feelsLike)"
+                              stopOpacity={0.4}
+                              />
+                              <stop
+                              offset="95%"
+                              stopColor="var(--color-feelsLike)"
+                              stopOpacity={0.05}
+                              />
+                          </linearGradient>
+                          </defs>
+                          <Area
+                          dataKey="feelsLike"
+                          type="natural"
+                          fill="url(#fillFeelsLike)"
+                          stroke="var(--color-feelsLike)"
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          activeDot={{
+                              r: 6,
+                              strokeWidth: 2,
+                              fill: "hsl(var(--background))",
+                          }}
+                          />
+                          <Area
+                          dataKey="temperature"
+                          type="natural"
+                          fill="url(#tempGradient)"
+                          stroke="var(--color-temperature)"
+                          strokeWidth={2}
+                          activeDot={{
+                              r: 8,
+                              strokeWidth: 2,
+                              fill: "hsl(var(--background))",
+                          }}
+                          />
+                          {chartData.length > 0 && (
+                          <>
+                              <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
+                              <ReferenceDot x="Now" y={chartData[0].temperature} r={8} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
+                              <ReferenceDot x="Now" y={chartData[0].feelsLike} r={6} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                          </>
+                          )}
+                      </AreaChart>
+                      </ChartContainer>
+                  </div>
+              </TabsContent>
+              
+              <TabsContent value="insights" className="space-y-4">
+                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                      <CardHeader className="flex flex-row items-center p-0 mb-3">
+                          <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
+                          <CardTitle className="text-base font-headline font-semibold text-primary p-0">AI Summary</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                          <div
+                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                          dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
+                          />
+                      </CardContent>
+                  </Card>
 
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
-                    <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-                    <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-                    {aqiInfo && (
-                        <WeatherDetailItem 
-                            icon={GaugeCircle} 
-                            label="Air Quality" 
-                            value={aqiInfo.level} 
-                            iconColor={aqiInfo.colorClass} 
-                            className="animate-in fade-in" 
-                            style={{ animationDelay: '500ms' }}
-                        />
-                    )}
-                </div>
-            </TabsContent>
-            
-            <TabsContent value="insights" className="pt-4 px-4 sm:px-6 space-y-4">
-                <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                    <CardHeader className="flex flex-row items-center p-0 mb-3">
-                        <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
-                        <CardTitle className="text-base font-headline font-semibold text-primary p-0">AI Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div
-                        className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                        dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
-                        />
-                    </CardContent>
-                </Card>
+                  {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                          <CardHeader className="flex flex-row items-center p-0 mb-3">
+                              <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
+                              <CardTitle className="text-base font-headline font-semibold text-primary p-0">Key Insights</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                              <ul className="space-y-3">
+                              {weatherData.aiInsights.map((insight, index) => (
+                                  <li key={index} className="flex items-start">
+                                  <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
+                                      <Sparkles className="h-3 w-3 text-primary" />
+                                  </div>
+                                  <span
+                                      className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                                      dangerouslySetInnerHTML={{ __html: insight }}
+                                  />
+                                  </li>
+                              ))}
+                              </ul>
+                          </CardContent>
+                      </Card>
+                  )}
 
-                {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                    <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                        <CardHeader className="flex flex-row items-center p-0 mb-3">
-                            <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
-                            <CardTitle className="text-base font-headline font-semibold text-primary p-0">Key Insights</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <ul className="space-y-3">
-                            {weatherData.aiInsights.map((insight, index) => (
-                                <li key={index} className="flex items-start">
-                                <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
-                                    <Sparkles className="h-3 w-3 text-primary" />
-                                </div>
-                                <span
-                                    className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                                    dangerouslySetInnerHTML={{ __html: insight }}
-                                />
-                                </li>
-                            ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                )}
+                  {weatherData.activitySuggestion && (
+                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                          <CardHeader className="flex flex-row items-center p-0 mb-3">
+                              <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
+                              <CardTitle className="text-base font-headline font-semibold text-primary p-0">Activity Suggestion</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                          <div
+                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                          />
+                          {weatherData.aiImageUrl && (
+                              <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                                  <Image
+                                      src={weatherData.aiImageUrl}
+                                      alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                                      width={600}
+                                      height={400}
+                                      className="w-full h-auto aspect-[16/9] object-cover"
+                                  />
+                              </div>
+                          )}
+                          </CardContent>
+                      </Card>
+                  )}
+              </TabsContent>
+              
+              <TabsContent value="health" className="space-y-4">
+              {aqiComponents && weatherData.airQualitySummary ? (
+                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                      <CardHeader className="flex flex-row items-center p-0 mb-3">
+                          <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
+                          <CardTitle className="text-base font-headline font-semibold text-primary p-0">Air Quality & Health</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                          <div
+                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                              dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                          />
+                          <p
+                              className="mt-2 text-xs text-muted-foreground leading-relaxed"
+                              dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                          />
 
-                {weatherData.activitySuggestion && (
-                    <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                        <CardHeader className="flex flex-row items-center p-0 mb-3">
-                            <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
-                            <CardTitle className="text-base font-headline font-semibold text-primary p-0">Activity Suggestion</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                        <div
-                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                            dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-                        />
-                        {weatherData.aiImageUrl && (
-                            <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
-                                <Image
-                                    src={weatherData.aiImageUrl}
-                                    alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                                    width={600}
-                                    height={400}
-                                    className="w-full h-auto aspect-[16/9] object-cover"
-                                />
-                            </div>
-                        )}
-                        </CardContent>
-                    </Card>
-                )}
-            </TabsContent>
-            
-            <TabsContent value="health" className="pt-4 px-4 sm:px-6 space-y-4">
-            {aqiComponents && weatherData.airQualitySummary ? (
-                <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                    <CardHeader className="flex flex-row items-center p-0 mb-3">
-                        <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
-                        <CardTitle className="text-base font-headline font-semibold text-primary p-0">Air Quality & Health</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div
-                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                        />
-                        <p
-                            className="mt-2 text-xs text-muted-foreground leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                        />
-
-                        <div className="pt-4 mt-4 border-t border-border/50">
-                            <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                                {Object.keys(pollutantConfig).map((key) => {
-                                    if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
-                                        const value = aqiComponents[key as keyof typeof aqiComponents];
-                                        const config = pollutantConfig[key];
-                                        if (typeof value === 'number') {
-                                            return <PollutantDetail key={key} {...config} value={value} />;
-                                        }
-                                    }
-                                    return null;
-                                })}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                    <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <p className="font-semibold">Air Quality Data Not Available</p>
-                    <p className="text-sm mt-1">This location does not currently provide air quality information.</p>
-                </div>
-                )}
-            </TabsContent>
+                          <div className="pt-4 mt-4 border-t border-border/50">
+                              <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                                  {Object.keys(pollutantConfig).map((key) => {
+                                      if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
+                                          const value = aqiComponents[key as keyof typeof aqiComponents];
+                                          const config = pollutantConfig[key];
+                                          if (typeof value === 'number') {
+                                              return <PollutantDetail key={key} {...config} value={value} />;
+                                          }
+                                      }
+                                      return null;
+                                  })}
+                              </div>
+                          </div>
+                      </CardContent>
+                  </Card>
+                  ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                      <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <p className="font-semibold">Air Quality Data Not Available</p>
+                      <p className="text-sm mt-1">This location does not currently provide air quality information.</p>
+                  </div>
+                  )}
+              </TabsContent>
+            </div>
         </Tabs>
       </CardContent>
 
@@ -701,3 +701,5 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
     </div>
   );
 }
+
+    
