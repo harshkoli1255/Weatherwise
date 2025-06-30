@@ -9,26 +9,14 @@ export function WeatherLoadingAnimation({ className }: { className?: string }) {
         className
       )}
     >
-      {/* Sun */}
-      <div className="absolute h-12 w-12 rounded-full bg-current shadow-[0_0_25px_currentColor] [animation:spin_8s_linear_infinite]"></div>
-
-      {/* Sun Rays */}
-       <div className="absolute h-full w-full [animation:spin_16s_linear_infinite]">
-        <div className="absolute left-1/2 top-1 h-6 w-1 -translate-x-1/2 rounded-full bg-current/80"></div>
-        <div className="absolute right-1 top-1/2 h-1 w-6 -translate-y-1/2 rounded-full bg-current/80"></div>
-        <div className="absolute bottom-1 left-1/2 h-6 w-1 -translate-x-1/2 rounded-full bg-current/80"></div>
-        <div className="absolute left-1 top-1/2 h-1 w-6 -translate-y-1/2 rounded-full bg-current/80"></div>
-        <div className="absolute left-[22%] top-[22%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-current/80"></div>
-        <div className="absolute right-[22%] top-[22%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-current/80"></div>
-        <div className="absolute bottom-[22%] right-[22%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-current/80"></div>
-        <div className="absolute bottom-[22%] left-[22%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-current/80"></div>
+      <div className="absolute h-full w-full animate-spin [animation-duration:3s]">
+        <div className="absolute left-1/2 top-0 h-4 w-4 -translate-x-1/2 rounded-full bg-current/80 opacity-50" />
+        <div className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-current/80 opacity-50" />
+        <div className="absolute bottom-0 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full bg-current/80 opacity-50" />
+        <div className="absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-current/80 opacity-50" />
       </div>
-      
-      {/* Cloud */}
-      <div className="absolute bottom-6 h-10 w-20 rounded-full bg-background/80 shadow-lg backdrop-blur-sm animate-weather-float">
-        <div className="absolute -top-5 left-3 h-10 w-10 rounded-full bg-background/80"></div>
-        <div className="absolute -top-7 right-3 h-12 w-12 rounded-full bg-background/80"></div>
-      </div>
+      <div className="absolute h-16 w-16 animate-ping rounded-full bg-current/50 [animation-duration:1.5s]" />
+      <div className="absolute h-12 w-12 rounded-full bg-current shadow-[0_0_25px_currentColor]" />
     </div>
   );
 }

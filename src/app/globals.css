@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 220 30% 98%;
+    --background: 220 40% 98%;
     --foreground: 220 15% 20%;
     --card: 0 0% 100%;
     --card-foreground: 220 15% 20%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 20%;
-    --primary: 221 83% 53%;
+    --primary: 220 70% 50%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 15% 95%;
     --secondary-foreground: 220 15% 25%;
@@ -22,40 +22,40 @@
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 221 83% 53%;
+    --ring: 220 70% 50%;
     --success: 142 76% 36%;
     --success-foreground: 142 20% 98%;
-    --chart-1: 221 83% 53%;
+    --chart-1: 220 70% 50%;
     --chart-2: 173 58% 39%;
     --chart-3: 43 74% 66%;
     --chart-4: 258 70% 60%;
     --chart-5: 333 70% 60%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 220 13% 11%;
+    --background: 224 71% 4%;
     --foreground: 210 15% 95%;
-    --card: 220 13% 15%;
+    --card: 224 71% 8%;
     --card-foreground: 210 15% 95%;
-    --popover: 220 13% 11%;
+    --popover: 224 71% 4%;
     --popover-foreground: 210 15% 95%;
-    --primary: 221 83% 65%;
-    --primary-foreground: 221 83% 10%;
-    --secondary: 220 13% 20%;
+    --primary: 220 70% 60%;
+    --primary-foreground: 220 70% 10%;
+    --secondary: 224 71% 12%;
     --secondary-foreground: 210 15% 95%;
-    --muted: 220 13% 20%;
+    --muted: 224 71% 12%;
     --muted-foreground: 220 8% 65%;
-    --accent: 220 13% 25%;
+    --accent: 224 71% 15%;
     --accent-foreground: 210 15% 95%;
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 25%;
-    --input: 220 13% 27%;
-    --ring: 221 83% 65%;
+    --border: 224 71% 15%;
+    --input: 224 71% 18%;
+    --ring: 220 70% 60%;
     --success: 142 70% 40%;
     --success-foreground: 142 10% 98%;
-    --chart-1: 221 83% 65%;
+    --chart-1: 220 70% 60%;
     --chart-2: 173 58% 49%;
     --chart-3: 43 74% 70%;
     --chart-4: 258 70% 70%;
@@ -75,7 +75,7 @@
 
 @layer utilities {
   .bg-glass {
-    @apply bg-card/60 backdrop-blur-xl;
+    @apply bg-card/70 backdrop-blur-2xl;
   }
 
   .bg-dot-pattern {

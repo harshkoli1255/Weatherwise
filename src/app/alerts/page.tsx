@@ -4,6 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { BellOff } from 'lucide-react';
 import { AlertsPageClient } from './AlertsPageClient';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Alerts | Weatherwise',
+  description: 'Manage your hourly weather alerts. Set up and customize your email notifications for any city.',
+};
 
 export default async function AlertsPage() {
   const { userId } = auth();
@@ -12,7 +18,7 @@ export default async function AlertsPage() {
     return (
       <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
         <Card className="w-full max-w-md text-center bg-glass border-primary/20 shadow-2xl rounded-xl">
-          <CardHeader className="items-center pt-6 sm:pt-8 pb-4">
+          <CardHeader className="items-center pt-8 pb-6">
             <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <BellOff className="h-12 w-12 text-primary drop-shadow-lg" />
             </div>
@@ -21,7 +27,7 @@ export default async function AlertsPage() {
               To set up and manage your hourly weather alerts, please sign in or create an account.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 pb-6 sm:pb-8">
+          <CardContent className="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 pb-8">
             <SignInButton mode="modal">
               <Button size="lg" className="w-full sm:w-auto">Sign In</Button>
             </SignInButton>

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex flex-col items-start gap-3 p-3 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02]">
+  <div className="flex flex-col items-start gap-3 p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02]">
     <div className="flex items-center gap-3">
         <div className="p-2 bg-primary/10 rounded-lg">
             <Icon className="h-6 w-6 text-primary" />
@@ -34,7 +34,7 @@ const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType;
 );
 
 const TechItem = ({ name }: { name: string }) => (
-    <Badge variant="secondary" className="text-xs py-0.5 px-2.5">
+    <Badge variant="secondary" className="text-xs py-1 px-3">
         {name}
     </Badge>
 );

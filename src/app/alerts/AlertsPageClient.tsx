@@ -67,16 +67,16 @@ export function AlertsPageClient() {
   return (
      <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
       <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl">
-        <CardHeader className="text-center items-center pt-6 sm:pt-8 pb-4">
+        <CardHeader className="text-center items-center pt-8 pb-6">
            <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <Bell className="h-10 w-10 text-primary drop-shadow-lg" />
            </div>
-          <CardTitle className="text-xl sm:text-2xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">Manage Weather Alerts</CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-2 px-4">
             Enable hourly email notifications and customize when and how often you receive them.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8">
+        <CardContent className="px-4 sm:px-6 md:px-8 pb-8">
           <AlertsForm preferences={preferences} />
         </CardContent>
       </Card>

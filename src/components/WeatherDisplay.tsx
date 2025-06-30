@@ -13,9 +13,8 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceD
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from './ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ScrollArea } from './ui/scroll-area';
+import Image from 'next/image';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -37,52 +36,35 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   
   const condition = data.condition.toLowerCase();
   const showPrecipitation = data.precipitationChance > 10;
-  const isCloudy = condition.includes('cloud');
-  const isClearDay = data.iconCode === '01d';
-
-  // Determine color for the text below the icon
-  const detailColorClass = showPrecipitation
-    ? "text-sky-400"
-    : isCloudy
-    ? "text-slate-400 dark:text-slate-500"
-    : "text-muted-foreground";
-
-  // Determine color for the icon itself
-  let iconColorClass = 'text-primary'; // Default for night, etc.
-  if (showPrecipitation) {
-    iconColorClass = 'text-sky-400';
-  } else if (isClearDay) {
-    iconColorClass = 'text-yellow-400';
-  } else if (isCloudy) {
-    iconColorClass = 'text-slate-400 dark:text-slate-500';
-  }
   
+  let borderColor = 'border-border/30';
+  if (showPrecipitation) {
+    borderColor = 'border-sky-400/50';
+  } else if (data.iconCode === '01d') {
+    borderColor = 'border-yellow-400/50';
+  }
+
   return (
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-40 w-24 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-3 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:bg-primary/10 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        "group flex h-36 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:bg-primary/10 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        borderColor
       )}
       aria-label={`View forecast for ${preciseTime}`}
     >
-      {/* Top Part: Time */}
       <p className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-primary">{displayTime}</p>
       
-      {/* Middle Part: Icon and Temperature */}
       <div className="flex flex-col items-center">
-        <WeatherIcon iconCode={data.iconCode} className={cn("h-10 w-10 drop-shadow-lg", iconColorClass)} />
+        <WeatherIcon iconCode={data.iconCode} className="h-9 w-9 drop-shadow-lg" />
         <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
 
-      {/* Bottom Part: Precipitation / Humidity */}
-      <div className={cn(
-          "flex items-center justify-center gap-1.5 text-xs font-medium",
-          detailColorClass
-        )}>
+      <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-4 w-4" />
-            <span className="font-semibold">{data.precipitationChance}%</span>
+            <Droplets className="h-4 w-4 text-sky-400" />
+            <span className="font-semibold text-sky-400">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
@@ -106,20 +88,20 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const CustomChartTooltipContent = ({ active, payload, label, config }: any) => {
-  const { getTemperatureUnitSymbol, getWindSpeedUnitLabel, formatTime, timezone } = useUnits();
+const CustomChartTooltipContent = ({ active, payload, label }: any) => {
+  const { getTemperatureUnitSymbol, getWindSpeedUnitLabel } = useUnits();
 
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const titleTime = data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`;
+    const title = data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`;
 
     return (
       <div className="grid min-w-[12rem] gap-1.5 rounded-lg border bg-popover p-3 text-xs shadow-xl">
-        <div className="font-bold text-foreground mb-1 capitalize">{titleTime}</div>
+        <div className="font-bold text-foreground mb-1 capitalize">{title}</div>
         <div className="w-full h-px bg-border/50" />
         <div className="grid gap-1.5">
           {payload.map((item: any) => {
-            const itemConfig = config[item.name as keyof typeof config];
+            const itemConfig = chartConfig[item.name as keyof typeof chartConfig];
             const displayName = itemConfig?.label || item.name;
             return (
               <div
@@ -177,7 +159,6 @@ const CustomChartTooltipContent = ({ active, payload, label, config }: any) => {
   return null;
 };
 
-// Configuration for pollutant details, including health thresholds and display settings.
 const pollutantConfig: Record<string, Omit<PollutantDetailProps, 'value'>> = {
   pm2_5: {
     name: "PM₂.₅",
@@ -209,8 +190,6 @@ const pollutantConfig: Record<string, Omit<PollutantDetailProps, 'value'>> = {
   },
 };
 
-
-// Component to display details for a single pollutant.
 interface PollutantDetailProps {
   name: string;
   description: string;
@@ -223,7 +202,6 @@ interface PollutantDetailProps {
 const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, value, unit, thresholds, progressMax }) => {
   const percentage = Math.min((value / progressMax) * 100, 100);
   
-  // Determine color based on Environmental Protection Agency (EPA) guidelines.
   let indicatorColorClass = "bg-success"; // Good
   if (value > thresholds.unhealthy) indicatorColorClass = "bg-purple-600"; // Very Unhealthy
   else if (value > thresholds.usg) indicatorColorClass = "bg-destructive"; // Unhealthy
@@ -253,7 +231,7 @@ const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, va
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
+  const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
   const isMobile = useIsMobile();
 
@@ -271,17 +249,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   const aqiInfo = weatherData.airQuality ? getAqiInfo(weatherData.airQuality.aqi) : null;
   const aqiComponents = weatherData.airQuality?.components;
 
-  let sentimentColorClass = 'text-primary'; // Default for neutral
-  if (weatherData.weatherSentiment === 'good') {
-    sentimentColorClass = 'text-success';
-  } else if (weatherData.weatherSentiment === 'bad') {
-    sentimentColorClass = 'text-destructive';
-  }
-
   const chartData = useMemo(() => {
     if (!weatherData.hourlyForecast || weatherData.hourlyForecast.length === 0) return [];
     
-    // Add current time as the first data point
     const nowData = {
       time: "Now",
       temperature: convertTemperature(weatherData.temperature),
@@ -317,58 +287,39 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     const yMin = Math.min(...allTemps) - 5;
     const yMax = Math.max(...allTemps) + 5;
     
-    if (yMax <= yMin) { // Avoid division by zero
+    if (yMax <= yMin) { 
         return { tempGradientOffset: 1 };
     }
 
     const hotThreshold = units.temperature === 'celsius' ? 30 : 86;
 
     if (yMin >= hotThreshold) {
-      return { tempGradientOffset: 0 }; // All hot
+      return { tempGradientOffset: 0 };
     }
     if (yMax <= hotThreshold) {
-      return { tempGradientOffset: 1 }; // All cool
+      return { tempGradientOffset: 1 };
     }
 
     const offset = (yMax - hotThreshold) / (yMax - yMin);
     return { tempGradientOffset: Math.max(0, Math.min(1, offset)) };
   }, [chartData, units.temperature]);
 
-
-  // Custom component for rendering X-axis ticks with icons
   const CustomXAxisTick = (props: any) => {
     const { x, y, payload, index } = props;
-    // The data for the tick is in `chartData` at the given index.
     const tickData = chartData[index];
   
     if (!tickData) return null;
   
     const timeLabel = payload.value;
   
-    const condition = tickData.condition.toLowerCase();
-    const showPrecipitation = tickData.precipitationChance > 10;
-    const isCloudy = condition.includes('cloud');
-    const isClearDay = tickData.iconCode === '01d';
-
-    let iconColorClass = 'text-muted-foreground'; // Default for axis icons
-    if (showPrecipitation) {
-      iconColorClass = 'text-sky-400';
-    } else if (isClearDay) {
-      iconColorClass = 'text-yellow-400';
-    } else if (isCloudy) {
-      iconColorClass = 'text-slate-500 dark:text-slate-400';
-    }
-
     return (
       <g transform={`translate(${x},${y})`}>
-        {/* Render the time label */}
         <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={12}>
           {timeLabel}
         </text>
-        {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
         <foreignObject x={-10} y={22} width={20} height={20}>
           <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
-            <WeatherIcon iconCode={tickData.iconCode} className={cn("h-4 w-4", iconColorClass)} />
+            <WeatherIcon iconCode={tickData.iconCode} className="h-4 w-4" />
           </div>
         </foreignObject>
       </g>
@@ -379,7 +330,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="pt-4 pb-3 px-2 sm:pt-6 sm:pb-4 sm:px-4 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2">
-          <div className="w-8 sm:w-9" /> {/* Spacer to balance the save icon and ensure title is centered */}
+          <div className="w-8 sm:w-9" /> 
           <CardTitle className="min-w-0 text-center text-xl sm:text-2xl md:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
@@ -416,56 +367,57 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       </CardHeader>
 
       <Tabs defaultValue="forecast" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-2">
-          <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
-            <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-            Forecast
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="group text-xs sm:text-sm">
-            <Brain className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-            AI Insights
-          </TabsTrigger>
-          <TabsTrigger value="health" className="group text-xs sm:text-sm">
-            <Leaf className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-            Health
-          </TabsTrigger>
-        </TabsList>
+        <div className="px-4">
+            <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-9 sm:h-10 mt-2">
+            <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
+                <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                Forecast
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="group text-xs sm:text-sm">
+                <Brain className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                AI Insights
+            </TabsTrigger>
+            <TabsTrigger value="health" className="group text-xs sm:text-sm">
+                <Leaf className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                Health
+            </TabsTrigger>
+            </TabsList>
+        </div>
         
-        <TabsContent value="forecast" className="pt-2 px-0 sm:pt-4 sm:px-0">
+        <TabsContent value="forecast" className="pt-2 sm:pt-4">
             <div className="space-y-4 px-4 sm:px-6">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
-                <div className="animate-in fade-in zoom-in-95 order-2 sm:order-1" style={{ animationDelay: '200ms' }}>
-                  <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
-                </div>
-                <div className="animate-in fade-in zoom-in-95 order-1 sm:order-2" style={{ animationDelay: '100ms' }}>
-                   <div className="flex items-baseline justify-center text-5xl sm:text-6xl md:text-7xl font-bold text-foreground drop-shadow-lg">
-                      <span>{convertTemperature(weatherData.temperature)}</span>
-                      <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
+                    <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
+                        <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
+                            <span>{convertTemperature(weatherData.temperature)}</span>
+                            <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
+                        </div>
+                        <span className="text-base text-muted-foreground -mt-1">
+                            Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
+                        </span>
                     </div>
+                    <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 text-center">
-                <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-                <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className={cn("animate-in fade-in", !aqiInfo && 'col-span-2')} style={{ animationDelay: '500ms' }}/>
-                {aqiInfo && (
-                  <WeatherDetailItem 
-                      icon={GaugeCircle} 
-                      label="Air Quality" 
-                      value={aqiInfo.level} 
-                      iconColor={aqiInfo.colorClass} 
-                      className="animate-in fade-in" 
-                      style={{ animationDelay: '600ms' }}
-                  />
-                )}
-              </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
+                    <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+                    <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                    {aqiInfo && (
+                        <WeatherDetailItem 
+                            icon={GaugeCircle} 
+                            label="Air Quality" 
+                            value={aqiInfo.level} 
+                            iconColor={aqiInfo.colorClass} 
+                            className="animate-in fade-in" 
+                            style={{ animationDelay: '500ms' }}
+                        />
+                    )}
+                </div>
             </div>
             
-            <div className="pt-4">
+            <div className="pt-4 mt-2">
               {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
               <>
-                {/* HOURLY CARDS (First) */}
                 <div className="flex items-center mb-3 px-4 sm:px-6">
                   <Clock className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
@@ -484,7 +436,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         ))}
                     </div>
                 </div>
-                {/* 24-HOUR CHART (Second) */}
+                
                 <div className="flex items-center mt-4 mb-3 px-4 sm:px-6">
                   <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
@@ -501,11 +453,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         right: 20,
                         top: 10,
                         bottom: 40,
-                        }}
-                        onClick={(state) => {
-                          if (isMobile && state?.activePayload?.[0]?.payload?.originalData) {
-                            setSelectedHour(state.activePayload[0].payload.originalData as HourlyForecastData)
-                          }
                         }}
                     >
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -527,7 +474,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         />
                         <ChartTooltip
                           cursor={true}
-                          content={<CustomChartTooltipContent config={chartConfig} />}
+                          content={<CustomChartTooltipContent />}
                         />
                         <defs>
                         <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
@@ -585,7 +532,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         fill="url(#tempGradient)"
                         stroke="var(--color-temperature)"
                         strokeWidth={2}
-                        dot={false}
                         activeDot={{
                             r: 8,
                             strokeWidth: 2,
@@ -607,8 +553,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="pt-2 sm:pt-4">
-            <div className="space-y-6 px-4 sm:px-6">
+        <TabsContent value="insights" className="pt-2 sm:pt-4 px-4 sm:px-6">
+            <div className="space-y-6">
                  <div>
                     <div className="flex items-center mb-4">
                       <Brain className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
@@ -662,11 +608,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
                           />
                           {weatherData.aiImageUrl && (
-                              <div className="animate-in fade-in zoom-in-95">
-                                  <img
+                              <div className="animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                                  <Image
                                       src={weatherData.aiImageUrl}
                                       alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                                      className="w-full h-auto aspect-[16/9] object-cover rounded-md shadow-md border border-border/30"
+                                      width={600}
+                                      height={400}
+                                      className="w-full h-auto aspect-[16/9] object-cover"
                                   />
                               </div>
                           )}
@@ -676,8 +624,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="pt-2 sm:pt-4">
-           <div className="space-y-6 px-4 sm:px-6">
+        <TabsContent value="health" className="pt-2 sm:pt-4 px-4 sm:px-6">
+           <div className="space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
                     <div className="flex items-center mb-4">
@@ -744,7 +692,7 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
      <div className={cn("flex items-center space-x-2 sm:space-x-3 rounded-lg bg-muted/50 p-2 sm:p-3 shadow-inner border border-border/60", className)} {...props}>
-      <div className="p-1.5 sm:p-2 bg-background rounded-lg">
+      <div className="p-1.5 sm:p-2 bg-background rounded-lg shadow-sm">
         <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor || 'text-primary')} />
       </div>
       <div className="flex flex-col text-left">

@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
+import Image from 'next/image';
 
 interface WeatherPageState {
   data: WeatherSummaryData | null;
@@ -333,19 +334,28 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && !weatherState.error && !weatherState.cityNotFound && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
-              <CardHeader className="items-center text-center pt-2 pb-4">
-                  <div className="p-3 bg-primary/20 rounded-full mb-4 border border-primary/30">
-                    <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
-                  </div>
-                  <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
-                  <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
-                      Use the search bar or location button to find weather information for any city.
-                  </CardDescription>
-              </CardHeader>
-               <CardContent className="flex justify-center pb-4 pt-8 px-4">
-                  <WeatherLoadingAnimation className="h-32 w-32 text-primary" />
-              </CardContent>
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl relative overflow-hidden">
+                <Image
+                    src="https://placehold.co/600x400.png"
+                    data-ai-hint="weather map"
+                    alt="Abstract weather map"
+                    fill
+                    className="object-cover opacity-10 dark:opacity-5"
+                />
+              <div className="relative z-10">
+                <CardHeader className="items-center text-center pt-2 pb-4">
+                    <div className="p-3 bg-primary/20 rounded-full mb-4 border border-primary/30">
+                      <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
+                    </div>
+                    <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
+                    <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
+                        Use the search bar or location button to find weather information for any city.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center pb-4 pt-8 px-4">
+                    <WeatherLoadingAnimation className="h-32 w-32 text-primary" />
+                </CardContent>
+              </div>
           </Card>
       )}
     </div>
