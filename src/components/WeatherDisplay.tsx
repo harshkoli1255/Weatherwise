@@ -445,7 +445,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         left: -20,
                         right: 10,
                         top: 10,
-                        bottom: 20,
+                        bottom: 40,
                       }}
                     >
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -515,8 +515,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       />
                       {chartData.length > 0 && (
                         <>
-                          <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                          <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                          <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" />
+                          <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--primary))" strokeWidth={2} />
+                          <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--primary))" strokeWidth={2} />
                         </>
                       )}
                     </AreaChart>
