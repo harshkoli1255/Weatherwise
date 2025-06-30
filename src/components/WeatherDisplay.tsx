@@ -444,7 +444,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               <div className="grid grid-cols-2 gap-2 sm:gap-3 text-center">
                 <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                 <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className={cn("animate-in fade-in", !aqiInfo && 'col-span-2')} style={{ animationDelay: '500ms' }}/>
                 {aqiInfo && (
                   <WeatherDetailItem 
                       icon={GaugeCircle} 
