@@ -82,22 +82,27 @@ export default {
             height: '0',
           },
         },
-        'weather-float': {
-          '0%, 100%': { transform: 'translateX(-10px)' },
-          '50%': { transform: 'translateX(10px)' },
+        'sun-pulse': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.9' },
+          '50%': { transform: 'scale(1.08)', opacity: '1' },
         },
-        'pulse-search': {
-          '0%, 100%': { transform: 'scale(0.5)', opacity: '0.5' },
-          '50%': { transform: 'scale(1.2)', opacity: '1' },
+        'cloud-drift-1': {
+          '0%': { transform: 'translateX(-150px)' },
+          '100%': { transform: 'translateX(150px)' },
+        },
+        'cloud-drift-2': {
+          '0%': { transform: 'translateX(-150px)' },
+          '100%': { transform: 'translateX(150px)' },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'weather-float': 'weather-float 4s ease-in-out infinite',
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
-        'pulse-search': 'pulse-search 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'sun-pulse': 'sun-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'cloud-drift-1': 'cloud-drift-1 12s linear infinite',
+        'cloud-drift-2': 'cloud-drift-2 9s linear infinite 1s',
       },
     },
   },
