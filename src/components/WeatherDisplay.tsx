@@ -421,12 +421,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                       <div className="flex w-max space-x-3 py-2">
                           {weatherData.hourlyForecast.map((hour, index) => (
-                            <ForecastCard 
-                                key={index} 
-                                data={hour}
-                                timezone={weatherData.timezone}
-                                onClick={() => setSelectedHour(hour)}
-                            />
+                             <div key={index} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${index * 75}ms` }}>
+                                <ForecastCard 
+                                    data={hour}
+                                    timezone={weatherData.timezone}
+                                    onClick={() => setSelectedHour(hour)}
+                                />
+                             </div>
                           ))}
                       </div>
                   </div>
@@ -543,7 +544,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </TabsContent>
               
               <TabsContent value="insights" className="space-y-4">
-                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '150ms' }}>
                       <CardHeader className="flex flex-row items-center p-0 mb-3">
                           <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
                           <CardTitle className="text-base font-headline font-semibold text-primary p-0">AI Summary</CardTitle>
@@ -557,7 +558,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   </Card>
 
                   {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '250ms' }}>
                           <CardHeader className="flex flex-row items-center p-0 mb-3">
                               <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
                               <CardTitle className="text-base font-headline font-semibold text-primary p-0">Key Insights</CardTitle>
@@ -565,7 +566,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                           <CardContent className="p-0">
                               <ul className="space-y-3">
                               {weatherData.aiInsights.map((insight, index) => (
-                                  <li key={index} className="flex items-start">
+                                  <li key={index} className="flex items-start animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${index * 100}ms`}}>
                                   <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
                                       <Sparkles className="h-3 w-3 text-primary" />
                                   </div>
@@ -581,7 +582,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   )}
 
                   {weatherData.activitySuggestion && (
-                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                      <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '350ms' }}>
                           <CardHeader className="flex flex-row items-center p-0 mb-3">
                               <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
                               <CardTitle className="text-base font-headline font-semibold text-primary p-0">Activity Suggestion</CardTitle>
@@ -609,7 +610,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               
               <TabsContent value="health" className="space-y-4">
               {aqiComponents && weatherData.airQualitySummary ? (
-                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                  <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in" style={{ animationDelay: '150ms' }}>
                       <CardHeader className="flex flex-row items-center p-0 mb-3">
                           <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
                           <CardTitle className="text-base font-headline font-semibold text-primary p-0">Air Quality & Health</CardTitle>
@@ -642,7 +643,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       </CardContent>
                   </Card>
                   ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground animate-in fade-in">
                       <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
                       <p className="font-semibold">Air Quality Data Not Available</p>
                       <p className="text-sm mt-1">This location does not currently provide air quality information.</p>

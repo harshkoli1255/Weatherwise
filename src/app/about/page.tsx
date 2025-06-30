@@ -22,9 +22,9 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex flex-col items-start gap-3 p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:shadow-xl hover:border-primary/50 hover:scale-[1.02]">
+  <div className="flex h-full flex-col items-start gap-3 rounded-lg bg-background/50 p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:bg-muted/80 hover:shadow-xl border border-border/30">
     <div className="flex items-center gap-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
+        <div className="rounded-lg bg-primary/10 p-2">
             <Icon className="h-6 w-6 text-primary" />
         </div>
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
@@ -34,7 +34,7 @@ const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType;
 );
 
 const TechItem = ({ name }: { name: string }) => (
-    <Badge variant="secondary" className="text-xs py-1 px-3">
+    <Badge variant="secondary" className="px-3 py-1 text-xs">
         {name}
     </Badge>
 );
@@ -44,66 +44,92 @@ export default function AboutPage() {
     'Next.js', 'React', 'TypeScript', 'Tailwind CSS',
     'ShadCN UI', 'Genkit', 'Firebase', 'Clerk'
   ];
+  
+  const features = [
+    {
+      icon: MapPin,
+      title: 'Dynamic Weather Dashboard',
+      description: 'Get real-time weather data for any city, or use your current location automatically.',
+    },
+    {
+      icon: AreaChart,
+      title: 'Interactive Forecast',
+      description: 'Visualize the 24-hour temperature trend with a beautiful, interactive set of forecast cards.',
+    },
+    {
+      icon: BrainCircuit,
+      title: 'AI-Powered Search & Insights',
+      description: 'Our AI understands natural language, corrects typos, and provides helpful, conversational weather summaries.',
+    },
+    {
+      icon: BellRing,
+      title: 'Intelligent Alerts',
+      description: 'Receive customizable email alerts with scheduling, sensitivity controls, and AI-driven decision-making.',
+    },
+    {
+      icon: SlidersHorizontal,
+      title: 'Customizable Display',
+      description: 'Tailor the app with your preferred units for temperature (°C/°F), wind speed (km/h/mph), and time format (12/24h).',
+    },
+    {
+      icon: CloudCog,
+      title: 'Synced Preferences',
+      description: 'Your saved locations, unit settings, and default location are saved to your account and sync seamlessly across all your devices.',
+    },
+    {
+      icon: UserCheck,
+      title: 'Secure Authentication',
+      description: 'Full sign-up, sign-in, and profile management powered by Clerk, complete with a modern settings hub.',
+    },
+    {
+      icon: Bookmark,
+      title: 'Live Saved Locations',
+      description: 'Your "Saved Locations" dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.',
+    },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
-        <Card className="w-full max-w-4xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-xl">
-            <CardHeader className="text-center items-center pt-8 pb-6">
-                 <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
+        <Card className="mx-auto w-full max-w-4xl rounded-xl border-primary/20 bg-glass shadow-2xl">
+            <CardHeader className="items-center pt-8 pb-6 text-center">
+                 <div className="mb-4 rounded-full border border-primary/30 bg-primary/20 p-4">
                     <Sparkles className="h-10 w-10 text-primary drop-shadow-lg" />
                  </div>
-                <CardTitle className="text-2xl sm:text-3xl font-headline font-bold text-primary">
+                <CardTitle className="font-headline text-2xl font-bold text-primary sm:text-3xl">
                     About Weatherwise
                 </CardTitle>
-                <CardDescription className="text-base text-muted-foreground mt-2 max-w-2xl">
+                <CardDescription className="mt-2 max-w-2xl text-base text-muted-foreground">
                     An intelligent companion for real-time weather data, AI-powered insights, and a highly customizable alert system.
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="px-6 sm:px-8 pb-8 space-y-10">
+            <CardContent className="space-y-10 px-6 pb-8 sm:px-8">
                 <section>
-                    <h2 className="text-xl font-headline font-semibold text-foreground mb-5 text-center">
+                    <h2 className="mb-5 text-center font-headline text-xl font-semibold text-foreground">
                         Core Features
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FeatureItem icon={MapPin} title="Dynamic Weather Dashboard">
-                            Get real-time weather data for any city, or use your current location automatically.
-                        </FeatureItem>
-                         <FeatureItem icon={AreaChart} title="Interactive Forecast">
-                            Visualize the 24-hour temperature trend with a beautiful, interactive set of forecast cards.
-                        </FeatureItem>
-                        <FeatureItem icon={BrainCircuit} title="AI-Powered Search & Insights">
-                            Our AI understands natural language, corrects typos, and provides helpful, conversational weather summaries.
-                        </FeatureItem>
-                        <FeatureItem icon={BellRing} title="Intelligent Alerts">
-                            Receive customizable email alerts with scheduling, sensitivity controls, and AI-driven decision-making.
-                        </FeatureItem>
-                        <FeatureItem icon={SlidersHorizontal} title="Customizable Display">
-                            Tailor the app with your preferred units for temperature (°C/°F), wind speed (km/h/mph), and time format (12/24h).
-                        </FeatureItem>
-                        <FeatureItem icon={CloudCog} title="Synced Preferences">
-                            Your saved locations, unit settings, and default location are saved to your account and sync seamlessly across all your devices.
-                        </FeatureItem>
-                         <FeatureItem icon={UserCheck} title="Secure Authentication">
-                            Full sign-up, sign-in, and profile management powered by Clerk, complete with a modern settings hub.
-                        </FeatureItem>
-                        <FeatureItem icon={Bookmark} title="Live Saved Locations">
-                            Your "Saved Locations" dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.
-                        </FeatureItem>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {features.map((feature, index) => (
+                           <div key={feature.title} className="animate-in fade-in" style={{ animationDelay: `${150 + index * 100}ms` }}>
+                             <FeatureItem icon={feature.icon} title={feature.title}>
+                               {feature.description}
+                             </FeatureItem>
+                           </div>
+                         ))}
                     </div>
                 </section>
 
                 <section>
-                    <div className="flex items-center justify-center gap-3 mb-5">
+                    <div className="mb-5 flex items-center justify-center gap-3">
                         <Layers className="h-6 w-6 text-muted-foreground" />
-                        <h2 className="text-xl font-headline font-semibold text-foreground text-center">
+                        <h2 className="text-center font-headline text-xl font-semibold text-foreground">
                             Technology Stack
                         </h2>
                     </div>
-                    <p className="text-muted-foreground mb-5 text-center max-w-xl mx-auto text-sm">
+                    <p className="mx-auto mb-5 max-w-xl text-center text-sm text-muted-foreground">
                         Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience.
                     </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
+                    <div className="flex flex-wrap justify-center gap-2">
                         {techStack.map(tech => (
                             <TechItem key={tech} name={tech} />
                         ))}
@@ -111,14 +137,14 @@ export default function AboutPage() {
                 </section>
 
                 <section>
-                     <div className="flex items-center justify-center gap-3 mb-5">
+                     <div className="mb-5 flex items-center justify-center gap-3">
                         <Heart className="h-6 w-6 text-muted-foreground" />
-                        <h2 className="text-xl font-headline font-semibold text-foreground text-center">
+                        <h2 className="text-center font-headline text-xl font-semibold text-foreground">
                             Our Mission
                         </h2>
                     </div>
-                    <div className="bg-primary/5 dark:bg-primary/10 p-5 rounded-lg shadow-inner border border-primary/20 text-center">
-                         <p className="text-base text-foreground/90 italic leading-relaxed max-w-xl mx-auto">
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 text-center shadow-inner dark:bg-primary/10">
+                         <p className="mx-auto max-w-xl text-base italic leading-relaxed text-foreground/90">
                            &ldquo;To provide a weather application that is not only accurate and reliable but also a joy to use. By leveraging the power of generative AI, we deliver insights that go beyond raw data, helping you plan your day more effectively.&rdquo;
                         </p>
                     </div>
