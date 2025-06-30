@@ -355,11 +355,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     return (
       <g transform={`translate(${x},${y})`}>
         {/* Render the time label */}
-        <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={isMobile ? 11 : 12}>
+        <text x={0} y={0} dy={16} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={12}>
           {timeLabel}
         </text>
         {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
-        <foreignObject x={isMobile ? -8 : -10} y={22} width={isMobile ? 16 : 20} height={isMobile ? 16 : 20}>
+        <foreignObject x={-10} y={22} width={20} height={20}>
           <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
             <WeatherIcon iconCode={tickData.iconCode} className={cn("h-4 w-4", iconColorClass)} />
           </div>
@@ -425,8 +425,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="p-4 sm:p-6">
-            <div className="space-y-4 sm:space-y-6">
+        <TabsContent value="forecast" className="px-4 pt-6 sm:px-6">
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
                 <div className="animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
@@ -455,9 +455,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 )}
               </div>
               
-              <div className="pt-2 sm:pt-4">
+              <div className="pt-4">
                 <Separator />
-                <div className="flex items-center my-3 sm:my-4">
+                <div className="flex items-center my-4">
                   <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                     24-Hour Forecast
@@ -466,13 +466,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
                 <>
                 <div className="w-full overflow-x-auto">
-                    <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64 pr-4">
+                    <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
                         margin={{
-                        left: isMobile ? -10 : -5,
-                        right: isMobile ? 15 : 20,
+                        left: -5,
+                        right: 20,
                         top: 10,
                         bottom: 40,
                         }}
@@ -580,10 +580,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="p-4 sm:p-6">
-            <div className="space-y-4 sm:space-y-6">
+        <TabsContent value="insights" className="px-4 pt-6 sm:px-6">
+            <div className="space-y-6">
                  <div>
-                    <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="flex items-center mb-4">
                       <Brain className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                       <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                         AI Weather Summary
@@ -597,7 +597,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
                   {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
                     <div>
-                      <div className="flex items-center mb-3 sm:mb-4">
+                      <div className="flex items-center mb-4">
                         <Sparkles className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                         <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                           Key Insights
@@ -623,7 +623,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
                   {weatherData.activitySuggestion && (
                     <div>
-                      <div className="flex items-center mb-3 sm:mb-4">
+                      <div className="flex items-center mb-4">
                           <Lightbulb className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
                           <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                               Activity Suggestion
@@ -649,11 +649,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="p-4 sm:p-6">
-           <div className="space-y-4 sm:space-y-6">
+        <TabsContent value="health" className="px-4 pt-6 sm:px-6">
+           <div className="space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
-                    <div className="flex items-center mb-3 sm:mb-4">
+                    <div className="flex items-center mb-4">
                         <Leaf className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                         <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                             Air Quality & Health
@@ -669,7 +669,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                             dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
                         />
 
-                        <div className="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-border/50">
+                        <div className="pt-4 mt-4 border-t border-border/50">
                             <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                               {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
