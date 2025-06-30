@@ -372,7 +372,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
       <CardContent className="p-0 pb-4">
         <Tabs defaultValue="forecast" className="w-full">
-            <div className="px-4 sm:px-6 pt-4">
+            <div className="px-4 pt-4">
                 <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-9 sm:h-10">
                 <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
                     <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
@@ -389,9 +389,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </TabsList>
             </div>
             
-            <TabsContent value="forecast" className="pt-0 space-y-4">
+            <TabsContent value="forecast" className="pt-4 px-4 sm:px-6 space-y-4">
                 <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                   <div className="flex w-max space-x-3 px-4 py-2">
+                   <div className="flex w-max space-x-3 py-2">
                         {weatherData.hourlyForecast.map((hour, index) => (
                           <ForecastCard 
                               key={index} 
@@ -408,7 +408,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
-                        onClick={(e) => isMobile && e && setActiveChartData(e.activePayload?.[0].payload)}
+                        onClick={(e) => {
+                            if (isMobile && e?.activePayload?.[0]?.payload) {
+                                setActiveChartData(e.activePayload[0].payload);
+                            }
+                        }}
                         margin={{
                         left: -5,
                         right: 20,
