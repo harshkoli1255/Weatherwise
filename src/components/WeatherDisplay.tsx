@@ -30,7 +30,7 @@ interface ForecastCardProps {
 }
 
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
-  const { convertTemperature, formatTime, formatShortTime } = useUnits();
+  const { convertTemperature, formatShortTime, formatTime } = useUnits();
   
   const displayTime = formatShortTime(data.timestamp, timezone);
   const preciseTime = formatTime(data.timestamp, timezone);
@@ -61,17 +61,17 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-full w-24 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-3 text-center text-left shadow-lg transition-all duration-300 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        "group flex h-36 w-20 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-40 sm:w-24 sm:p-3"
       )}
       aria-label={`View forecast for ${preciseTime}`}
     >
       {/* Top Part: Time */}
-      <p className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-primary">{displayTime}</p>
+      <p className="text-xs font-semibold text-muted-foreground transition-colors group-hover:text-primary sm:text-sm">{displayTime}</p>
       
       {/* Middle Part: Icon and Temperature */}
       <div className="flex flex-col items-center">
-        <WeatherIcon iconCode={data.iconCode} className={cn("h-10 w-10 drop-shadow-lg", iconColorClass)} />
-        <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
+        <WeatherIcon iconCode={data.iconCode} className={cn("h-8 w-8 drop-shadow-lg sm:h-10 sm:w-10", iconColorClass)} />
+        <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">{convertTemperature(data.temp)}°</p>
       </div>
 
       {/* Bottom Part: Precipitation / Humidity */}
@@ -81,12 +81,12 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
         )}>
         {showPrecipitation ? (
           <>
-            <Droplets className="h-4 w-4" />
+            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="font-semibold">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
-            <Droplets className="h-4 w-4" />
+            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>{data.humidity}%</span>
           </>
         )}
@@ -371,10 +371,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
-      <CardHeader className="pt-6 pb-4 border-b border-border/50">
-        <div className="flex w-full items-center justify-between gap-2 px-4">
-          <div className="w-9" /> {/* Spacer to balance the save icon and ensure title is centered */}
-          <CardTitle className="min-w-0 text-center text-2xl sm:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
+      <CardHeader className="pt-4 pb-3 px-2 sm:pt-6 sm:pb-4 sm:px-4 border-b border-border/50">
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="w-8 sm:w-9" /> {/* Spacer to balance the save icon and ensure title is centered */}
+          <CardTitle className="min-w-0 text-center text-xl sm:text-2xl md:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
           <div className="flex-shrink-0">
@@ -386,14 +386,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     size="icon"
                     onClick={onSaveCityToggle}
                     aria-label={isLocationSaved ? 'Remove this location' : 'Save this location'}
-                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary"
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-muted-foreground hover:text-primary"
                     disabled={isSyncing}
                   >
                     {isSyncing ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
                     ) : (
                         <Bookmark className={cn(
-                            "h-6 w-6 transition-all duration-300",
+                            "h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300",
                             isLocationSaved ? "fill-primary text-primary" : "fill-none"
                         )} />
                     )}
@@ -406,40 +406,40 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </TooltipProvider>
           </div>
         </div>
-        <CardDescription className="text-center text-lg capitalize text-muted-foreground mt-2">{weatherData.description}</CardDescription>
+        <CardDescription className="text-center text-base capitalize text-muted-foreground mt-1 sm:mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
 
       <Tabs defaultValue="forecast" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md mt-4">
-          <TabsTrigger value="forecast" className="group">
-            <AreaChartIcon className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-xs sm:max-w-sm h-9 sm:h-10 mt-4">
+          <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
+            <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Forecast
           </TabsTrigger>
-          <TabsTrigger value="insights" className="group">
-            <Brain className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+          <TabsTrigger value="insights" className="group text-xs sm:text-sm">
+            <Brain className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             AI Insights
           </TabsTrigger>
-          <TabsTrigger value="health" className="group">
-            <Leaf className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+          <TabsTrigger value="health" className="group text-xs sm:text-sm">
+            <Leaf className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
             Health
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast">
-            <div className="space-y-6 p-4 sm:p-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
+        <TabsContent value="forecast" className="p-2 sm:p-4 md:p-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-4 sm:gap-6">
                 <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-                  <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
+                  <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-foreground drop-shadow-lg">
                     {convertTemperature(weatherData.temperature)}°
-                    <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
+                    <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
                   </div>
                 </div>
                 <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
-                  <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
+                  <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 text-center">
                 <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                 <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                 <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
@@ -456,15 +456,15 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </div>
               
               {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-                <div className="pt-4">
+                <div className="pt-2 sm:pt-4">
                   <Separator />
-                  <div className="flex items-center my-4">
-                    <AreaChartIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-                    <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
+                  <div className="flex items-center my-3 sm:my-4">
+                    <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
+                    <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                       24-Hour Forecast
                     </h3>
                   </div>
-                  <ChartContainer config={chartConfig} className="h-64 w-full">
+                  <ChartContainer config={chartConfig} className="h-52 w-full sm:h-60 md:h-64">
                     <AreaChart
                       accessibilityLayer
                       data={chartData}
@@ -496,24 +496,21 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         cursor={true}
                         content={<CustomChartTooltipContent />}
                       />
-                      <ChartLegend content={<ChartLegendContent className="gap-8" />} />
+                      <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />
                       <defs>
                         <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                          {/* If entire chart is below threshold, just a normal gradient */}
                           {tempGradientOffset >= 1 && (
                               <>
                                   <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
                                   <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
                               </>
                           )}
-                          {/* If entire chart is above threshold, just a hot gradient */}
                           {tempGradientOffset <= 0 && (
                               <>
                                   <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
                                   <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
                               </>
                           )}
-                          {/* If threshold is in the middle, a split gradient */}
                           {tempGradientOffset > 0 && tempGradientOffset < 1 && (
                               <>
                                   <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
@@ -555,7 +552,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       />
                       {chartData.length > 0 && (
                         <>
-                          <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" />
+                          <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
                           <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
                           <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
                         </>
@@ -563,7 +560,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     </AreaChart>
                   </ChartContainer>
                   <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-                    <div className="flex h-40 w-max space-x-3 pb-4">
+                    <div className="flex w-max space-x-2 sm:space-x-3 pb-4">
                       {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 
                           key={index} 
@@ -580,30 +577,30 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights">
-            <div className="space-y-6 p-4 sm:p-6">
+        <TabsContent value="insights" className="p-3 sm:p-4 md:p-6">
+            <div className="space-y-4 sm:space-y-6">
                  <div>
-                    <div className="flex items-center mb-4">
-                      <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-                      <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                    <div className="flex items-center mb-3 sm:mb-4">
+                      <Brain className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                      <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                         AI Weather Summary
                       </h3>
                     </div>
                     <div
-                      className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                      className="text-sm sm:text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
                       dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
                     />
                   </div>
 
                   {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
                     <div>
-                      <div className="flex items-center mb-4">
-                        <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-                        <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <Sparkles className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                        <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                           Key Insights
                         </h3>
                       </div>
-                      <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
+                      <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20">
                         <ul className="space-y-3">
                           {weatherData.aiInsights.map((insight, index) => (
                             <li key={index} className="flex items-start">
@@ -611,7 +608,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                                   <Sparkles className="h-3 w-3 text-primary" />
                               </div>
                               <span
-                                className="text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                                className="text-sm sm:text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
                                 dangerouslySetInnerHTML={{ __html: insight }}
                               />
                             </li>
@@ -623,15 +620,15 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
                   {weatherData.activitySuggestion && (
                     <div>
-                      <div className="flex items-center mb-4">
-                          <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-                          <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                          <Lightbulb className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
+                          <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                               Activity Suggestion
                           </h3>
                       </div>
-                      <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                      <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
                           <div
-                              className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                              className="text-sm sm:text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
                               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
                           />
                           {weatherData.aiImageUrl && (
@@ -649,29 +646,29 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health">
-           <div className="space-y-6 p-4 sm:p-6">
+        <TabsContent value="health" className="p-3 sm:p-4 md:p-6">
+           <div className="space-y-4 sm:space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
-                    <div className="flex items-center mb-4">
-                        <Leaf className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-                        <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                    <div className="flex items-center mb-3 sm:mb-4">
+                        <Leaf className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
+                        <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                             Air Quality & Health
                         </h3>
                     </div>
-                    <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                    <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
                         <p
-                            className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                            className="text-sm sm:text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
                             dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
                         />
                         <p
-                            className="text-sm text-muted-foreground leading-relaxed"
+                            className="text-xs sm:text-sm text-muted-foreground leading-relaxed"
                             dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
                         />
 
-                        <div className="pt-4 mt-4 border-t border-border/50">
+                        <div className="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-border/50">
                             <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                               {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
                               {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
                               {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
@@ -716,9 +713,9 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-     <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60", className)} {...props}>
-      <div className="p-2 bg-background rounded-lg">
-        <Icon className={cn("h-5 w-5", iconColor || 'text-primary')} />
+     <div className={cn("flex items-center space-x-2 sm:space-x-3 rounded-lg bg-muted/50 p-2 sm:p-3 shadow-inner border border-border/60", className)} {...props}>
+      <div className="p-1.5 sm:p-2 bg-background rounded-lg">
+        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor || 'text-primary')} />
       </div>
       <div className="flex flex-col text-left">
         <span className="text-xs text-muted-foreground">{label}</span>
