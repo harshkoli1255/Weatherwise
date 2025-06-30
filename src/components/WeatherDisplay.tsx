@@ -30,7 +30,7 @@ interface ForecastCardProps {
 }
 
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
-  const { convertTemperature, formatShortTime, formatTime } = useUnits();
+  const { convertTemperature, getTemperatureUnitSymbol, formatShortTime, formatTime } = useUnits();
   
   const displayTime = formatShortTime(data.timestamp, timezone);
   const preciseTime = formatTime(data.timestamp, timezone);
@@ -91,7 +91,6 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
 
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const itemConfig = chartConfig[payload[0].name as keyof typeof chartConfig];
     
     const title = data.time === "Now" 
         ? "Current Conditions" 
@@ -395,7 +394,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
                           <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
                               <span>{convertTemperature(weatherData.temperature)}</span>
-                              <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70 -ml-1">°{getTemperatureUnitSymbol().replace('°','')}</span>
+                              <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70">{getTemperatureUnitSymbol()}</span>
                           </div>
                           <span className="text-base text-muted-foreground -mt-1">
                               Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
@@ -545,7 +544,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               <TabsContent value="insights" className="space-y-4">
                   <InfoCard icon={Brain} title="AI Summary" animationDelay="150ms">
                       <div
-                        className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                        className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
                         dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
                       />
                   </InfoCard>
@@ -559,7 +558,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                                     <Sparkles className="h-3 w-3 text-primary" />
                                 </div>
                                 <span
-                                    className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                                    className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary"
                                     dangerouslySetInnerHTML={{ __html: insight }}
                                 />
                                 </li>
@@ -571,7 +570,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   {weatherData.activitySuggestion && (
                       <InfoCard icon={Lightbulb} title="Activity Suggestion" animationDelay="350ms">
                         <div
-                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
                             dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
                         />
                         {weatherData.aiImageUrl && (
@@ -593,7 +592,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               {aqiComponents && weatherData.airQualitySummary ? (
                   <InfoCard icon={Leaf} title="Air Quality & Health" animationDelay="150ms">
                       <div
-                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-accent-foreground [&_strong]:bg-accent/80 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
                           dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
                       />
                       <p
