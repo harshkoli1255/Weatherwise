@@ -29,14 +29,30 @@ interface ForecastCardProps {
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   const { convertTemperature, formatTime, formatShortTime } = useUnits();
   
-  // Use the new, rounded time for the card display for a cleaner look
   const displayTime = formatShortTime(data.timestamp, timezone);
-  // Use the original, precise time for the accessible label
   const preciseTime = formatTime(data.timestamp, timezone);
   
   const condition = data.condition.toLowerCase();
   const showPrecipitation = data.precipitationChance > 10;
   const isCloudy = condition.includes('cloud');
+  const isClearDay = data.iconCode === '01d';
+
+  // Determine color for the text below the icon
+  const detailColorClass = showPrecipitation
+    ? "text-sky-400"
+    : isCloudy
+    ? "text-slate-400 dark:text-slate-500"
+    : "text-muted-foreground";
+
+  // Determine color for the icon itself
+  let iconColorClass = 'text-primary'; // Default for night, etc.
+  if (showPrecipitation) {
+    iconColorClass = 'text-sky-400';
+  } else if (isClearDay) {
+    iconColorClass = 'text-yellow-400';
+  } else if (isCloudy) {
+    iconColorClass = 'text-slate-400 dark:text-slate-500';
+  }
   
   return (
     <button
@@ -51,18 +67,14 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       
       {/* Middle Part: Icon and Temperature */}
       <div className="flex flex-col items-center">
-        <WeatherIcon iconCode={data.iconCode} className="h-10 w-10 text-primary drop-shadow-lg" />
+        <WeatherIcon iconCode={data.iconCode} className={cn("h-10 w-10 drop-shadow-lg", iconColorClass)} />
         <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
 
       {/* Bottom Part: Precipitation / Humidity */}
       <div className={cn(
           "flex items-center justify-center gap-1.5 text-xs font-medium",
-          showPrecipitation
-            ? "text-sky-400"
-            : isCloudy
-            ? "text-slate-400 dark:text-slate-500"
-            : "text-muted-foreground"
+          detailColorClass
         )}>
         {showPrecipitation ? (
           <>
