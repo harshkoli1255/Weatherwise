@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -103,6 +103,71 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const CustomChartTooltipContent = ({ active, payload, label }: any) => {
+  const { getTemperatureUnitSymbol, getWindSpeedUnitLabel } = useUnits();
+
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="grid gap-1.5 rounded-lg border bg-popover p-3 text-xs shadow-xl min-w-[12rem]">
+        <div className="font-bold text-foreground mb-1 capitalize">{data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`}</div>
+        <div className="w-full h-px bg-border/50" />
+        <div className="grid gap-1.5">
+          {payload.map((item: any) => (
+            <div
+              key={item.dataKey}
+              className="flex w-full items-center justify-between gap-4 text-xs"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-muted-foreground">{item.name}</span>
+              </div>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {item.value}{getTemperatureUnitSymbol()}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="w-full h-px bg-border/50" />
+        <div className="grid gap-1.5">
+            <div className="flex w-full items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <CloudRain className="h-4 w-4" />
+                <span>Precipitation</span>
+              </div>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {data.precipitationChance}%
+              </span>
+            </div>
+            <div className="flex w-full items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Droplets className="h-4 w-4" />
+                <span>Humidity</span>
+              </div>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {data.humidity}%
+              </span>
+            </div>
+            <div className="flex w-full items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Wind className="h-4 w-4" />
+                <span>Wind</span>
+              </div>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {data.windSpeed} {getWindSpeedUnitLabel()}
+              </span>
+            </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
@@ -125,9 +190,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       temperature: convertTemperature(weatherData.temperature),
       feelsLike: convertTemperature(weatherData.feelsLike),
       iconCode: weatherData.iconCode,
-      condition: weatherData.condition,
-      // Use the first forecast point's precipitation chance as a reasonable proxy for "now"
+      condition: weatherData.description,
       precipitationChance: weatherData.hourlyForecast[0].precipitationChance,
+      humidity: weatherData.humidity,
+      windSpeed: Math.round(convertWindSpeed(weatherData.windSpeed)),
     };
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
@@ -137,10 +203,12 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       iconCode: hour.iconCode,
       condition: hour.condition,
       precipitationChance: hour.precipitationChance,
+      humidity: hour.humidity,
+      windSpeed: Math.round(convertWindSpeed(hour.windSpeed)),
     }));
 
     return [nowData, ...forecastPoints];
-  }, [weatherData, convertTemperature, formatShortTime]);
+  }, [weatherData, convertTemperature, formatShortTime, convertWindSpeed]);
 
 
   // Custom component for rendering X-axis ticks with icons
@@ -283,23 +351,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 />
                 <ChartTooltip
                   cursor={true}
-                  content={
-                    <ChartTooltipContent
-                      indicator="dot"
-                      labelFormatter={(label) => `Time: ${label}`}
-                      formatter={(value, name) => {
-                          const config = chartConfig[name as keyof typeof chartConfig];
-                          return (
-                            <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-x-2">
-                                <span className="text-muted-foreground">{config.label}</span>
-                                <span className="font-mono font-medium tabular-nums text-foreground">
-                                    {value}{getTemperatureUnitSymbol()}
-                                </span>
-                            </div>
-                          )
-                      }}
-                    />
-                  }
+                  content={<CustomChartTooltipContent />}
                 />
                 <ChartLegend content={<ChartLegendContent />} />
                 <defs>
