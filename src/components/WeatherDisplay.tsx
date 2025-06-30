@@ -159,6 +159,15 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
   return null;
 };
 
+interface PollutantDetailProps {
+  name: string;
+  description: string;
+  value: number;
+  unit: string;
+  thresholds: { good: number; moderate: number; usg: number; unhealthy: number };
+  progressMax: number;
+}
+
 const pollutantConfig: Record<string, Omit<PollutantDetailProps, 'value'>> = {
   pm2_5: {
     name: "PM₂.₅",
@@ -190,14 +199,6 @@ const pollutantConfig: Record<string, Omit<PollutantDetailProps, 'value'>> = {
   },
 };
 
-interface PollutantDetailProps {
-  name: string;
-  description: string;
-  value: number;
-  unit: string;
-  thresholds: { good: number; moderate: number; usg: number; unhealthy: number };
-  progressMax: number;
-}
 
 const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, value, unit, thresholds, progressMax }) => {
   const percentage = Math.min((value / progressMax) * 100, 100);
@@ -385,7 +386,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </TabsList>
         </div>
         
-        <TabsContent value="forecast" className="pt-2">
+        <TabsContent value="forecast" className="pt-4 space-y-4">
             <div className="space-y-4 px-4 sm:px-6">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
                     <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
@@ -416,10 +417,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </div>
             </div>
             
-            <div className="pt-4 mt-2">
+            <div className="pt-2">
               {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
               <>
-                <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                <ScrollArea className="w-full whitespace-nowrap rounded-lg horizontal-scrollbar">
                   <div className="flex w-max space-x-3 px-4 py-2">
                     {weatherData.hourlyForecast.map((hour, index) => (
                       <ForecastCard 
@@ -430,7 +431,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       />
                     ))}
                   </div>
-                  <div className="horizontal-scrollbar" />
                 </ScrollArea>
                 
                 <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
@@ -544,25 +544,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="pt-2 px-2 sm:px-4">
-            <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                    <div className="flex items-center mb-3">
-                        <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
-                        <h3 className="text-base font-headline font-semibold text-primary">AI Summary</h3>
-                    </div>
+        <TabsContent value="insights" className="pt-4 px-4 sm:px-6 space-y-4">
+            <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                <CardHeader className="flex flex-row items-center p-0 mb-3">
+                    <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
+                    <CardTitle className="text-base font-headline font-semibold text-primary p-0">AI Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
                     <div
                       className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
                       dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
                     />
-                </div>
+                </CardContent>
+            </Card>
 
-                {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                        <div className="flex items-center mb-3">
-                            <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
-                            <h3 className="text-base font-headline font-semibold text-primary">Key Insights</h3>
-                        </div>
+            {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+                <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                    <CardHeader className="flex flex-row items-center p-0 mb-3">
+                        <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
+                        <CardTitle className="text-base font-headline font-semibold text-primary p-0">Key Insights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
                         <ul className="space-y-3">
                           {weatherData.aiInsights.map((insight, index) => (
                             <li key={index} className="flex items-start">
@@ -576,43 +578,45 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                             </li>
                           ))}
                         </ul>
-                    </div>
-                )}
+                    </CardContent>
+                </Card>
+            )}
 
-                {weatherData.activitySuggestion && (
-                    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                        <div className="flex items-center mb-3">
-                            <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
-                            <h3 className="text-base font-headline font-semibold text-primary">Activity Suggestion</h3>
-                        </div>
-                          <div
-                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
-                              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-                          />
-                          {weatherData.aiImageUrl && (
-                              <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
-                                  <Image
-                                      src={weatherData.aiImageUrl}
-                                      alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                                      width={600}
-                                      height={400}
-                                      className="w-full h-auto aspect-[16/9] object-cover"
-                                  />
-                              </div>
-                          )}
-                    </div>
-                )}
-            </div>
+            {weatherData.activitySuggestion && (
+                <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                    <CardHeader className="flex flex-row items-center p-0 mb-3">
+                        <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
+                        <CardTitle className="text-base font-headline font-semibold text-primary p-0">Activity Suggestion</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div
+                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                          dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                      />
+                      {weatherData.aiImageUrl && (
+                          <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                              <Image
+                                  src={weatherData.aiImageUrl}
+                                  alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                                  width={600}
+                                  height={400}
+                                  className="w-full h-auto aspect-[16/9] object-cover"
+                              />
+                          </div>
+                      )}
+                    </CardContent>
+                </Card>
+            )}
         </TabsContent>
         
-        <TabsContent value="health" className="pt-2 px-2 sm:px-4">
-           <div className="space-y-4">
-             {aqiComponents && weatherData.airQualitySummary ? (
-                <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
-                    <div className="flex items-center mb-3">
-                        <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
-                        <h3 className="text-base font-headline font-semibold text-primary">Air Quality & Health</h3>
-                    </div>
+        <TabsContent value="health" className="pt-4 px-4 sm:px-6 space-y-4">
+           {aqiComponents && weatherData.airQualitySummary ? (
+            <Card className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                <CardHeader className="flex flex-row items-center p-0 mb-3">
+                    <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
+                    <CardTitle className="text-base font-headline font-semibold text-primary p-0">Air Quality & Health</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
                     <p
                         className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
                         dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
@@ -625,21 +629,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     <div className="pt-4 mt-4 border-t border-border/50">
                         <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                            {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
-                            {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
-                            {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
-                            {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
+                            {Object.keys(pollutantConfig).map((key) => {
+                                if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
+                                    const value = aqiComponents[key as keyof typeof aqiComponents];
+                                    const config = pollutantConfig[key];
+                                    if (typeof value === 'number') {
+                                        return <PollutantDetail key={key} {...config} value={value} />;
+                                    }
+                                }
+                                return null;
+                            })}
                         </div>
                     </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                    <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <p className="font-semibold">Air Quality Data Not Available</p>
-                    <p className="text-sm mt-1">This location does not currently provide air quality information.</p>
-                </div>
-              )}
-           </div>
+                </CardContent>
+            </Card>
+            ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="font-semibold">Air Quality Data Not Available</p>
+                <p className="text-sm mt-1">This location does not currently provide air quality information.</p>
+            </div>
+            )}
         </TabsContent>
       </Tabs>
 

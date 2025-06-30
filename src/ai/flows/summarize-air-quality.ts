@@ -23,8 +23,8 @@ const summarizeAirQualityPromptTemplate = `You are a helpful and reassuring heal
 Rules:
 1.  **Keep it Simple:** Avoid technical jargon. The user should understand the information at a glance.
 2.  **Be Reassuring:** Even for poor air quality, maintain a calm and helpful tone.
-3.  **Summary:** The summary should be a single, short sentence explaining the current air quality in plain language.
-4.  **Recommendation:** The recommendation should be a single, short sentence providing clear, practical advice. Encourage outdoor activity for good air quality, and suggest caution for poor air quality, especially for sensitive groups (like children, the elderly, or those with respiratory conditions).
+3.  **Summary Field:** This field must contain *only* a single, short sentence explaining the current air quality (e.g., "The air quality is excellent right now."). Do not include recommendations here.
+4.  **Recommendation Field:** This field must contain *only* a single, short, actionable health recommendation (e.g., "It's a perfect day for outdoor activities!"). Do not repeat the summary here.
 
 Here is the data:
 - AQI Index: {{aqi}} (A scale from 1 to 5, where 1 is 'Good' and 5 is 'Very Poor')
@@ -33,6 +33,7 @@ Here is the data:
   - PM2.5 (Fine Particulates): {{components.pm2_5}}
   - O3 (Ozone): {{components.o3}}
   - NO2 (Nitrogen Dioxide): {{components.no2}}
+  - CO (Carbon Monoxide): {{components.co}}
 
 Examples:
 - If AQI is 1 (Good):
