@@ -195,7 +195,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     <ChartTooltipContent
                       indicator="dot"
                       labelFormatter={(label) => `Time: ${label}`}
-                      formatter={(value) => `${value}${getTemperatureUnitSymbol()}`}
+                      valueFormatter={(value) =>
+                        `${value}${getTemperatureUnitSymbol()}`
+                      }
                     />
                   }
                 />
