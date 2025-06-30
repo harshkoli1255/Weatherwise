@@ -28,12 +28,15 @@ interface ForecastCardProps {
 
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   const { convertTemperature, formatTime, formatShortTime } = useUnits();
-  const showPrecipitation = data.precipitationChance > 10;
   
   // Use the new, rounded time for the card display for a cleaner look
   const displayTime = formatShortTime(data.timestamp, timezone);
   // Use the original, precise time for the accessible label
   const preciseTime = formatTime(data.timestamp, timezone);
+  
+  const condition = data.condition.toLowerCase();
+  const showPrecipitation = data.precipitationChance > 10;
+  const isCloudy = condition.includes('cloud');
   
   return (
     <button
@@ -53,11 +56,18 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       </div>
 
       {/* Bottom Part: Precipitation / Humidity */}
-      <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <div className={cn(
+          "flex items-center justify-center gap-1.5 text-xs font-medium",
+          showPrecipitation
+            ? "text-sky-400"
+            : isCloudy
+            ? "text-slate-400 dark:text-slate-500"
+            : "text-muted-foreground"
+        )}>
         {showPrecipitation ? (
           <>
-            <Droplets className="h-4 w-4 text-sky-400" />
-            <span className="font-semibold text-sky-400">{data.precipitationChance}%</span>
+            <Droplets className="h-4 w-4" />
+            <span className="font-semibold">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
