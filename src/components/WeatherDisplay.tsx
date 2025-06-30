@@ -61,17 +61,17 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-36 w-20 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-40 sm:w-24 sm:p-3"
+        "group flex h-40 w-24 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-3 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:bg-primary/10 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
       aria-label={`View forecast for ${preciseTime}`}
     >
       {/* Top Part: Time */}
-      <p className="text-xs font-semibold text-muted-foreground transition-colors group-hover:text-primary sm:text-sm">{displayTime}</p>
+      <p className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-primary">{displayTime}</p>
       
       {/* Middle Part: Icon and Temperature */}
       <div className="flex flex-col items-center">
-        <WeatherIcon iconCode={data.iconCode} className={cn("h-8 w-8 drop-shadow-lg sm:h-10 sm:w-10", iconColorClass)} />
-        <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">{convertTemperature(data.temp)}°</p>
+        <WeatherIcon iconCode={data.iconCode} className={cn("h-10 w-10 drop-shadow-lg", iconColorClass)} />
+        <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
       </div>
 
       {/* Bottom Part: Precipitation / Humidity */}
@@ -81,12 +81,12 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
         )}>
         {showPrecipitation ? (
           <>
-            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Droplets className="h-4 w-4" />
             <span className="font-semibold">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
-            <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Droplets className="h-4 w-4" />
             <span>{data.humidity}%</span>
           </>
         )}
@@ -547,6 +547,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         strokeWidth={2}
                         strokeDasharray="5 5"
                         dot={false}
+                        activeDot={{
+                            r: 6,
+                            strokeWidth: 2,
+                            fill: "hsl(var(--background))",
+                        }}
                         />
                         <Area
                         dataKey="temperature"
@@ -555,6 +560,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         stroke="var(--color-temperature)"
                         strokeWidth={2}
                         dot={false}
+                        activeDot={{
+                            r: 6,
+                            strokeWidth: 2,
+                            fill: "hsl(var(--background))",
+                        }}
                         />
                         {chartData.length > 0 && (
                         <>
@@ -566,7 +576,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     </AreaChart>
                     </ChartContainer>
                 </div>
-                <ScrollArea className="w-full pb-2 horizontal-scrollbar">
+                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                     <div className="flex w-max flex-nowrap space-x-3 px-1 py-2">
                         {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 
@@ -577,7 +587,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         />
                         ))}
                     </div>
-                </ScrollArea>
+                </div>
                 </>
                 ) : null}
               </div>
