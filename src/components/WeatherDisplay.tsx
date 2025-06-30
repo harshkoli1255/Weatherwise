@@ -106,7 +106,7 @@ const chartConfig = {
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime } = useUnits();
+  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
   let sentimentColorClass = 'text-primary'; // Default for neutral
@@ -131,7 +131,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     };
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
-      time: formatTime(hour.timestamp, weatherData.timezone),
+      time: formatShortTime(hour.timestamp, weatherData.timezone),
       temperature: convertTemperature(hour.temp),
       feelsLike: convertTemperature(hour.feelsLike),
       iconCode: hour.iconCode,
@@ -140,7 +140,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     }));
 
     return [nowData, ...forecastPoints];
-  }, [weatherData, convertTemperature, formatTime]);
+  }, [weatherData, convertTemperature, formatShortTime]);
 
 
   // Custom component for rendering X-axis ticks with icons
@@ -151,8 +151,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   
     if (!tickData) return null;
   
-    // We only want to show every other label to prevent clutter.
-    const timeLabel = index % 2 === 0 ? payload.value : '';
+    // Show all time labels for a more detailed, professional look.
+    // The use of `formatShortTime` keeps them concise to avoid clutter.
+    const timeLabel = payload.value;
   
     const condition = tickData.condition.toLowerCase();
     const showPrecipitation = tickData.precipitationChance > 10;
