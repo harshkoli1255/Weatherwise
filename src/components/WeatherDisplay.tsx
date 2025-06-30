@@ -15,6 +15,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceD
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from './ui/separator';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -455,8 +456,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </div>
               
               {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-                <div className="pt-4 border-t border-border/50">
-                  <div className="flex items-center mb-4">
+                <div className="pt-4">
+                  <Separator />
+                  <div className="flex items-center my-4">
                     <AreaChartIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
                     <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
                       24-Hour Forecast
@@ -560,7 +562,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       )}
                     </AreaChart>
                   </ChartContainer>
-                  <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2 pt-4">
+                  <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
                     <div className="flex h-40 w-max space-x-3 pb-4">
                       {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 
