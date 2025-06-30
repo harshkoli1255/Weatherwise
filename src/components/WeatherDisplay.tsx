@@ -373,19 +373,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     );
   };
   
-  const handleChartClick = (e: any) => {
-    if (e && e.activeTooltipIndex !== undefined) {
-      const index = e.activeTooltipIndex;
-      // The chart data has a "Now" point at index 0. The hourly forecast data
-      // corresponds to indices 1 and onwards in the chartData array.
-      if (index > 0 && weatherData.hourlyForecast && index <= weatherData.hourlyForecast.length) {
-        const correspondingForecast = weatherData.hourlyForecast[index - 1];
-        setSelectedHour(correspondingForecast);
-      }
-    }
-  };
-
-
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4">
       <CardHeader className="pt-4 pb-3 px-2 sm:pt-6 sm:pb-4 sm:px-4 border-b border-border/50">
@@ -493,7 +480,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         top: 10,
                         bottom: 40,
                         }}
-                        onClick={handleChartClick}
                     >
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis
