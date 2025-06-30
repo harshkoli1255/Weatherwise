@@ -22,6 +22,7 @@ interface UnitsContextType {
   convertWindSpeed: (kmh: number) => number;
   getWindSpeedUnitLabel: () => 'km/h' | 'mph';
   formatTime: (timestamp: number, timezoneOffset: number) => string;
+  formatShortTime: (timestamp: number, timezoneOffset: number) => string;
 }
 
 const UnitsContext = createContext<UnitsContextType | undefined>(undefined);
@@ -123,17 +124,37 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
   }, [units.windSpeed]);
 
   const formatTime = useCallback((timestamp: number, timezoneOffset: number): string => {
+    // Provides a PRECISE time format for detailed views (e.g., dialogs).
     const date = new Date((timestamp + timezoneOffset) * 1000);
     const h = date.getUTCHours();
+    const m = String(date.getUTCMinutes()).padStart(2, '0');
     
     if (units.timeFormat === '12h') {
       const ampm = h >= 12 ? 'PM' : 'AM';
       const h12 = h % 12 || 12;
-      return `${h12} ${ampm}`;
+      return `${h12}:${m} ${ampm}`;
     }
     
-    const m = String(date.getUTCMinutes()).padStart(2, '0');
     return `${String(h).padStart(2, '0')}:${m}`;
+  }, [units.timeFormat]);
+
+  const formatShortTime = useCallback((timestamp: number, timezoneOffset: number): string => {
+    // Provides a CLEAN, ROUNDED time for summary cards.
+    const date = new Date((timestamp + timezoneOffset) * 1000);
+    const h = date.getUTCHours();
+    const m = date.getUTCMinutes();
+
+    // Round to the nearest hour for a consistent look on cards.
+    const displayHour = m >= 30 ? (h + 1) % 24 : h;
+
+    if (units.timeFormat === '12h') {
+      const ampm = displayHour >= 12 ? 'PM' : 'AM';
+      const h12 = displayHour % 12 || 12;
+      return `${h12} ${ampm}`;
+    }
+
+    // Return a clean, on-the-hour format for 24h display.
+    return `${String(displayHour).padStart(2, '0')}:00`;
   }, [units.timeFormat]);
 
 
@@ -145,7 +166,8 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
     convertWindSpeed,
     getWindSpeedUnitLabel,
     formatTime,
-  }), [units, setUnits, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime]);
+    formatShortTime,
+  }), [units, setUnits, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime]);
 
   return (
     <UnitsContext.Provider value={value}>

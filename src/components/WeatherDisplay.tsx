@@ -27,10 +27,13 @@ interface ForecastCardProps {
 }
 
 function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
-  const { convertTemperature, formatTime } = useUnits();
-  // Only show precipitation icon if chance is non-trivial (e.g., > 10%)
+  const { convertTemperature, formatTime, formatShortTime } = useUnits();
   const showPrecipitation = data.precipitationChance > 10;
-  const displayTime = formatTime(data.timestamp, timezone);
+  
+  // Use the new, rounded time for the card display for a cleaner look
+  const displayTime = formatShortTime(data.timestamp, timezone);
+  // Use the original, precise time for the accessible label
+  const preciseTime = formatTime(data.timestamp, timezone);
   
   return (
     <button
@@ -38,7 +41,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       className={cn(
         "group flex h-full w-24 shrink-0 flex-col items-center justify-between rounded-lg border border-border/30 bg-background/50 p-3 text-center text-left shadow-lg transition-all duration-300 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
-      aria-label={`View forecast for ${displayTime}`}
+      aria-label={`View forecast for ${preciseTime}`}
     >
       {/* Top Part: Time */}
       <p className="text-sm font-semibold text-muted-foreground transition-colors group-hover:text-primary">{displayTime}</p>
@@ -208,7 +211,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     <ChartTooltipContent
                       indicator="dot"
                       labelFormatter={(label) => `Time: ${label}`}
-                      formatter={(value, name, item) => {
+                      formatter={(value, name) => {
                           const config = chartConfig[name as keyof typeof chartConfig];
                           return (
                             <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-x-2">
