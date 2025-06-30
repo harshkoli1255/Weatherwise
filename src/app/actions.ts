@@ -252,6 +252,12 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: [], error: null };
     }
 
+    const cacheKey = `suggestions-${trimmedQuery.toLowerCase()}`;
+    const cachedSuggestions = cacheService.get<CitySuggestion[]>(cacheKey);
+    if (cachedSuggestions) {
+        return { suggestions: cachedSuggestions, error: null };
+    }
+
     const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
     if (!apiKey) {
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
@@ -347,7 +353,8 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       }
       return suggestion; // Return suggestion without weather if fetch failed
     });
-
+    
+    cacheService.set(cacheKey, finalSuggestions);
     return { suggestions: finalSuggestions, error: null };
 
   } catch (error) {

@@ -169,18 +169,12 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 </Button>
                 <Button
                     type="submit"
-                    disabled={!inputValue.trim()}
+                    disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-8 md:h-9 text-sm"
+                    className="h-8 md:h-9 text-sm w-24"
                 >
                     {isSearchingWeather ? (
-                        <>
-                          <span className="relative flex h-3 w-3 mr-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground/75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-foreground"></span>
-                          </span>
-                          <span>Searching</span>
-                        </>
+                       <SearchIconLucide className="h-5 w-5 animate-pulse-subtle" />
                     ) : (
                         'Search'
                     )}

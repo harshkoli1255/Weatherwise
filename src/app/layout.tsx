@@ -11,6 +11,7 @@ import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
 import { SavedLocationsProvider } from '@/hooks/useSavedLocations';
 import { UnitsProvider } from '@/hooks/useUnits';
 import { DefaultLocationProvider } from '@/hooks/useDefaultLocation';
+import { LastSearchProvider } from '@/hooks/useLastSearch.tsx';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -58,16 +59,18 @@ export default function RootLayout({
             <UnitsProvider>
               <DefaultLocationProvider>
                 <SavedLocationsProvider>
-                  <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
-                    <Navbar />
-                    <main className="flex-grow">
-                      <PageTransitionWrapper>{children}</PageTransitionWrapper>
-                    </main>
-                    <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
-                      © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
-                    </footer>
-                  </div>
-                  <Toaster />
+                  <LastSearchProvider>
+                    <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
+                      <Navbar />
+                      <main className="flex-grow">
+                        <PageTransitionWrapper>{children}</PageTransitionWrapper>
+                      </main>
+                      <footer className="py-6 text-center text-sm text-muted-foreground/80 border-t bg-background/80 backdrop-blur-md">
+                        © {currentYear} Weatherwise. Powered by OpenWeather and Genkit AI.
+                      </footer>
+                    </div>
+                    <Toaster />
+                  </LastSearchProvider>
                 </SavedLocationsProvider>
               </DefaultLocationProvider>
             </UnitsProvider>

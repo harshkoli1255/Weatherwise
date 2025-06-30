@@ -8,6 +8,8 @@ import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
+import { useDefaultLocation } from '@/hooks/useDefaultLocation';
+import { useLastSearch } from '@/hooks/useLastSearch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
@@ -36,7 +38,6 @@ const initialState: WeatherPageState = {
   cityNotFound: false,
 };
 
-const LAST_SEARCH_KEY = 'weatherwise-last-search';
 const LAST_RESULT_KEY = 'weatherwise-last-result';
 
 function WeatherPageContent() {
@@ -47,6 +48,8 @@ function WeatherPageContent() {
   
   const { toast } = useToast();
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
+  const { defaultLocation } = useDefaultLocation();
+  const { lastSearch, setLastSearch } = useLastSearch();
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -80,11 +83,13 @@ function WeatherPageContent() {
             lat: result.data.lat,
             lon: result.data.lon,
         };
+        // Use the new hook to set and sync the last search
+        setLastSearch(cityForStorage);
         try {
-            localStorage.setItem(LAST_SEARCH_KEY, JSON.stringify(cityForStorage));
+            // Still use localStorage for the full result to enable instant UI restore on refresh
             localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(result.data));
         } catch (e) {
-            console.warn("Could not save last search to localStorage.");
+            console.warn("Could not save last result to localStorage.");
         }
       }
       
@@ -96,7 +101,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, []);
+  }, [setLastSearch]);
 
   const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
@@ -176,45 +181,43 @@ function WeatherPageContent() {
   // This effect runs only once on mount to determine initial state.
   useEffect(() => {
     const initializeWeather = () => {
-      // 1. Prioritize the user-set default location.
-      try {
-        const storedDefault = JSON.parse(localStorage.getItem('weatherwise-default-location') || 'null');
-        if (storedDefault && storedDefault.name && typeof storedDefault.lat === 'number' && typeof storedDefault.lon === 'number') {
-          console.log(`[Perf] Initializing with user's default location: ${storedDefault.name}`);
-          setInitialSearchTerm(storedDefault.name);
-          handleSearch(storedDefault.name, storedDefault.lat, storedDefault.lon);
-          return;
-        }
-      } catch (e) {
-        console.warn("Could not read default location from localStorage.");
-      }
-
-      // 2. Try to restore the last session if no default is set.
+      // Priority 1: Instant restore from localStorage for quick refresh.
       const savedResult = localStorage.getItem(LAST_RESULT_KEY);
       if (savedResult) {
         try {
             const lastData: WeatherSummaryData = JSON.parse(savedResult);
             setWeatherState({ data: lastData, error: null, isLoading: false, loadingMessage: null, cityNotFound: false });
-            const savedLastSearch = localStorage.getItem(LAST_SEARCH_KEY);
-            if (savedLastSearch) {
-                const lastCity: CitySuggestion = JSON.parse(savedLastSearch);
-                setInitialSearchTerm(lastCity.name);
-            }
+            setInitialSearchTerm(lastData.city);
             return;
         } catch (e) {
             console.warn("Could not read last session from localStorage.");
             localStorage.removeItem(LAST_RESULT_KEY);
-            localStorage.removeItem(LAST_SEARCH_KEY);
         }
       }
+
+      // Priority 2: Synced default location set by the user.
+      if (defaultLocation) {
+        console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
+        setInitialSearchTerm(defaultLocation.name);
+        handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
+        return;
+      }
+
+      // Priority 3: Synced last searched city.
+      if (lastSearch) {
+        console.log(`[Perf] Initializing with user's last search: ${lastSearch.name}`);
+        setInitialSearchTerm(lastSearch.name);
+        handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
+        return;
+      }
       
-      // 3. If no last session, automatically fetch location for a better first-time experience.
+      // Priority 4: Auto-detection for first-time users.
       handleLocate(true);
     };
 
     initializeWeather();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [defaultLocation, lastSearch]);
 
   // Listen for search events from other components (like the navbar)
   useEffect(() => {
@@ -263,7 +266,7 @@ function WeatherPageContent() {
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-      <section className="relative z-10 w-full max-w-2xl mb-8 text-center">
+      <section className="relative z-10 w-full max-w-2xl mb-8 text-center animate-in fade-in-up">
         <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
           Weatherwise
         </h1>

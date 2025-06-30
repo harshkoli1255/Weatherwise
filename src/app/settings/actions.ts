@@ -89,3 +89,29 @@ export async function saveSavedLocations(locations: CitySuggestion[]) {
     return { success: false, error: `Failed to save locations: ${message}` };
   }
 }
+
+
+export async function saveLastSearchAction(search: CitySuggestion | null) {
+  const { userId } = auth();
+  if (!userId) {
+    return { success: false, error: 'User not authenticated.' };
+  }
+
+  try {
+    const user = await clerkClient().users.getUser(userId);
+    const existingPublicMetadata = user.publicMetadata || {};
+    
+    await clerkClient().users.updateUser(userId, {
+      publicMetadata: {
+        ...existingPublicMetadata,
+        lastSearch: search,
+      },
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save last search:', error);
+    const message = error instanceof Error ? error.message : "An unknown server error occurred.";
+    return { success: false, error: `Failed to save last search: ${message}` };
+  }
+}
