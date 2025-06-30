@@ -248,7 +248,7 @@ const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, va
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const { convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
+  const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatTime, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
   const getAqiInfo = (aqi: number) => {
@@ -300,6 +300,31 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
     return [nowData, ...forecastPoints];
   }, [weatherData, convertTemperature, formatShortTime, convertWindSpeed]);
+
+  const { tempGradientOffset } = useMemo(() => {
+    if (!chartData || chartData.length === 0) {
+      return { tempGradientOffset: 1 };
+    }
+    const allTemps = chartData.map(d => d.temperature);
+    const yMin = Math.min(...allTemps) - 5;
+    const yMax = Math.max(...allTemps) + 5;
+    
+    if (yMax <= yMin) { // Avoid division by zero
+        return { tempGradientOffset: 1 };
+    }
+
+    const hotThreshold = units.temperature === 'celsius' ? 30 : 86;
+
+    if (yMin >= hotThreshold) {
+      return { tempGradientOffset: 0 }; // All hot
+    }
+    if (yMax <= hotThreshold) {
+      return { tempGradientOffset: 1 }; // All cool
+    }
+
+    const offset = (yMax - hotThreshold) / (yMax - yMin);
+    return { tempGradientOffset: Math.max(0, Math.min(1, offset)) };
+  }, [chartData, units.temperature]);
 
 
   // Custom component for rendering X-axis ticks with icons
@@ -471,17 +496,30 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       />
                       <ChartLegend content={<ChartLegendContent className="gap-8" />} />
                       <defs>
-                        <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor="var(--color-temperature)"
-                            stopOpacity={0.8}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="var(--color-temperature)"
-                            stopOpacity={0.1}
-                          />
+                        <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                          {/* If entire chart is below threshold, just a normal gradient */}
+                          {tempGradientOffset >= 1 && (
+                              <>
+                                  <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                  <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                              </>
+                          )}
+                          {/* If entire chart is above threshold, just a hot gradient */}
+                          {tempGradientOffset <= 0 && (
+                              <>
+                                  <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                  <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                              </>
+                          )}
+                          {/* If threshold is in the middle, a split gradient */}
+                          {tempGradientOffset > 0 && tempGradientOffset < 1 && (
+                              <>
+                                  <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                  <stop offset={tempGradientOffset} stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                  <stop offset={tempGradientOffset} stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                  <stop offset="1" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                              </>
+                          )}
                         </linearGradient>
                         <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
                           <stop
@@ -508,7 +546,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       <Area
                         dataKey="temperature"
                         type="natural"
-                        fill="url(#fillTemperature)"
+                        fill="url(#tempGradient)"
                         stroke="var(--color-temperature)"
                         strokeWidth={2}
                         dot={false}
