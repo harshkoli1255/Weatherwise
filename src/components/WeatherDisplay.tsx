@@ -14,6 +14,7 @@ import { useSavedLocations } from '@/hooks/useFavorites';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceDot } from 'recharts';
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Progress } from './ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -381,252 +382,286 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         </div>
         <CardDescription className="text-center text-lg capitalize text-muted-foreground mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 p-4 sm:p-5">
+
+      <Tabs defaultValue="forecast" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mx-auto max-w-md mt-4">
+          <TabsTrigger value="forecast">
+            <AreaChartIcon className="mr-2 h-4 w-4" />
+            Forecast
+          </TabsTrigger>
+          <TabsTrigger value="insights">
+            <Brain className="mr-2 h-4 w-4" />
+            AI Insights
+          </TabsTrigger>
+          <TabsTrigger value="health">
+            <Leaf className="mr-2 h-4 w-4" />
+            Health
+          </TabsTrigger>
+        </TabsList>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
-          <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
-            <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
-              {convertTemperature(weatherData.temperature)}°
-              <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
-            </div>
-          </div>
-          <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
-            <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-center">
-          <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-          <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-          <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
-           {aqiInfo && (
-            <WeatherDetailItem 
-                icon={GaugeCircle} 
-                label="Air Quality" 
-                value={aqiInfo.level} 
-                iconColor={aqiInfo.colorClass} 
-                className="animate-in fade-in" 
-                style={{ animationDelay: '600ms' }}
-            />
-          )}
-        </div>
-        
-        {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center mb-4">
-              <AreaChartIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-              <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
-                24-Hour Temperature Trend
-              </h3>
-            </div>
-            <ChartContainer config={chartConfig} className="h-64 w-full">
-              <AreaChart
-                accessibilityLayer
-                data={chartData}
-                margin={{
-                  left: -20,
-                  right: 10,
-                  top: 10,
-                  bottom: 20,
-                }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="time"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={<CustomXAxisTick />}
-                  interval={0}
-                  height={60}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  domain={['dataMin - 5', 'dataMax + 5']}
-                  tickFormatter={(value) => `${value}°`}
-                />
-                <ChartTooltip
-                  cursor={true}
-                  content={<CustomChartTooltipContent />}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-                <defs>
-                  <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-temperature)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-temperature)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-feelsLike)"
-                      stopOpacity={0.4}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-feelsLike)"
-                      stopOpacity={0.05}
-                    />
-                  </linearGradient>
-                </defs>
-                <Area
-                  dataKey="feelsLike"
-                  type="natural"
-                  fill="url(#fillFeelsLike)"
-                  stroke="var(--color-feelsLike)"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                />
-                <Area
-                  dataKey="temperature"
-                  type="natural"
-                  fill="url(#fillTemperature)"
-                  stroke="var(--color-temperature)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                 {chartData.length > 0 && (
-                  <>
-                    <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                    <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
-                  </>
-                )}
-              </AreaChart>
-            </ChartContainer>
-          </div>
-        )}
-
-        {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center mb-4">
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-              <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
-                Hourly Details
-              </h3>
-            </div>
-            <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-              <div className="flex h-40 w-max space-x-3 pb-4">
-                {weatherData.hourlyForecast.map((hour, index) => (
-                  <ForecastCard 
-                    key={index} 
-                    data={hour}
-                    timezone={weatherData.timezone}
-                    onClick={() => setSelectedHour(hour)}
-                  />
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </div>
-        )}
-
-        {aqiComponents && weatherData.airQualitySummary && (
-            <div className="pt-4 border-t border-border/50">
-                <div className="flex items-center mb-4">
-                    <Leaf className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
-                    <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-                        Air Quality & Health
-                    </h3>
+        <TabsContent value="forecast">
+            <div className="space-y-6 p-4 sm:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 items-center text-center gap-6">
+                <div className="flex-shrink-0 order-2 sm:order-1 animate-in fade-in zoom-in-95" style={{ animationDelay: '100ms' }}>
+                  <div className="text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
+                    {convertTemperature(weatherData.temperature)}°
+                    <span className="text-4xl sm:text-5xl text-muted-foreground/80">{getTemperatureUnitSymbol().replace('°','')}</span>
+                  </div>
                 </div>
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
-                    <p
-                        className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                    />
-                    <p
-                        className="text-sm text-muted-foreground leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                    />
+                <div className="flex justify-center items-center order-1 sm:order-2 animate-in fade-in zoom-in-95" style={{ animationDelay: '200ms' }}>
+                  <WeatherIcon iconCode={weatherData.iconCode} className={`h-24 w-24 sm:h-28 sm:w-28 ${sentimentColorClass} drop-shadow-2xl`} />
+                </div>
+              </div>
 
-                     <div className="pt-4 mt-4 border-t border-border/50">
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                           {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
-                           {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
-                           {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
-                           {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+                <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
+                {aqiInfo && (
+                  <WeatherDetailItem 
+                      icon={GaugeCircle} 
+                      label="Air Quality" 
+                      value={aqiInfo.level} 
+                      iconColor={aqiInfo.colorClass} 
+                      className="animate-in fade-in" 
+                      style={{ animationDelay: '600ms' }}
+                  />
+                )}
+              </div>
+              
+              {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex items-center mb-4">
+                    <AreaChartIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+                    <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
+                      24-Hour Temperature Trend
+                    </h3>
+                  </div>
+                  <ChartContainer config={chartConfig} className="h-64 w-full">
+                    <AreaChart
+                      accessibilityLayer
+                      data={chartData}
+                      margin={{
+                        left: -20,
+                        right: 10,
+                        top: 10,
+                        bottom: 20,
+                      }}
+                    >
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="time"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={<CustomXAxisTick />}
+                        interval={0}
+                        height={60}
+                      />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        domain={['dataMin - 5', 'dataMax + 5']}
+                        tickFormatter={(value) => `${value}°`}
+                      />
+                      <ChartTooltip
+                        cursor={true}
+                        content={<CustomChartTooltipContent />}
+                      />
+                      <ChartLegend content={<ChartLegendContent className="gap-8" />} />
+                      <defs>
+                        <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
+                          <stop
+                            offset="5%"
+                            stopColor="var(--color-temperature)"
+                            stopOpacity={0.8}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="var(--color-temperature)"
+                            stopOpacity={0.1}
+                          />
+                        </linearGradient>
+                        <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
+                          <stop
+                            offset="5%"
+                            stopColor="var(--color-feelsLike)"
+                            stopOpacity={0.4}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="var(--color-feelsLike)"
+                            stopOpacity={0.05}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        dataKey="feelsLike"
+                        type="natural"
+                        fill="url(#fillFeelsLike)"
+                        stroke="var(--color-feelsLike)"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={false}
+                      />
+                      <Area
+                        dataKey="temperature"
+                        type="natural"
+                        fill="url(#fillTemperature)"
+                        stroke="var(--color-temperature)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      {chartData.length > 0 && (
+                        <>
+                          <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
+                          <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                        </>
+                      )}
+                    </AreaChart>
+                  </ChartContainer>
+                </div>
+              )}
+
+              {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex items-center mb-4">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+                    <h3 className="text-lg font-headline font-semibold text-primary sm:text-xl">
+                      Hourly Details
+                    </h3>
+                  </div>
+                  <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
+                    <div className="flex h-40 w-max space-x-3 pb-4">
+                      {weatherData.hourlyForecast.map((hour, index) => (
+                        <ForecastCard 
+                          key={index} 
+                          data={hour}
+                          timezone={weatherData.timezone}
+                          onClick={() => setSelectedHour(hour)}
+                        />
+                      ))}
+                    </div>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                </div>
+              )}
+            </div>
+        </TabsContent>
+        
+        <TabsContent value="insights">
+            <div className="space-y-6 p-4 sm:p-6">
+                 <div>
+                    <div className="flex items-center mb-4">
+                      <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+                      <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                        AI Weather Summary
+                      </h3>
+                    </div>
+                    <div
+                      className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                      dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
+                    />
+                  </div>
+
+                  {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+                    <div>
+                      <div className="flex items-center mb-4">
+                        <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+                        <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                          Key Insights
+                        </h3>
+                      </div>
+                      <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
+                        <ul className="space-y-3">
+                          {weatherData.aiInsights.map((insight, index) => (
+                            <li key={index} className="flex items-start">
+                              <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
+                                  <Sparkles className="h-3 w-3 text-primary" />
+                              </div>
+                              <span
+                                className="text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                                dangerouslySetInnerHTML={{ __html: insight }}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {weatherData.activitySuggestion && (
+                    <div>
+                      <div className="flex items-center mb-4">
+                          <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
+                          <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                              Activity Suggestion
+                          </h3>
+                      </div>
+                      <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                          <div
+                              className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                          />
+                          {weatherData.aiImageUrl && (
+                              <div className="animate-in fade-in zoom-in-95">
+                                  <img
+                                      src={weatherData.aiImageUrl}
+                                      alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                                      className="w-full h-auto aspect-[16/9] object-cover rounded-md shadow-md border border-border/30"
+                                  />
+                              </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
+            </div>
+        </TabsContent>
+        
+        <TabsContent value="health">
+           <div className="space-y-6 p-4 sm:p-6">
+             {aqiComponents && weatherData.airQualitySummary ? (
+                <div>
+                    <div className="flex items-center mb-4">
+                        <Leaf className="h-5 w-5 sm:h-6 sm:w-6 mr-3 flex-shrink-0 text-primary" />
+                        <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
+                            Air Quality & Health
+                        </h3>
+                    </div>
+                    <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                        <p
+                            className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                        />
+                        <p
+                            className="text-sm text-muted-foreground leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                        />
+
+                        <div className="pt-4 mt-4 border-t border-border/50">
+                            <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
+                              {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
+                              {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
+                              {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )}
+              ) : (
+                <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                    <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="font-semibold">Air Quality Data Not Available</p>
+                    <p className="text-sm mt-1">This location does not currently provide air quality information.</p>
+                </div>
+              )}
+           </div>
+        </TabsContent>
+      </Tabs>
 
-        <div className="pt-4 border-t border-border/50">
-          <div className="flex items-center mb-4">
-            <Brain className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-            <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-              AI Weather Summary
-            </h3>
-          </div>
-          <div
-            className="text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-            dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
-          />
-        </div>
-
-        {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center mb-4">
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-              <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-                Key Insights
-              </h3>
-            </div>
-            <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20">
-              <ul className="space-y-3">
-                {weatherData.aiInsights.map((insight, index) => (
-                  <li key={index} className="flex items-start">
-                     <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
-                        <Sparkles className="h-3 w-3 text-primary" />
-                     </div>
-                    <span
-                      className="text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-                      dangerouslySetInnerHTML={{ __html: insight }}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {weatherData.activitySuggestion && (
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center mb-4">
-                <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 mr-3 text-primary flex-shrink-0" />
-                <h3 className="text-lg sm:text-xl font-headline font-semibold text-primary">
-                    Activity Suggestion
-                </h3>
-            </div>
-            <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
-                <div
-                    className="text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-                    dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-                />
-                {weatherData.aiImageUrl && (
-                    <div className="animate-in fade-in zoom-in-95">
-                        <img
-                            src={weatherData.aiImageUrl}
-                            alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                            className="w-full h-auto aspect-[16/9] object-cover rounded-md shadow-md border border-border/30"
-                        />
-                    </div>
-                )}
-            </div>
-          </div>
-        )}
-      </CardContent>
-       {selectedHour && (
+      {selectedHour && (
         <HourlyForecastDialog
           data={selectedHour}
           timezone={weatherData.timezone}
