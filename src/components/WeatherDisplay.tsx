@@ -560,7 +560,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     </AreaChart>
                   </ChartContainer>
                   <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-                    <div className="flex w-max space-x-2 sm:space-x-3 pb-4">
+                    <div className="flex flex-nowrap space-x-2 sm:space-x-3 pb-4">
                       {weatherData.hourlyForecast.map((hour, index) => (
                         <ForecastCard 
                           key={index} 
