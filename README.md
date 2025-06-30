@@ -75,6 +75,10 @@ You will need **Git** and **Node.js** (latest LTS version recommended) installed
     nvm install --lts
     ```
     > **Note:** The Node Package Manager (`npm`) is included automatically with Node.js. You do not need to install it separately.
+4.  **(Optional) Update npm:** For best performance and compatibility, it's recommended to update `npm` to its latest version:
+    ```bash
+    npm install -g npm@latest
+    ```
 
 ---
 
