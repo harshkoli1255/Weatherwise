@@ -31,14 +31,14 @@ export function WeatherLoadingAnimation({ className }: { className?: string }) {
           {/* Cloud 1: Slower, further back */}
           <path
             d="M -20 75 C -30 75, -30 65, -20 65 L 40 65 C 50 65, 50 75, 40 75 Z"
-            fill="hsl(var(--card))"
+            fill="hsl(var(--muted))"
             opacity="0.8"
             className="animate-cloud-drift-1"
           />
           {/* Cloud 2: Faster, closer */}
           <path
             d="M -5 90 C -15 90, -15 80, -5 80 L 55 80 C 65 80, 65 90, 55 90 Z"
-            fill="hsl(var(--card))"
+            fill="hsl(var(--muted))"
             opacity="0.95"
             className="animate-cloud-drift-2"
           />
