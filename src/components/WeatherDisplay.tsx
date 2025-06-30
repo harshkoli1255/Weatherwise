@@ -15,6 +15,7 @@ import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useIsMobile } from '@/hooks/use-mobile';
 import Image from 'next/image';
+import { ScrollArea } from './ui/scroll-area';
 
 interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
@@ -34,14 +35,11 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   const displayTime = formatShortTime(data.timestamp, timezone);
   const preciseTime = formatTime(data.timestamp, timezone);
   
-  const condition = data.condition.toLowerCase();
   const showPrecipitation = data.precipitationChance > 10;
   
   let borderColor = 'border-border/30';
   if (showPrecipitation) {
     borderColor = 'border-sky-400/50';
-  } else if (data.iconCode === '01d') {
-    borderColor = 'border-yellow-400/50';
   }
 
   return (
@@ -94,6 +92,8 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const title = data.time === "Now" ? "Current Conditions" : `${data.condition} at ${data.time}`;
+    const itemConfig = chartConfig[payload[0].name as keyof typeof chartConfig];
+    const displayName = itemConfig?.label || payload[0].name;
 
     return (
       <div className="grid min-w-[12rem] gap-1.5 rounded-lg border bg-popover p-3 text-xs shadow-xl">
@@ -234,6 +234,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
   const isMobile = useIsMobile();
+  const [activeChartData, setActiveChartData] = useState<any>(null);
 
   const getAqiInfo = (aqi: number) => {
     switch (aqi) {
@@ -367,7 +368,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       </CardHeader>
 
       <Tabs defaultValue="forecast" className="w-full">
-        <div className="px-4">
+        <div className="px-2 sm:px-4">
             <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-9 sm:h-10 mt-2">
             <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
                 <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
@@ -384,7 +385,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </TabsList>
         </div>
         
-        <TabsContent value="forecast" className="pt-2 sm:pt-4">
+        <TabsContent value="forecast" className="pt-2">
             <div className="space-y-4 px-4 sm:px-6">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
                     <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
@@ -418,36 +419,26 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             <div className="pt-4 mt-2">
               {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
               <>
-                <div className="flex items-center mb-3 px-4 sm:px-6">
-                  <Clock className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
-                  <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                    Hourly Details
-                  </h3>
-                </div>
-                <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                    <div className="flex w-max flex-nowrap space-x-3 px-4 sm:px-6 py-2">
-                        {weatherData.hourlyForecast.map((hour, index) => (
-                        <ForecastCard 
-                            key={index} 
-                            data={hour}
-                            timezone={weatherData.timezone}
-                            onClick={() => setSelectedHour(hour)}
-                        />
-                        ))}
-                    </div>
-                </div>
+                <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                  <div className="flex w-max space-x-3 px-4 py-2">
+                    {weatherData.hourlyForecast.map((hour, index) => (
+                      <ForecastCard 
+                          key={index} 
+                          data={hour}
+                          timezone={weatherData.timezone}
+                          onClick={() => setSelectedHour(hour)}
+                      />
+                    ))}
+                  </div>
+                  <div className="horizontal-scrollbar" />
+                </ScrollArea>
                 
-                <div className="flex items-center mt-4 mb-3 px-4 sm:px-6">
-                  <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
-                  <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                    24-Hour Timeline
-                  </h3>
-                </div>
                 <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
-                    <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
+                    <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64 mt-4">
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
+                        onClick={(e) => isMobile && e && setActiveChartData(e.activePayload?.[0].payload)}
                         margin={{
                         left: -5,
                         right: 20,
@@ -475,7 +466,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         <ChartTooltip
                           cursor={true}
                           content={<CustomChartTooltipContent />}
-                        />
+                          />
                         <defs>
                         <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
                             {tempGradientOffset >= 1 && (
@@ -541,8 +532,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         {chartData.length > 0 && (
                         <>
                             <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
-                            <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                            <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                            <ReferenceDot x="Now" y={chartData[0].temperature} r={8} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
+                            <ReferenceDot x="Now" y={chartData[0].feelsLike} r={6} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
                         </>
                         )}
                     </AreaChart>
@@ -553,30 +544,25 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="pt-2 sm:pt-4 px-4 sm:px-6">
-            <div className="space-y-6">
-                 <div>
-                    <div className="flex items-center mb-4">
-                      <Brain className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                      <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                        AI Weather Summary
-                      </h3>
+        <TabsContent value="insights" className="pt-2 px-2 sm:px-4">
+            <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                    <div className="flex items-center mb-3">
+                        <Brain className="h-5 mr-2 text-primary flex-shrink-0" />
+                        <h3 className="text-base font-headline font-semibold text-primary">AI Summary</h3>
                     </div>
                     <div
-                      className="text-sm sm:text-base text-foreground/90 leading-relaxed bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                      className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
                       dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
                     />
-                  </div>
+                </div>
 
-                  {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                    <div>
-                      <div className="flex items-center mb-4">
-                        <Sparkles className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                        <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                          Key Insights
-                        </h3>
-                      </div>
-                      <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20">
+                {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+                    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                        <div className="flex items-center mb-3">
+                            <Sparkles className="h-5 mr-2 text-primary flex-shrink-0" />
+                            <h3 className="text-base font-headline font-semibold text-primary">Key Insights</h3>
+                        </div>
                         <ul className="space-y-3">
                           {weatherData.aiInsights.map((insight, index) => (
                             <li key={index} className="flex items-start">
@@ -584,31 +570,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                                   <Sparkles className="h-3 w-3 text-primary" />
                               </div>
                               <span
-                                className="text-sm sm:text-base text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                                className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
                                 dangerouslySetInnerHTML={{ __html: insight }}
                               />
                             </li>
                           ))}
                         </ul>
-                      </div>
                     </div>
-                  )}
+                )}
 
-                  {weatherData.activitySuggestion && (
-                    <div>
-                      <div className="flex items-center mb-4">
-                          <Lightbulb className="h-5 sm:h-6 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                          <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                              Activity Suggestion
-                          </h3>
-                      </div>
-                      <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
+                {weatherData.activitySuggestion && (
+                    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                        <div className="flex items-center mb-3">
+                            <Lightbulb className="h-5 mr-2 text-primary flex-shrink-0" />
+                            <h3 className="text-base font-headline font-semibold text-primary">Activity Suggestion</h3>
+                        </div>
                           <div
-                              className="text-sm sm:text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
+                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
                               dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
                           />
                           {weatherData.aiImageUrl && (
-                              <div className="animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                              <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
                                   <Image
                                       src={weatherData.aiImageUrl}
                                       alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
@@ -618,40 +600,35 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                                   />
                               </div>
                           )}
-                      </div>
                     </div>
-                  )}
+                )}
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="pt-2 sm:pt-4 px-4 sm:px-6">
-           <div className="space-y-6">
+        <TabsContent value="health" className="pt-2 px-2 sm:px-4">
+           <div className="space-y-4">
              {aqiComponents && weatherData.airQualitySummary ? (
-                <div>
-                    <div className="flex items-center mb-4">
-                        <Leaf className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
-                        <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                            Air Quality & Health
-                        </h3>
+                <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+                    <div className="flex items-center mb-3">
+                        <Leaf className="h-5 mr-2 text-primary flex-shrink-0" />
+                        <h3 className="text-base font-headline font-semibold text-primary">Air Quality & Health</h3>
                     </div>
-                    <div className="bg-primary/5 dark:bg-primary/10 p-3 sm:p-4 rounded-lg shadow-inner border border-primary/20 space-y-4">
-                        <p
-                            className="text-sm sm:text-base text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-1 [&_strong]:rounded-md"
-                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                        />
-                        <p
-                            className="text-xs sm:text-sm text-muted-foreground leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                        />
+                    <p
+                        className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary-foreground [&_strong]:bg-primary/90 [&_strong]:px-2 [&_strong]:py-0.5 [&_strong]:rounded-md"
+                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                    />
+                    <p
+                        className="mt-2 text-xs text-muted-foreground leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                    />
 
-                        <div className="pt-4 mt-4 border-t border-border/50">
-                            <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                              {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
-                              {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
-                              {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
-                              {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
-                            </div>
+                    <div className="pt-4 mt-4 border-t border-border/50">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                            {aqiComponents.pm2_5 !== undefined && <PollutantDetail {...pollutantConfig.pm2_5} value={aqiComponents.pm2_5} />}
+                            {aqiComponents.o3 !== undefined && <PollutantDetail {...pollutantConfig.o3} value={aqiComponents.o3} />}
+                            {aqiComponents.no2 !== undefined && <PollutantDetail {...pollutantConfig.no2} value={aqiComponents.no2} />}
+                            {aqiComponents.co !== undefined && <PollutantDetail {...pollutantConfig.co} value={aqiComponents.co} />}
                         </div>
                     </div>
                 </div>
@@ -676,6 +653,18 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               setSelectedHour(null);
             }
           }}
+        />
+      )}
+      {activeChartData && isMobile && (
+         <HourlyForecastDialog
+            data={activeChartData.originalData}
+            timezone={weatherData.timezone}
+            open={!!activeChartData}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setActiveChartData(null);
+              }
+            }}
         />
       )}
     </Card>
