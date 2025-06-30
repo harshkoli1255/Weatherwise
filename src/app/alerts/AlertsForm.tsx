@@ -205,28 +205,28 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
               <p className="text-sm text-muted-foreground">Control how often you receive alerts for significant weather.</p>
             </div>
           </div>
-          <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="space-y-2 pt-2">
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
-              <RadioGroupItem value="everyHour" id="freq-max" />
-              <div className="grid gap-1.5 leading-normal">
-                <Label htmlFor="freq-max" className="font-semibold cursor-pointer">Maximum</Label>
-                <p className="text-sm text-muted-foreground">Get an alert every hour that significant weather conditions are detected.</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
-              <RadioGroupItem value="balanced" id="freq-bal" />
-              <div className="grid gap-1.5 leading-normal">
-                <Label htmlFor="freq-bal" className="font-semibold cursor-pointer">Balanced (Recommended)</Label>
-                <p className="text-sm text-muted-foreground">Get one alert when significant weather starts, then stay quiet for 4 hours to prevent noise.</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3 p-3 rounded-md has-[:checked]:bg-primary/10 has-[:checked]:border-primary/50 has-[:checked]:scale-[1.01] border border-transparent transition-all duration-200 ease-in-out">
-              <RadioGroupItem value="oncePerDay" id="freq-min" />
-              <div className="grid gap-1.5 leading-normal">
-                <Label htmlFor="freq-min" className="font-semibold cursor-pointer">Minimal</Label>
-                <p className="text-sm text-muted-foreground">Get a maximum of one alert per day for the first significant weather event.</p>
-              </div>
-            </div>
+          <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
+             <div className="relative">
+                <RadioGroupItem value="everyHour" id="freq-max" className="sr-only peer" />
+                <Label htmlFor="freq-max" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                    <span className="font-semibold text-sm">Maximum</span>
+                    <span className="text-xs text-muted-foreground mt-1">Every hour</span>
+                </Label>
+             </div>
+             <div className="relative">
+                <RadioGroupItem value="balanced" id="freq-bal" className="sr-only peer" />
+                <Label htmlFor="freq-bal" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                    <span className="font-semibold text-sm">Balanced</span>
+                    <span className="text-xs text-muted-foreground mt-1">Every 4 hours</span>
+                </Label>
+             </div>
+             <div className="relative">
+                <RadioGroupItem value="oncePerDay" id="freq-min" className="sr-only peer" />
+                <Label htmlFor="freq-min" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                    <span className="font-semibold text-sm">Minimal</span>
+                    <span className="text-xs text-muted-foreground mt-1">Once a day</span>
+                </Label>
+             </div>
           </RadioGroup>
         </div>
         

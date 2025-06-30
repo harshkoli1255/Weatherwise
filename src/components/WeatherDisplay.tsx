@@ -701,5 +701,3 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
     </div>
   );
 }
-
-    
