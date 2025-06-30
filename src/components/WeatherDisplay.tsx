@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Star, Loader2, AreaChart as AreaChartIcon, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -209,7 +209,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                     {isSyncing ? (
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     ) : (
-                        <Bookmark className={cn(
+                        <Star className={cn(
                             "h-6 w-6 transition-all duration-300",
                             isLocationSaved ? "fill-primary text-primary" : "fill-none"
                         )} />
