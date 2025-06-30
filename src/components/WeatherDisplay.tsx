@@ -106,7 +106,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const CustomChartTooltipContent = ({ active, payload, label }: any) => {
+const CustomChartTooltipContent = ({ active, payload, label, config }: any) => {
   const { getTemperatureUnitSymbol, getWindSpeedUnitLabel, formatTime, timezone } = useUnits();
 
   if (active && payload && payload.length) {
@@ -118,23 +118,27 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
         <div className="font-bold text-foreground mb-1 capitalize">{titleTime}</div>
         <div className="w-full h-px bg-border/50" />
         <div className="grid gap-1.5">
-          {payload.map((item: any) => (
-            <div
-              key={item.dataKey}
-              className="flex w-full items-center justify-between gap-4 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-muted-foreground">{item.name}</span>
+          {payload.map((item: any) => {
+            const itemConfig = config[item.name as keyof typeof config];
+            const displayName = itemConfig?.label || item.name;
+            return (
+              <div
+                key={item.dataKey}
+                className="flex w-full items-center justify-between gap-4 text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-muted-foreground">{displayName}</span>
+                </div>
+                <span className="font-mono font-medium tabular-nums text-foreground">
+                  {item.value}{getTemperatureUnitSymbol()}
+                </span>
               </div>
-              <span className="font-mono font-medium tabular-nums text-foreground">
-                {item.value}{getTemperatureUnitSymbol()}
-              </span>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <div className="w-full h-px bg-border/50" />
         <div className="grid gap-1.5">
@@ -438,8 +442,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="px-4 pt-4 sm:px-6 sm:pt-6">
-            <div className="space-y-4">
+        <TabsContent value="forecast" className="pt-4 sm:pt-6">
+            <div className="space-y-4 px-4 sm:px-6">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
                 <div className="animate-in fade-in zoom-in-95 order-2 sm:order-1" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
@@ -478,7 +482,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </div>
                 {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
                 <>
-                <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                <div className="w-full overflow-x-auto pb-2">
                     <ChartContainer config={chartConfig} className="h-52 w-full min-w-[700px] sm:h-60 md:h-64">
                     <AreaChart
                         accessibilityLayer
@@ -510,7 +514,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         />
                         <ChartTooltip
                         cursor={true}
-                        content={<CustomChartTooltipContent />}
+                        content={<CustomChartTooltipContent config={chartConfig} />}
                         />
                         {!isMobile && <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />}
                         <defs>
@@ -575,7 +579,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         )}
                     </AreaChart>
                     </ChartContainer>
-                </ScrollArea>
+                </div>
                 <ScrollArea className="w-full overflow-x-auto pb-2">
                     <div className="flex w-max flex-nowrap space-x-3 px-1 py-2">
                         {weatherData.hourlyForecast.map((hour, index) => (
