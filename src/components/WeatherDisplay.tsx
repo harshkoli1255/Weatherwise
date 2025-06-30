@@ -134,27 +134,27 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
         <div className="w-full h-px bg-border/50" />
         <div className="grid gap-1.5">
             <div className="flex w-full items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CloudRain className="h-4 w-4" />
-                <span>Precipitation</span>
+              <div className="flex items-center gap-2">
+                <CloudRain className="h-4 w-4 text-chart-1" />
+                <span className="text-muted-foreground">Precipitation</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
                 {data.precipitationChance}%
               </span>
             </div>
             <div className="flex w-full items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Droplets className="h-4 w-4" />
-                <span>Humidity</span>
+              <div className="flex items-center gap-2">
+                <Droplets className="h-4 w-4 text-chart-4" />
+                <span className="text-muted-foreground">Humidity</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
                 {data.humidity}%
               </span>
             </div>
             <div className="flex w-full items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Wind className="h-4 w-4" />
-                <span>Wind</span>
+              <div className="flex items-center gap-2">
+                <Wind className="h-4 w-4 text-chart-3" />
+                <span className="text-muted-foreground">Wind</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
                 {data.windSpeed} {getWindSpeedUnitLabel()}
