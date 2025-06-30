@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -87,11 +86,18 @@ export default {
           '0%, 100%': { transform: 'translateX(-10px)' },
           '50%': { transform: 'translateX(10px)' },
         },
+        'sun-ray-pulse': {
+          '0%, 100%': { transform: 'scaleY(1)', opacity: '0.7' },
+          '50%': { transform: 'scaleY(0.4)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'weather-float': 'weather-float 4s ease-in-out infinite',
+        'spin': 'spin 1s linear infinite',
+        'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'sun-ray-pulse': 'sun-ray-pulse 2s ease-in-out infinite',
       },
     },
   },
