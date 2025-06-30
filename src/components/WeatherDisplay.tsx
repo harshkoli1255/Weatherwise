@@ -241,7 +241,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   left: -20,
                   right: 10,
                   top: 10,
-                  bottom: 30, // Increased margin for icons
+                  bottom: 20,
                 }}
               >
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -250,8 +250,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
-                  tick={<CustomXAxisTick />} // Use our custom tick component
-                  interval={0} // Ensure every tick is rendered for our custom logic
+                  tick={<CustomXAxisTick />}
+                  interval={0}
+                  height={60}
                 />
                 <YAxis
                   tickLine={false}
@@ -281,7 +282,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   }
                 />
                 <ChartLegend content={<ChartLegendContent />} />
-                <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="4 4" />
                 <defs>
                   <linearGradient id="fillTemperature" x1="0" y1="0" x2="0" y2="1">
                     <stop
