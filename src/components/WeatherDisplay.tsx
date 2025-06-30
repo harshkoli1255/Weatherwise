@@ -2,7 +2,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, ThermometerSun, Wind, Brain, Clock, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf } from 'lucide-react';
+import { Droplets, ThermometerSun, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -291,6 +291,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       precipitationChance: weatherData.hourlyForecast[0].precipitationChance,
       humidity: weatherData.humidity,
       windSpeed: Math.round(convertWindSpeed(weatherData.windSpeed)),
+      originalData: weatherData,
     };
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
@@ -302,6 +303,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       precipitationChance: hour.precipitationChance,
       humidity: hour.humidity,
       windSpeed: Math.round(convertWindSpeed(hour.windSpeed)),
+      originalData: hour,
     }));
 
     return [nowData, ...forecastPoints];
@@ -429,8 +431,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="forecast" className="pt-4 sm:pt-6">
-            <div className="space-y-4 px-4 sm:px-6">
+        <TabsContent value="forecast" className="pt-3 sm:pt-4 px-4 sm:px-6">
+            <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-center">
                 <div className="animate-in fade-in zoom-in-95 order-2 sm:order-1" style={{ animationDelay: '200ms' }}>
                   <WeatherIcon iconCode={weatherData.iconCode} className={`h-20 w-20 sm:h-24 md:h-28 ${sentimentColorClass} drop-shadow-2xl`} />
@@ -459,9 +461,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 )}
               </div>
               
-              <div className="pt-2">
-                <Separator className="my-4" />
-                <div className="flex items-center mb-4">
+              <div>
+                <Separator className="my-3" />
+                <div className="flex items-center mb-3">
                   <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
                   <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
                     24-Hour Forecast
@@ -480,6 +482,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         top: 10,
                         bottom: 40,
                         }}
+                        onClick={(state) => {
+                          if (state?.activePayload?.[0]?.payload?.originalData) {
+                            setSelectedHour(state.activePayload[0].payload.originalData as HourlyForecastData)
+                          }
+                        }}
                     >
                         <CartesianGrid vertical={false} strokeDasharray="3 3" />
                         <XAxis
@@ -488,7 +495,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         axisLine={false}
                         tickMargin={8}
                         tick={<CustomXAxisTick />}
-                        interval={0}
+                        interval={isMobile ? 1 : 0}
                         height={60}
                         />
                         <YAxis
@@ -561,7 +568,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         strokeWidth={2}
                         dot={false}
                         activeDot={{
-                            r: 6,
+                            r: 8,
                             strokeWidth: 2,
                             fill: "hsl(var(--background))",
                         }}
@@ -594,7 +601,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="insights" className="px-4 pt-4 sm:px-6 sm:pt-6">
+        <TabsContent value="insights" className="pt-3 sm:pt-4 px-4 sm:px-6">
             <div className="space-y-6">
                  <div>
                     <div className="flex items-center mb-4">
@@ -663,7 +670,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
         </TabsContent>
         
-        <TabsContent value="health" className="px-4 pt-4 sm:px-6 sm:pt-6">
+        <TabsContent value="health" className="pt-3 sm:pt-4 px-4 sm:px-6">
            <div className="space-y-6">
              {aqiComponents && weatherData.airQualitySummary ? (
                 <div>
