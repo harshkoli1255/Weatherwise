@@ -117,7 +117,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   }
 
   const chartData = useMemo(() => {
-    if (!weatherData.hourlyForecast) return [];
+    if (!weatherData.hourlyForecast || weatherData.hourlyForecast.length === 0) return [];
     
     // Add current time as the first data point
     const nowData = {
@@ -125,6 +125,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       temperature: convertTemperature(weatherData.temperature),
       feelsLike: convertTemperature(weatherData.feelsLike),
       iconCode: weatherData.iconCode,
+      condition: weatherData.condition,
+      // Use the first forecast point's precipitation chance as a reasonable proxy for "now"
+      precipitationChance: weatherData.hourlyForecast[0].precipitationChance,
     };
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
@@ -132,6 +135,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       temperature: convertTemperature(hour.temp),
       feelsLike: convertTemperature(hour.feelsLike),
       iconCode: hour.iconCode,
+      condition: hour.condition,
+      precipitationChance: hour.precipitationChance,
     }));
 
     return [nowData, ...forecastPoints];
@@ -149,6 +154,20 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
     // We only want to show every other label to prevent clutter.
     const timeLabel = index % 2 === 0 ? payload.value : '';
   
+    const condition = tickData.condition.toLowerCase();
+    const showPrecipitation = tickData.precipitationChance > 10;
+    const isCloudy = condition.includes('cloud');
+    const isClearDay = tickData.iconCode === '01d';
+
+    let iconColorClass = 'text-muted-foreground'; // Default for axis icons
+    if (showPrecipitation) {
+      iconColorClass = 'text-sky-400';
+    } else if (isClearDay) {
+      iconColorClass = 'text-yellow-400';
+    } else if (isCloudy) {
+      iconColorClass = 'text-slate-500 dark:text-slate-400';
+    }
+
     return (
       <g transform={`translate(${x},${y})`}>
         {/* Render the time label */}
@@ -158,7 +177,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
         <foreignObject x={-12} y={20} width={24} height={24}>
           <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
-            <WeatherIcon iconCode={tickData.iconCode} className="h-5 w-5 text-muted-foreground" />
+            <WeatherIcon iconCode={tickData.iconCode} className={cn("h-5 w-5", iconColorClass)} />
           </div>
         </foreignObject>
       </g>
