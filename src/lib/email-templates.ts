@@ -1,3 +1,4 @@
+
 import type { WeatherSummaryData, HourlyForecastData, EmailTemplatePayload } from '@/lib/types';
 
 export function generateWeatherAlertEmailHtml({
@@ -9,21 +10,20 @@ export function generateWeatherAlertEmailHtml({
 
   // --- Theme Colors and Fonts ---
   const colors = {
-    background: '#0f172a', // Dark Slate
-    card: 'rgba(30, 41, 59, 0.8)', // Lighter Slate (semi-transparent)
-    border: '#334155',
-    primary: '#facc15', // Sunny Yellow for main temp
-    textHeading: '#ffffff',
-    textMuted: '#94a3b8', // Slate-400
-    textBody: '#e2e8f0', // Slate-200,
-    accent: '#3b82f6', // Professional Blue
+    background: '#f8fafc', // Slate-50
+    card: '#ffffff',
+    border: '#e2e8f0', // Slate-200
+    primary: '#3b82f6', // Blue-500
+    textHeading: '#0f172a', // Slate-900
+    textMuted: '#64748b', // Slate-500
+    textBody: '#334155', // Slate-700
   };
   const fontFamily = "'-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'";
 
   // --- Helper function to style strong tags for email clients ---
   const styleStrongTags = (html: string) => {
     if (!html) return '';
-    return html.replace(/<strong>/g, `<strong style="color: ${colors.accent}; font-weight: 700;">`).replace(/<\/strong>/g, '</strong>');
+    return html.replace(/<strong>/g, `<strong style="color: ${colors.primary}; font-weight: 700;">`).replace(/<\/strong>/g, '</strong>');
   };
 
   // --- Reusable Components ---
@@ -31,7 +31,7 @@ export function generateWeatherAlertEmailHtml({
     <td align="center" width="33.33%" style="padding: 0 4px;">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
         <tr>
-          <td style="background-color: rgba(30, 41, 59, 0.5); border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px 8px; text-align: center;">
+          <td style="background-color: #f1f5f9; border-radius: 12px; padding: 16px 8px; text-align: center;">
             <p style="color: ${colors.textMuted}; font-size: 14px; font-weight: 500; margin: 0 0 4px 0; line-height: 1;">${label}</p>
             <p style="color: ${colors.textHeading}; font-size: 18px; font-weight: 700; margin: 0; line-height: 1;">${value}</p>
           </td>
@@ -64,7 +64,7 @@ export function generateWeatherAlertEmailHtml({
             </tr>
             <tr>
               <td colspan="2" style="padding-top: 16px;">
-                <div style="background-color: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 16px;">
+                <div style="background-color: #f1f5f9; border-radius: 12px; padding: 16px;">
                   <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">${content}</p>
                 </div>
               </td>
@@ -86,7 +86,7 @@ export function generateWeatherAlertEmailHtml({
         </tr>
         <tr>
           <td colspan="2" style="padding-top: 16px;">
-            <div style="background-color: rgba(30, 64, 175, 0.3); border: 1px solid ${colors.accent}; border-radius: 12px; padding: 16px;">
+            <div style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 16px;">
               <p style="font-size: 15px; color: ${colors.textBody}; margin: 0; line-height: 1.6;">This alert was sent for the following reason(s):</p>
               <ul style="font-size: 15px; color: ${colors.textBody}; margin: 12px 0 0 0; padding-left: 20px; line-height: 1.6;">
                 ${triggers.map(t => `<li style="margin-bottom: 8px;">${styleStrongTags(t)}</li>`).join('')}
@@ -136,9 +136,9 @@ export function generateWeatherAlertEmailHtml({
         }
     </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: ${colors.background}; background-image: linear-gradient(135deg, #1e3a8a 0%, #0c4a6e 50%, #4c1d95 100%);">
-    <center style="width: 100%; table-layout: fixed; background-color: transparent;">
-        <div style="max-width: 600px; background-color: ${colors.card}; border-radius: 16px; border: 1px solid ${colors.border}; box-shadow: 0 10px 25px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
+<body style="margin: 0; padding: 24px; background-color: ${colors.background};">
+    <center style="width: 100%; table-layout: fixed; background-color: ${colors.background};">
+        <div style="max-width: 600px; background-color: ${colors.card}; border-radius: 16px; border: 1px solid ${colors.border}; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <!--[if mso]>
             <table role="presentation" width="600" style="width: 600px;" cellspacing="0" cellpadding="0" border="0" align="center"><tr><td style="padding: 32px;">
             <![endif]-->
@@ -158,11 +158,11 @@ export function generateWeatherAlertEmailHtml({
                                 <td style="padding-bottom: 24px;">
                                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                         <tr>
-                                            <td width="55%" align="center" valign="middle" style="font-size: 80px; font-weight: 800; color: ${colors.primary}; line-height: 1; text-shadow: 0 0 15px rgba(250, 204, 21, 0.5);">
+                                            <td width="55%" align="center" valign="middle" style="font-size: 80px; font-weight: 800; color: ${colors.textHeading}; line-height: 1;">
                                                 ${Math.round(weatherData.temperature)}°<span style="font-size: 48px; vertical-align: 20px;">C</span>
                                             </td>
                                             <td width="45%" align="center" valign="middle">
-                                               <img src="https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png" alt="${weatherData.condition}" width="120" height="120" style="margin: 0 auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">
+                                               <img src="https://openweathermap.org/img/wn/${weatherData.iconCode}@4x.png" alt="${weatherData.condition}" width="120" height="120" style="margin: 0 auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
                                             </td>
                                         </tr>
                                     </table>
@@ -201,7 +201,7 @@ export function generateWeatherAlertEmailHtml({
                              <tr>
                                 <td align="center" style="padding: 32px 0 0 0; border-top: 1px solid ${colors.border}; margin-top: 24px;">
                                     <p style="font-size: 14px; color: ${colors.textMuted}; margin: 0 0 16px 0;">Want to change how you get these alerts?</p>
-                                    <a href="${alertsUrl}" style="display: inline-block; background-color: ${colors.accent}; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 24px; border-radius: 8px;">Manage Preferences</a>
+                                    <a href="${alertsUrl}" style="display: inline-block; background-color: ${colors.primary}; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; padding: 12px 24px; border-radius: 8px;">Manage Preferences</a>
                                     <p style="font-size: 12px; color: ${colors.textMuted}; margin: 24px 0 0 0;">© ${new Date().getFullYear()} Weatherwise. All rights reserved.</p>
                                 </td>
                             </tr>
