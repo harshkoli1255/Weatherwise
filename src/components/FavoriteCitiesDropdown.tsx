@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Star, Trash2, Inbox, RefreshCw, AlertCircle, Bell, Loader2 } from 'lucide-react';
+import { Bookmark, Trash2, Inbox, RefreshCw, AlertCircle, Bell, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { CitySuggestion, SavedLocationsWeatherMap } from '@/lib/types';
@@ -145,7 +145,7 @@ export function SavedLocationsDropdown() {
         <DropdownMenu onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
-                <Star className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
+                <Bookmark className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
                 <span className="hidden md:inline">Saved</span>
               </Button>
             </DropdownMenuTrigger>
@@ -183,7 +183,7 @@ export function SavedLocationsDropdown() {
                     <Inbox className="h-10 w-10 text-muted-foreground/50" />
                     <div>
                         <p className="font-semibold text-foreground/90">No Saved Locations Yet</p>
-                        <p className="text-xs mt-1">Click the pin next to a city name to save it for quick access.</p>
+                        <p className="text-xs mt-1">Click the bookmark icon next to a city name to save it for quick access.</p>
                     </div>
                 </div>
             ) : (

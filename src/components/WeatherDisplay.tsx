@@ -1,4 +1,3 @@
-
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -361,7 +360,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           {timeLabel}
         </text>
         {/* Use foreignObject to render an HTML element (our icon component) inside the SVG */}
-        <foreignObject x={-10} y={22} width={20} height={20}>
+        <foreignObject x={isMobile ? -8 : -10} y={22} width={isMobile ? 16 : 20} height={isMobile ? 16 : 20}>
           <div xmlns="http://www.w3.org/1999/xhtml" className="flex justify-center items-center h-full w-full">
             <WeatherIcon iconCode={tickData.iconCode} className={cn("h-4 w-4", iconColorClass)} />
           </div>
@@ -444,7 +443,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               <div className="grid grid-cols-2 gap-2 sm:gap-3 text-center">
                 <WeatherDetailItem icon={ThermometerSun} label="Feels Like" value={`${convertTemperature(weatherData.feelsLike)}${getTemperatureUnitSymbol()}`} iconColor="text-chart-2" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                 <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className={cn("animate-in fade-in", !aqiInfo && 'col-span-2')} style={{ animationDelay: '500ms' }}/>
+                <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className={cn("animate-in fade-in", !aqiInfo && 'sm:col-span-2')} style={{ animationDelay: '500ms' }}/>
                 {aqiInfo && (
                   <WeatherDetailItem 
                       icon={GaugeCircle} 
@@ -457,125 +456,127 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 )}
               </div>
               
-              {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 && (
-                <div className="pt-2 sm:pt-4">
-                  <Separator />
-                  <div className="flex items-center my-3 sm:my-4">
-                    <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
-                    <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
-                      24-Hour Forecast
-                    </h3>
-                  </div>
-                  <ChartContainer config={chartConfig} className="h-52 w-full sm:h-60 md:h-64">
-                    <AreaChart
-                      accessibilityLayer
-                      data={chartData}
-                      margin={{
-                        left: -20,
-                        right: 10,
-                        top: 10,
-                        bottom: 40,
-                      }}
-                    >
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="time"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        tick={<CustomXAxisTick />}
-                        interval={isMobile ? 1 : 0}
-                        height={60}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        domain={['dataMin - 5', 'dataMax + 5']}
-                        tickFormatter={(value) => `${value}°`}
-                      />
-                      <ChartTooltip
-                        cursor={true}
-                        content={<CustomChartTooltipContent />}
-                      />
-                      {!isMobile && <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />}
-                      <defs>
-                        <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                          {tempGradientOffset >= 1 && (
-                              <>
-                                  <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
-                                  <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
-                              </>
-                          )}
-                          {tempGradientOffset <= 0 && (
-                              <>
-                                  <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                  <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
-                              </>
-                          )}
-                          {tempGradientOffset > 0 && tempGradientOffset < 1 && (
-                              <>
-                                  <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                  <stop offset={tempGradientOffset} stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                                  <stop offset={tempGradientOffset} stopColor="var(--color-temperature)" stopOpacity={0.8} />
-                                  <stop offset="1" stopColor="var(--color-temperature)" stopOpacity={0.1} />
-                              </>
-                          )}
-                        </linearGradient>
-                        <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
-                          <stop
-                            offset="5%"
-                            stopColor="var(--color-feelsLike)"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="var(--color-feelsLike)"
-                            stopOpacity={0.05}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        dataKey="feelsLike"
-                        type="natural"
-                        fill="url(#fillFeelsLike)"
-                        stroke="var(--color-feelsLike)"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={false}
-                      />
-                      <Area
-                        dataKey="temperature"
-                        type="natural"
-                        fill="url(#tempGradient)"
-                        stroke="var(--color-temperature)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      {chartData.length > 0 && (
-                        <>
-                          <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
-                          <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                          <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
-                        </>
-                      )}
-                    </AreaChart>
-                  </ChartContainer>
-                  <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
-                    <div className="flex flex-nowrap space-x-2 sm:space-x-3 pb-4">
-                      {weatherData.hourlyForecast.map((hour, index) => (
-                        <ForecastCard 
-                          key={index} 
-                          data={hour}
-                          timezone={weatherData.timezone}
-                          onClick={() => setSelectedHour(hour)}
-                        />
-                      ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
+              <div className="pt-2 sm:pt-4">
+                <Separator />
+                <div className="flex items-center my-3 sm:my-4">
+                  <AreaChartIcon className="h-5 sm:h-6 mr-2 sm:mr-3 flex-shrink-0 text-primary" />
+                  <h3 className="text-base sm:text-lg md:text-xl font-headline font-semibold text-primary">
+                    24-Hour Forecast
+                  </h3>
                 </div>
-              )}
+                {weatherData.hourlyForecast && weatherData.hourlyForecast.length > 0 ? (
+                <>
+                <ChartContainer config={chartConfig} className="h-52 w-full sm:h-60 md:h-64">
+                  <AreaChart
+                    accessibilityLayer
+                    data={chartData}
+                    margin={{
+                      left: isMobile ? -30 : -20,
+                      right: 10,
+                      top: 10,
+                      bottom: 40,
+                    }}
+                  >
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="time"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={<CustomXAxisTick />}
+                      interval={isMobile ? 1 : 0}
+                      height={60}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      domain={['dataMin - 5', 'dataMax + 5']}
+                      tickFormatter={(value) => `${value}°`}
+                    />
+                    <ChartTooltip
+                      cursor={true}
+                      content={<CustomChartTooltipContent />}
+                    />
+                    {!isMobile && <ChartLegend content={<ChartLegendContent className="gap-4 sm:gap-8 text-xs sm:text-sm" />} />}
+                    <defs>
+                      <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                        {tempGradientOffset >= 1 && (
+                            <>
+                                <stop offset="5%" stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                            </>
+                        )}
+                        {tempGradientOffset <= 0 && (
+                            <>
+                                <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                            </>
+                        )}
+                        {tempGradientOffset > 0 && tempGradientOffset < 1 && (
+                            <>
+                                <stop offset="0" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                <stop offset={tempGradientOffset} stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                                <stop offset={tempGradientOffset} stopColor="var(--color-temperature)" stopOpacity={0.8} />
+                                <stop offset="1" stopColor="var(--color-temperature)" stopOpacity={0.1} />
+                            </>
+                        )}
+                      </linearGradient>
+                      <linearGradient id="fillFeelsLike" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="var(--color-feelsLike)"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="var(--color-feelsLike)"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      dataKey="feelsLike"
+                      type="natural"
+                      fill="url(#fillFeelsLike)"
+                      stroke="var(--color-feelsLike)"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      dot={false}
+                    />
+                    <Area
+                      dataKey="temperature"
+                      type="natural"
+                      fill="url(#tempGradient)"
+                      stroke="var(--color-temperature)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    {chartData.length > 0 && (
+                      <>
+                        <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
+                        <ReferenceDot x="Now" y={chartData[0].temperature} r={5} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
+                        <ReferenceDot x="Now" y={chartData[0].feelsLike} r={5} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                      </>
+                    )}
+                  </AreaChart>
+                </ChartContainer>
+                <ScrollArea className="w-full whitespace-nowrap rounded-lg -mx-2 px-2">
+                  <div className="flex flex-nowrap space-x-2 sm:space-x-3 pb-4">
+                    {weatherData.hourlyForecast.map((hour, index) => (
+                      <ForecastCard 
+                        key={index} 
+                        data={hour}
+                        timezone={weatherData.timezone}
+                        onClick={() => setSelectedHour(hour)}
+                      />
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+                </>
+                ) : null}
+              </div>
             </div>
         </TabsContent>
         
