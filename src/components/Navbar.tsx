@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu, Settings, Star } from 'lucide-react';
+import { CloudSun, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
