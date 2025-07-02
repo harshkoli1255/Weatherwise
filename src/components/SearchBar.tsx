@@ -133,28 +133,28 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all"
+            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm shadow-md transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:shadow-lg"
         )}
       >
         <div className="relative flex items-center">
-            <SearchIconLucide className="absolute left-4 h-6 w-6 text-muted-foreground pointer-events-none z-10" />
+            <SearchIconLucide className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
-                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search city or landmark..."}
-                className="block w-full h-14 pl-14 pr-40 text-base text-foreground bg-transparent border-0 rounded-full placeholder:text-muted-foreground/70 focus:ring-0"
+                placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
+                className="block w-full h-16 pl-14 pr-32 text-lg text-foreground bg-transparent border-0 rounded-full placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-2">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 text-muted-foreground hover:text-primary"
+                    className="h-12 w-12 text-muted-foreground hover:text-primary rounded-full"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -169,9 +169,10 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 </Button>
                 <Button
                     type="submit"
+                    size="icon"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-10 rounded-full px-6 text-sm"
+                    className="h-12 w-12 rounded-full text-lg"
                 >
                     {isSearchingWeather ? (
                        <div className="flex items-center justify-center space-x-1">
@@ -180,13 +181,13 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                             <span className="h-2 w-2 rounded-full bg-primary-foreground animate-pulse-dot" style={{ animationDelay: '0.4s' }} />
                         </div>
                     ) : (
-                        'Search'
+                        <SearchIconLucide className="h-6 w-6" />
                     )}
                 </Button>
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-2 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 horizontal-scrollbar">
+        <CommandList className="absolute top-full mt-2 w-full rounded-xl bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 horizontal-scrollbar">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">
@@ -207,26 +208,26 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                   key={uniqueKey}
                   value={uniqueKey}
                   onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
+                  className="cursor-pointer text-base py-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                 >
                   <div className="flex items-center min-w-0">
                     <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-col items-start truncate">
                       <span className="font-medium text-foreground">{suggestion.name}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
                       </span>
                     </div>
                   </div>
                    {typeof suggestion.temperature === 'number' && suggestion.iconCode ? (
-                    <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                    <div className="flex items-center gap-2 text-base ml-4 flex-shrink-0">
                       {isMounted ? (
                         <>
                           <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
-                          <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                          <WeatherIcon iconCode={suggestion.iconCode} className="h-6 w-6 text-muted-foreground" />
                         </>
                       ) : (
-                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-6 w-20" />
                       )}
                     </div>
                   ) : null}
