@@ -100,7 +100,9 @@ export function Navbar() {
                       <Button>Sign In</Button>
                     </SignInButton>
                 </SignedOut>
-                <ThemeToggle />
+                <div className="ml-2">
+                  <ThemeToggle />
+                </div>
               </TooltipProvider>
             </div>
 
