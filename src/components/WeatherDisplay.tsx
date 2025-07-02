@@ -546,10 +546,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       <InfoCard icon={Sparkles} title="Key Insights" animationDelay="250ms">
                           <ul className="space-y-3">
                             {weatherData.aiInsights.map((insight, index) => (
-                                <li key={index} className="flex items-start animate-in fade-in slide-in-from-left-4" style={{ animationDelay: `${index * 100}ms`}}>
-                                <div className="p-1.5 bg-primary/20 rounded-full mr-3 mt-1">
-                                    <Sparkles className="h-3 w-3 text-primary" />
-                                </div>
+                                <li key={index} className="flex items-start rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60 animate-in fade-in-up" style={{ animationDelay: `${index * 100 + 100}ms`}}>
+                                <Sparkles className="h-4 w-4 text-primary/90 mr-3 mt-0.5 flex-shrink-0" />
                                 <span
                                     className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary"
                                     dangerouslySetInnerHTML={{ __html: insight }}
@@ -582,19 +580,35 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </TabsContent>
               
               <TabsContent value="health" className="space-y-4">
-              {aqiComponents && weatherData.airQualitySummary ? (
+              {aqiInfo && aqiComponents && weatherData.airQualitySummary ? (
                   <InfoCard icon={Leaf} title="Air Quality & Health" animationDelay="150ms">
-                      <div
-                          className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
-                          dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                      />
-                      <p
-                          className="mt-2 text-xs text-muted-foreground leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                      />
+                       <div className="flex justify-between items-center mb-4 pb-3 border-b border-border/50">
+                          <div>
+                              <p className="text-xs text-muted-foreground uppercase font-semibold">Overall Rating</p>
+                              <p className={cn("text-3xl font-bold tracking-tight", aqiInfo.colorClass)}>{aqiInfo.level}</p>
+                          </div>
+                          <div className="text-right">
+                              <p className="text-xs text-muted-foreground uppercase font-semibold">AQI</p>
+                              <p className="text-3xl font-bold font-mono text-foreground">{weatherData.airQuality.aqi}</p>
+                          </div>
+                      </div>
 
-                      <div className="pt-4 mt-4 border-t border-border/50">
-                          <h4 className="text-sm font-semibold text-foreground mb-3">Pollutant Breakdown</h4>
+                      <div className="mb-4">
+                          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">AI Recommendation</h4>
+                          <div className="p-3 rounded-md bg-muted/50 border border-border/50 shadow-inner">
+                              <p
+                                  className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
+                                  dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
+                              />
+                              <p
+                                  className="mt-2 text-xs text-muted-foreground leading-relaxed"
+                                  dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
+                              />
+                          </div>
+                      </div>
+
+                      <div>
+                          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Pollutant Breakdown</h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                               {Object.keys(pollutantConfig).map((key) => {
                                   if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
