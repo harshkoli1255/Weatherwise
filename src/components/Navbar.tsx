@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -71,10 +70,10 @@ export function Navbar() {
 
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2">
-            <div className="hidden items-center gap-x-1 md:flex">
+            <div className="hidden items-center gap-2 md:flex">
               <TooltipProvider>
                 <SignedIn>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <SavedLocationsDropdown />
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -93,19 +92,15 @@ export function Navbar() {
                         <p>Settings</p>
                       </TooltipContent>
                     </Tooltip>
+                    <UserButton />
                   </div>
                 </SignedIn>
-                <div className="flex items-center gap-2">
-                   <SignedIn>
-                      <UserButton />
-                   </SignedIn>
-                   <SignedOut>
+                <SignedOut>
                     <SignInButton mode="modal">
                       <Button>Sign In</Button>
                     </SignInButton>
-                  </SignedOut>
-                  <ThemeToggle />
-                </div>
+                </SignedOut>
+                <ThemeToggle />
               </TooltipProvider>
             </div>
 
