@@ -238,12 +238,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
   const getAqiInfo = (aqi: number) => {
     switch (aqi) {
-        case 1: return { level: 'Good', colorClass: 'text-success' };
-        case 2: return { level: 'Fair', colorClass: 'text-yellow-500' };
-        case 3: return { level: 'Moderate', colorClass: 'text-orange-500' };
-        case 4: return { level: 'Poor', colorClass: 'text-red-500' };
-        case 5: return { level: 'Very Poor', colorClass: 'text-purple-600' };
-        default: return { level: 'Unknown', colorClass: 'text-muted-foreground' };
+      case 1: return { level: 'Good', colorClass: 'text-success' };
+      case 2:
+      case 3:
+        return { level: 'Fair', colorClass: 'text-yellow-500' };
+      case 4: return { level: 'Poor', colorClass: 'text-red-500' };
+      case 5: return { level: 'Very Poor', colorClass: 'text-purple-600' };
+      default: return { level: 'Unknown', colorClass: 'text-muted-foreground' };
     }
   };
 
