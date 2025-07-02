@@ -174,17 +174,11 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     className="h-12 w-12 rounded-full text-lg"
                 >
                     {isSearchingWeather ? (
-                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary-foreground">
-                          <circle cx="6" cy="12" r="3" fill="currentColor">
-                            <animate attributeName="opacity" dur="1.2s" values="0.3;1;0.3" repeatCount="indefinite" begin="0.1s"/>
-                          </circle>
-                          <circle cx="12" cy="12" r="3" fill="currentColor">
-                            <animate attributeName="opacity" dur="1.2s" values="0.3;1;0.3" repeatCount="indefinite" begin="0.2s"/>
-                          </circle>
-                          <circle cx="18" cy="12" r="3" fill="currentColor">
-                            <animate attributeName="opacity" dur="1.2s" values="0.3;1;0.3" repeatCount="indefinite" begin="0.3s"/>
-                          </circle>
-                        </svg>
+                       <div className="flex items-center justify-center space-x-1.5" aria-label="Searching...">
+                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.1s' }}></span>
+                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.2s' }}></span>
+                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.3s' }}></span>
+                       </div>
                     ) : (
                         <SearchIconLucide className="h-6 w-6" />
                     )}
