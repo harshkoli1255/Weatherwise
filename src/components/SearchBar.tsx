@@ -186,7 +186,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-2 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+        <CommandList className="absolute top-full mt-2 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 horizontal-scrollbar">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">
