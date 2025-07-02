@@ -404,11 +404,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
-                      {aqiInfo && (
+                      {aqiInfo && weatherData.airQuality && (
                           <WeatherDetailItem 
                               icon={GaugeCircle} 
                               label="Air Quality" 
-                              value={aqiInfo.level} 
+                              value={`${aqiInfo.level} (${weatherData.airQuality.aqi})`}
                               iconColor={aqiInfo.colorClass} 
                               className="animate-in fade-in" 
                               style={{ animationDelay: '500ms' }}
@@ -458,7 +458,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                             tickFormatter={(value) => `${value}°`}
                           />
                           <ChartTooltip
-                            cursor={true}
+                            cursor={false}
                             content={<CustomChartTooltipContent />}
                             />
                           <defs>
