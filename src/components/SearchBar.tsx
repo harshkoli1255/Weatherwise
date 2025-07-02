@@ -133,28 +133,28 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all"
+            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary focus-within:border-primary shadow-lg group transition-all"
         )}
       >
         <div className="relative flex items-center">
-            <SearchIconLucide className="absolute left-3.5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+            <SearchIconLucide className="absolute left-4 h-6 w-6 text-muted-foreground pointer-events-none z-10" />
             <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
-                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search for a city or a specific place..."}
-                className="block w-full h-11 md:h-12 pl-12 pr-[140px] md:pr-[150px] text-base text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
+                placeholder={initialValue ? `Try "${initialValue}" or another city` : "Search city or landmark..."}
+                className="block w-full h-14 pl-14 pr-40 text-base text-foreground bg-transparent border-0 rounded-full placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-2">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 md:h-9 w-8 md:w-9 text-muted-foreground hover:text-primary"
+                    className="h-10 w-10 text-muted-foreground hover:text-primary"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -171,10 +171,14 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     type="submit"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-8 md:h-9 text-sm w-24"
+                    className="h-10 rounded-full px-6 text-sm"
                 >
                     {isSearchingWeather ? (
-                       <SearchIconLucide className="h-5 w-5 animate-pulse-subtle" />
+                       <div className="flex items-center justify-center space-x-1">
+                            <span className="h-2 w-2 rounded-full bg-primary-foreground animate-pulse-dot" style={{ animationDelay: '0.0s' }} />
+                            <span className="h-2 w-2 rounded-full bg-primary-foreground animate-pulse-dot" style={{ animationDelay: '0.2s' }} />
+                            <span className="h-2 w-2 rounded-full bg-primary-foreground animate-pulse-dot" style={{ animationDelay: '0.4s' }} />
+                        </div>
                     ) : (
                         'Search'
                     )}
@@ -182,7 +186,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+        <CommandList className="absolute top-full mt-2 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">

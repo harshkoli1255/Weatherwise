@@ -91,9 +91,13 @@ export default {
           '0%': { transform: 'scale(0.3)', opacity: '0.8' },
           '100%': { transform: 'scale(1.2)', opacity: '0' },
         },
-        'pulse-subtle': {
-          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.7', transform: 'scale(1.05)' },
+        'pulse-dot': {
+          '0%, 100%': {
+            opacity: '0.2',
+          },
+          '50%': {
+            opacity: '1',
+          },
         },
       },
       animation: {
@@ -103,7 +107,7 @@ export default {
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'map-pin-bob': 'map-pin-bob 1.5s infinite',
         'radar-scan': 'radar-scan 2s infinite cubic-bezier(0.4, 0, 0.2, 1)',
-        'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-dot': 'pulse-dot 1.4s ease-in-out infinite',
       },
     },
   },

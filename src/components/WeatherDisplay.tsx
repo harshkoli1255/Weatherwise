@@ -235,8 +235,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
-  const isMobile = useIsMobile();
-  const [activeChartData, setActiveChartData] = useState<any>(null);
 
   const getAqiInfo = (aqi: number) => {
     switch (aqi) {
@@ -434,11 +432,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       <AreaChart
                           accessibilityLayer
                           data={chartData}
-                          onClick={(e) => {
-                              if (e?.activePayload?.[0]?.payload) {
-                                  setActiveChartData(e.activePayload[0].payload);
-                              }
-                          }}
                           margin={{
                           left: -5,
                           right: 20,
@@ -638,18 +631,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               setSelectedHour(null);
             }
           }}
-        />
-      )}
-      {activeChartData && isMobile && (
-         <HourlyForecastDialog
-            data={activeChartData.originalData}
-            timezone={activeChartData.originalData.timezone}
-            open={!!activeChartData}
-            onOpenChange={(isOpen) => {
-              if (!isOpen) {
-                setActiveChartData(null);
-              }
-            }}
         />
       )}
     </Card>
