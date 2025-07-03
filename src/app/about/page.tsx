@@ -22,12 +22,12 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex h-full flex-col items-start gap-3 rounded-lg bg-background/50 p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:border-primary/50 hover:bg-muted/80 hover:shadow-xl border border-border/30">
-    <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-primary/10 p-2">
-            <Icon className="h-6 w-6 text-primary" />
+  <div className="flex h-full flex-col items-start rounded-lg bg-background/50 p-4 shadow-lg border border-border/30">
+    <div className="flex items-center gap-4 mb-3">
+        <div className="p-3 bg-primary/10 rounded-lg">
+            <Icon className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <h3 className="text-base font-semibold text-primary">{title}</h3>
     </div>
     <p className="text-sm text-muted-foreground">{children}</p>
   </div>
@@ -37,6 +37,15 @@ const TechItem = ({ name }: { name: string }) => (
     <Badge variant="secondary" className="px-3 py-1 text-sm shadow-md border-border/50 border">
         {name}
     </Badge>
+);
+
+const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+    <div className="mb-5 flex items-center justify-center gap-3">
+        <Icon className="h-6 w-6 text-primary" />
+        <h2 className="text-center font-headline text-xl font-semibold text-primary">
+            {title}
+        </h2>
+    </div>
 );
 
 export default function AboutPage() {
@@ -105,9 +114,7 @@ export default function AboutPage() {
 
             <CardContent className="space-y-10 px-6 pb-8 sm:px-8">
                 <section>
-                    <h2 className="mb-5 text-center font-headline text-xl font-semibold text-foreground">
-                        Core Features
-                    </h2>
+                    <SectionHeader icon={Sparkles} title="Core Features" />
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {features.map((feature, index) => (
                            <div key={feature.title} className="animate-in fade-in-up" style={{ animationDelay: `${150 + index * 100}ms` }}>
@@ -120,12 +127,7 @@ export default function AboutPage() {
                 </section>
 
                 <section>
-                    <div className="mb-5 flex items-center justify-center gap-3">
-                        <Layers className="h-6 w-6 text-muted-foreground" />
-                        <h2 className="text-center font-headline text-xl font-semibold text-foreground">
-                            Technology Stack
-                        </h2>
-                    </div>
+                    <SectionHeader icon={Layers} title="Technology Stack" />
                     <p className="mx-auto mb-5 max-w-xl text-center text-sm text-muted-foreground">
                         Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience.
                     </p>
@@ -139,12 +141,7 @@ export default function AboutPage() {
                 </section>
 
                 <section>
-                     <div className="mb-5 flex items-center justify-center gap-3">
-                        <Heart className="h-6 w-6 text-muted-foreground" />
-                        <h2 className="text-center font-headline text-xl font-semibold text-foreground">
-                            Our Mission
-                        </h2>
-                    </div>
+                    <SectionHeader icon={Heart} title="Our Mission" />
                     <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 text-center shadow-inner dark:bg-primary/10 animate-in fade-in" style={{ animationDelay: '500ms' }}>
                          <p className="mx-auto max-w-xl text-base italic leading-relaxed text-foreground/90">
                            &ldquo;To provide a weather application that is not only accurate and reliable but also a joy to use. By leveraging the power of generative AI, we deliver insights that go beyond raw data, helping you plan your day more effectively.&rdquo;
