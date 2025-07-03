@@ -45,7 +45,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-xl border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         borderColor
       )}
       aria-label={`View forecast for ${preciseTime}`}
@@ -725,7 +725,7 @@ interface InfoCardProps {
 
 function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps) {
     return (
-        <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
+        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
             <div className="flex flex-row items-center mb-4">
                  <div className="p-2 bg-primary/10 rounded-lg mr-3">
                     <Icon className="h-5 w-5 text-primary flex-shrink-0" />
