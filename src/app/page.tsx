@@ -327,9 +327,6 @@ function WeatherPageContent() {
                       {weatherState.error}
                   </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center space-y-5 pt-8 pb-4">
-                  <WeatherLoadingAnimation className="h-32 w-32 text-destructive" />
-              </CardContent>
           </Card>
       )}
 
