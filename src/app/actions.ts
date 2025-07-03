@@ -8,7 +8,7 @@ import {
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
-import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality } from '@/services/weatherService';
+import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality, geocodeCity, reverseGeocode } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 import { summarizeError } from '@/ai/flows/summarize-error';
 import type { LocationIdentifier, IpApiLocationResponse, CitySuggestion, SavedLocationsWeatherMap, SavedLocationWeatherResult } from '@/lib/types';
@@ -32,8 +32,7 @@ export async function fetchWeatherAndSummaryAction(
       console.error("[Server Config Error] No valid OpenWeather API keys found in NEXT_PUBLIC_OPENWEATHER_API_KEYS.");
       return { data: null, error: "Server configuration error: No valid weather service keys. Please contact support.", cityNotFound: false };
     }
-    const apiKey = openWeatherApiKeys[0];
-
+    
     let locationIdentifier: LocationIdentifier;
     let userFriendlyDisplayName: string | undefined = params.city;
 
@@ -63,18 +62,15 @@ export async function fetchWeatherAndSummaryAction(
         }
       }
 
-      const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForGeocoding)}&limit=1&appid=${apiKey}`;
-      const geoResponse = await fetch(geoUrl);
-      if (!geoResponse.ok) {
-        console.error("Geocoding API error:", { status: geoResponse.status });
-        return { data: null, error: 'Geocoding service failed.', cityNotFound: true };
-      }
-      const geoData = await geoResponse.json();
-      if (!geoData || geoData.length === 0) {
+      const geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
+      
+      if (geoResult.error || !geoResult.data || geoResult.data.length === 0) {
+        console.error("Geocoding API error:", { status: geoResult.status, error: geoResult.error });
         return { data: null, error: `Could not find a valid location for "${userFriendlyDisplayName}". Please check your search term.`, cityNotFound: true };
       }
       
-      const resolvedCoords = { lat: geoData[0].lat, lon: geoData[0].lon };
+      const geoData = geoResult.data[0];
+      const resolvedCoords = { lat: geoData.lat, lon: geoData.lon };
       console.log(`[Geocoding] Successfully resolved "${queryForGeocoding}" to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}`);
       locationIdentifier = { type: 'coords', ...resolvedCoords };
       
@@ -93,9 +89,9 @@ export async function fetchWeatherAndSummaryAction(
 
     // --- Step 3: Fetch all data in parallel ---
     const [weatherResult, hourlyForecastResult, airQualityResult] = await Promise.all([
-        fetchCurrentWeather(locationIdentifier, apiKey),
-        fetchHourlyForecast(locationIdentifier, apiKey),
-        fetchAirQuality(locationIdentifier.lat, locationIdentifier.lon, apiKey)
+        fetchCurrentWeather(locationIdentifier, openWeatherApiKeys),
+        fetchHourlyForecast(locationIdentifier, openWeatherApiKeys),
+        fetchAirQuality(locationIdentifier.lat, locationIdentifier.lon, openWeatherApiKeys)
     ]);
     
     if (!weatherResult.data || !weatherResult.rawResponse) {
@@ -229,8 +225,8 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         return { suggestions: cachedSuggestions, error: null };
     }
 
-    const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
-    if (!apiKey) {
+    const apiKeys = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+    if (apiKeys.length === 0) {
       console.error("[Server Config Error] No valid OpenWeather API keys found for suggestions.");
       return { suggestions: null, error: "Server configuration error: No valid geocoding keys." };
     }
@@ -251,16 +247,14 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       }
     }
 
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(queryForApi)}&limit=5&appid=${apiKey}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      console.error("Geocoding API error for suggestions:", { status: response.status });
-      return { suggestions: null, error: "Geocoding service failed." };
+    const geoResult = await geocodeCity(queryForApi, apiKeys);
+    if (geoResult.error || !geoResult.data) {
+      console.error("Geocoding API error for suggestions:", { status: geoResult.status, error: geoResult.error });
+      return { suggestions: null, error: `Geocoding service failed: ${geoResult.error}` };
     }
-    
-    const data = await response.json();
-    if (!data || data.length === 0) {
+
+    const data = geoResult.data;
+    if (data.length === 0) {
       return { suggestions: [], error: null };
     }
 
@@ -315,52 +309,22 @@ export async function getCityFromCoordsAction(
   lon: number
 ): Promise<{ city: string | null; error: string | null }> {
   try {
-    const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
-    if (!openWeatherApiKeysString) {
-      console.error("[Server Config Error] OpenWeather API keys missing for reverse geocoding.");
-      return { city: null, error: "Server configuration error: API keys missing." };
-    }
-    const openWeatherApiKeys = openWeatherApiKeysString.split(',').map(key => key.trim()).filter(key => key);
+    const openWeatherApiKeys = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
     if (openWeatherApiKeys.length === 0) {
       console.error("[Server Config Error] No valid OpenWeather API keys for reverse geocoding.");
       return { city: null, error: "Server configuration error: No valid API keys." };
     }
 
-    let resultCity: string | null = null;
-    let lastTechnicalError: string | null = null;
+    const result = await reverseGeocode(lat, lon, openWeatherApiKeys);
 
-    for (const apiKey of openWeatherApiKeys) {
-      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.name) {
-            resultCity = data.name;
-            lastTechnicalError = null;
-            break; // Success
-          }
-        } else {
-          const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }));
-          lastTechnicalError = errorData.message || `Failed to fetch city name (status: ${response.status})`;
-          if (![401, 403, 429].includes(response.status)) {
-              break; 
-          }
-        }
-      } catch(e) {
-          if (e instanceof Error) {
-            lastTechnicalError = e.message;
-          }
-      }
+    if (result.error || !result.data || result.data.length === 0) {
+      console.error("[Service Error] Reverse geocoding failed for coords.", { lat, lon, details: result.error });
+      return { city: null, error: "Could not determine city name from your location." };
     }
 
-    if (lastTechnicalError) {
-      console.error("[Service Error] Reverse geocoding failed for coords.", { lat, lon, details: lastTechnicalError });
-    }
+    const resultCity = result.data[0].name;
+    return { city: resultCity, error: null };
     
-    const userFacingError = resultCity ? null : "Could not determine city name from your location. The service may be temporarily unavailable.";
-    return { city: resultCity, error: userFacingError };
-
   } catch (error) {
     console.error("An unexpected error occurred in getCityFromCoordsAction:", error);
     const message = error instanceof Error ? error.message : "An unknown server error occurred while getting city from coordinates.";
@@ -372,10 +336,10 @@ export async function getCityFromCoordsAction(
 export async function fetchWeatherForSavedLocationsAction(
   cities: CitySuggestion[]
 ): Promise<SavedLocationsWeatherMap> {
-  const apiKey = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
+  const apiKeys = (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
   const results: SavedLocationsWeatherMap = {};
 
-  if (!apiKey) {
+  if (apiKeys.length === 0) {
     console.error("[Server Config Error] OpenWeather API keys are not set for saved locations action.");
     for (const city of cities) {
       const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
@@ -385,7 +349,7 @@ export async function fetchWeatherForSavedLocationsAction(
   }
 
   const weatherPromises = cities.map(city => 
-    fetchCurrentWeather({ type: 'coords', lat: city.lat, lon: city.lon }, apiKey)
+    fetchCurrentWeather({ type: 'coords', lat: city.lat, lon: city.lon }, apiKeys)
       .then(weatherResult => {
         const key = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;
         const result: { key: string; value: SavedLocationWeatherResult } = {

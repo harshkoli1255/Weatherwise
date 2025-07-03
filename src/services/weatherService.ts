@@ -1,48 +1,92 @@
 
 import type { WeatherData, OpenWeatherCurrentAPIResponse, OpenWeatherForecastAPIResponse, HourlyForecastData, LocationIdentifier, OpenWeatherAirPollutionAPIResponse, AirQualityData } from '@/lib/types';
-import { z } from 'zod';
 
-export async function fetchCurrentWeather(location: LocationIdentifier, apiKey: string): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
-  const CoordinatesSchema = z.object({
-    lat: z.number(),
-    lon: z.number(),
-  });
-  const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
+/**
+ * A resilient fetcher that rotates through multiple API keys on failure.
+ * This is crucial for handling API key quota limits gracefully.
+ * @param baseUrl The API URL without the `&appid=` parameter.
+ * @param apiKeys An array of OpenWeather API keys.
+ * @param source A string identifier for logging purposes (e.g., 'currentWeather').
+ * @returns A promise that resolves with the fetched data or an error.
+ */
+async function fetchWithKeyRotation<T>(
+  baseUrl: string,
+  apiKeys: string[],
+  source: string
+): Promise<{ data: T | null, error: string | null, status?: number, rawResponse?: Response }> {
+    let lastError: any = null;
+    let lastStatus: number | undefined = 500;
 
+    for (const apiKey of apiKeys) {
+        const url = `${baseUrl}&appid=${apiKey}`;
+        try {
+            const response = await fetch(url, { cache: 'no-store' });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { data, error: null, status: response.status, rawResponse: response };
+            }
+
+            lastStatus = response.status;
+            try {
+              const errorData = await response.json();
+              lastError = errorData.message || `API error with status ${response.status}`;
+            } catch (e) {
+              lastError = `API error with status ${response.status}`;
+            }
+
+            // 401: Invalid key, 429: Rate limit/quota. These are key-specific errors.
+            if (response.status === 401 || response.status === 429) {
+                console.warn(`[WeatherService/${source}] API key failed (status: ${response.status}). Trying next key.`);
+                continue; // Try the next key
+            } else {
+                 // For other errors (like 404 Not Found or 5xx server errors),
+                 // retrying with another key is pointless.
+                break;
+            }
+        } catch (e) {
+            lastError = e instanceof Error ? e.message : 'Unknown fetch error';
+            console.error(`[WeatherService/${source}] Network or fetch error for URL part: ${baseUrl}`, e);
+        }
+    }
+    
+    console.error(`[WeatherService/${source}] All API keys failed for URL part: ${baseUrl}. Last error:`, lastError);
+    return { data: null, error: lastError, status: lastStatus };
+}
+
+
+export async function geocodeCity(city: string, apiKeys: string[]): Promise<{data: any[] | null, error: string | null, status?: number}> {
+    const baseUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=5`;
+    const result = await fetchWithKeyRotation<any[]>(baseUrl, apiKeys, 'geocodeCity');
+    return { data: result.data, error: result.error, status: result.status };
+}
+
+export async function reverseGeocode(lat: number, lon: number, apiKeys: string[]): Promise<{data: any[] | null, error: string | null, status?: number}> {
+    const baseUrl = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1`;
+    const result = await fetchWithKeyRotation<any[]>(baseUrl, apiKeys, 'reverseGeocode');
+    return { data: result.data, error: result.error, status: result.status };
+}
+
+
+export async function fetchCurrentWeather(location: LocationIdentifier, apiKeys: string[]): Promise<{data: WeatherData | null, error: string | null, status?: number, rawResponse?: OpenWeatherCurrentAPIResponse}> {
   try {
-    let url = '';
+    let baseUrl = '';
     if (location.type === 'city') {
-      const cityValidation = CityNameSchema.safeParse(location.city);
-      if (!cityValidation.success) {
-        return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
-      }
-      url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric`;
-    } else { // type === 'coords'
-      const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
-      if (!coordsValidation.success) {
-        return { data: null, error: "Invalid coordinates provided.", status: 400 };
-      }
-      url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric`;
+      baseUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location.city)}&units=metric`;
+    } else {
+      baseUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&units=metric`;
     }
 
-    const response = await fetch(url, { cache: 'no-store' });
-    const responseStatus = response.status;
-    const data: OpenWeatherCurrentAPIResponse = await response.json();
+    const { data, error, status } = await fetchWithKeyRotation<OpenWeatherCurrentAPIResponse>(baseUrl, apiKeys, 'currentWeather');
 
-    if (!response.ok) {
-      let errorMessage = data.message || `Failed to fetch current weather data (status: ${responseStatus})`;
-      if (responseStatus === 404) {
-        errorMessage = location.type === 'city' ? `City "${location.city}" not found.` : "Weather data not found for the provided coordinates.";
-      }
-      console.error("OpenWeather Current API error:", { status: responseStatus, message: errorMessage, url });
-      return { data: null, error: errorMessage, status: responseStatus };
+    if (error || !data) {
+        return { data: null, error: error, status: status };
     }
-
 
     if (!data.weather || data.weather.length === 0) {
       return { data: null, error: "Current weather condition data not available.", status: 200, rawResponse: data }; 
     }
-
+    
     return {
       data: {
         city: data.name,
@@ -67,40 +111,21 @@ export async function fetchCurrentWeather(location: LocationIdentifier, apiKey: 
   }
 }
 
-export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: string): Promise<{data: HourlyForecastData[] | null, error: string | null, status?: number}> {
-  const CoordinatesSchema = z.object({
-    lat: z.number(),
-    lon: z.number(),
-  });
-  const CityNameSchema = z.string().min(1, { message: "City name cannot be empty." });
-
+export async function fetchHourlyForecast(location: LocationIdentifier, apiKeys: string[]): Promise<{data: HourlyForecastData[] | null, error: string | null, status?: number}> {
   try {
-    let url = '';
+    let baseUrl = '';
     if (location.type === 'city') {
-      const cityValidation = CityNameSchema.safeParse(location.city);
-      if (!cityValidation.success) {
-          return { data: null, error: cityValidation.error.errors[0].message, status: 400 };
-      }
-      url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location.city)}&appid=${apiKey}&units=metric&cnt=8`; // cnt=8 for 24hr forecast (3hr intervals)
-    } else { // type === 'coords'
-      const coordsValidation = CoordinatesSchema.safeParse({ lat: location.lat, lon: location.lon });
-      if (!coordsValidation.success) {
-          return { data: null, error: "Invalid coordinates provided for forecast.", status: 400 };
-      }
-      url = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric&cnt=8`;
+      baseUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location.city)}&units=metric&cnt=8`;
+    } else {
+      baseUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${location.lat}&lon=${location.lon}&units=metric&cnt=8`;
     }
     
-    const response = await fetch(url, { cache: 'no-store' });
-    const responseStatus = response.status;
-    const data: OpenWeatherForecastAPIResponse = await response.json();
-
-    if (!response.ok) {
-      const errorMessage = typeof data.message === 'string' ? data.message : `Failed to fetch forecast data (status: ${responseStatus})`;
-      console.error("OpenWeather Forecast API error:", { status: responseStatus, message: errorMessage, url });
-      return { data: null, error: errorMessage, status: responseStatus };
+    const { data, error, status } = await fetchWithKeyRotation<OpenWeatherForecastAPIResponse>(baseUrl, apiKeys, 'hourlyForecast');
+    
+    if (error || !data) {
+        return { data: null, error: error, status: status };
     }
-
-
+    
     if (!data.list || data.list.length === 0) {
       return { data: [], error: null, status: 200 }; 
     }
@@ -125,18 +150,14 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKey: 
   }
 }
 
-export async function fetchAirQuality(lat: number, lon: number, apiKey: string): Promise<{ data: AirQualityData | null, error: string | null, status?: number }> {
-    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-
+export async function fetchAirQuality(lat: number, lon: number, apiKeys: string[]): Promise<{ data: AirQualityData | null, error: string | null, status?: number }> {
+    const baseUrl = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}`;
+    
     try {
-        const response = await fetch(url, { cache: 'no-store' });
-        const responseStatus = response.status;
-        const data: OpenWeatherAirPollutionAPIResponse = await response.json();
-
-        if (!response.ok) {
-            const errorMessage = `Failed to fetch air quality data (status: ${responseStatus})`;
-            console.error("OpenWeather Air Pollution API error:", { status: responseStatus, message: errorMessage, url });
-            return { data: null, error: errorMessage, status: responseStatus };
+        const { data, error, status } = await fetchWithKeyRotation<OpenWeatherAirPollutionAPIResponse>(baseUrl, apiKeys, 'airQuality');
+        
+        if (error || !data) {
+            return { data: null, error: error, status: status };
         }
 
         if (!data.list || data.list.length === 0) {
@@ -146,7 +167,6 @@ export async function fetchAirQuality(lat: number, lon: number, apiKey: string):
         const aqiData = data.list[0];
         const aqiIndex = aqiData.main.aqi;
 
-        // Maps the OpenWeather 1-5 index to the descriptive levels.
         const getAqiLevel = (index: number): AirQualityData['level'] => {
             switch (index) {
                 case 1: return 'Good';

@@ -86,8 +86,10 @@ function WeatherPageContent() {
         // Use the new hook to set and sync the last search
         setLastSearch(cityForStorage);
         try {
-            // Still use localStorage for the full result to enable instant UI restore on refresh
-            localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(result.data));
+            // CRITICAL FIX: Do not save the large AI image to localStorage.
+            const dataForStorage = { ...result.data };
+            delete dataForStorage.aiImageUrl;
+            localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(dataForStorage));
         } catch (e) {
             console.warn("Could not save last result to localStorage.");
         }
@@ -182,17 +184,17 @@ function WeatherPageContent() {
   useEffect(() => {
     const initializeWeather = () => {
       // Priority 1: Instant restore from localStorage for quick refresh.
-      const savedResult = localStorage.getItem(LAST_RESULT_KEY);
-      if (savedResult) {
-        try {
+      try {
+        const savedResult = localStorage.getItem(LAST_RESULT_KEY);
+        if (savedResult) {
             const lastData: WeatherSummaryData = JSON.parse(savedResult);
             setWeatherState({ data: lastData, error: null, isLoading: false, loadingMessage: null, cityNotFound: false });
             setInitialSearchTerm(lastData.city);
             return;
-        } catch (e) {
-            console.warn("Could not read last session from localStorage.");
-            localStorage.removeItem(LAST_RESULT_KEY);
         }
+      } catch (e) {
+          console.warn("Could not read last session from localStorage.");
+          localStorage.removeItem(LAST_RESULT_KEY);
       }
 
       // Priority 2: Synced default location set by the user.
