@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
@@ -124,28 +125,28 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-xl border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
         )}
       >
         <div className="relative flex items-center">
-            <SearchIconLucide className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+            <SearchIconLucide className="absolute left-4 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
-                className="block w-full h-16 pl-14 pr-32 text-lg text-foreground bg-transparent border-0 rounded-xl placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-14 pl-12 pr-24 text-base text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
             />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 text-muted-foreground hover:text-primary rounded-lg"
+                    className="h-10 w-10 text-muted-foreground hover:text-primary rounded-md"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -163,14 +164,14 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     size="icon"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-12 w-12 rounded-lg text-lg"
+                    className="h-10 w-10 rounded-md text-lg"
                 >
-                    <SearchIconLucide className="h-6 w-6" />
+                    <SearchIconLucide className="h-5 w-5" />
                 </Button>
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-2 w-full rounded-xl bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+        <CommandList className="absolute top-full mt-2 w-full rounded-lg bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">
