@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -217,7 +218,7 @@ export function TimezoneSearch({ value, onValueChange, name, id, required }: Tim
 
         {isSuggestionsOpen && hasFocus && (
           <div className="relative w-full">
-            <CommandList className="absolute top-1.5 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+            <CommandList className="absolute top-1.5 left-0 right-0 rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
                 {suggestions.length === 0 && value.length > 1 && (
                   <CommandEmpty>No timezones found for &quot;{value}&quot;.</CommandEmpty>
                 )}

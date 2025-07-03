@@ -51,8 +51,8 @@ export function WeatherIcon({ iconCode, className, ...props }: WeatherIconProps)
   // Map specific weather conditions to themeable chart colors or specific utility classes
   const colorClassMap: Record<string, string> = {
     // Sunny/Clear Day: Use a warm, golden color from the theme
-    '01d': 'text-[hsl(var(--chart-3))]', 
-    '02d': 'text-[hsl(var(--chart-3))]',
+    '01d': 'text-[hsl(var(--chart-4))]', 
+    '02d': 'text-[hsl(var(--chart-4))]',
     // Rain: Use a blue color from the theme
     '09d': 'text-[hsl(var(--chart-2))]', 
     '10d': 'text-[hsl(var(--chart-2))]',
