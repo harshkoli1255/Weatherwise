@@ -51,14 +51,14 @@ export function WeatherIcon({ iconCode, className, ...props }: WeatherIconProps)
   let colorClass = 'text-primary';
   if (iconCode.endsWith('n')) {
       // Night icons
-      if (['01n', '02n'].includes(iconCode)) colorClass = 'text-slate-300';
-      else colorClass = 'text-slate-400';
+      if (['01n', '02n'].includes(iconCode)) colorClass = 'text-gray-300';
+      else colorClass = 'text-gray-400';
   } else {
       // Day icons
       if (['01d', '02d'].includes(iconCode)) colorClass = 'text-yellow-400';
       else if (['09d', '10d'].includes(iconCode)) colorClass = 'text-blue-400';
-      else if (iconCode === '11d') colorClass = 'text-yellow-500';
-      else colorClass = 'text-slate-400';
+      else if (iconCode === '11d') colorClass = 'text-amber-500';
+      else colorClass = 'text-gray-400';
   }
 
   return <IconComponent className={cn("h-12 w-12", colorClass, className)} {...props} />;

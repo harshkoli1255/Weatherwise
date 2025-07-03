@@ -1,3 +1,4 @@
+
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -37,14 +38,14 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   
   let borderColor = 'border-border/30';
   if (showPrecipitation) {
-    borderColor = 'border-sky-400/50';
+    borderColor = 'border-blue-400/50';
   }
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-accent hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         borderColor
       )}
       aria-label={`View forecast for ${preciseTime}`}
@@ -59,8 +60,8 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-4 w-4 text-sky-400" />
-            <span className="font-semibold text-sky-400">{data.precipitationChance}%</span>
+            <Droplets className="h-4 w-4 text-blue-400" />
+            <span className="font-semibold text-blue-400">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
@@ -393,7 +394,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   };
   
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2">
           <div className="w-8 sm:w-9" /> 
@@ -466,8 +467,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
-                      <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-chart-3" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-                      <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-chart-4" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                      <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-blue-500" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+                      <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-gray-500" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
                           <WeatherDetailItem 
                               icon={GaugeCircle} 
@@ -704,7 +705,7 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
      <div className={cn("flex items-center space-x-2 sm:space-x-3 rounded-lg bg-muted/50 p-2 sm:p-3 shadow-inner border border-border/60", className)} {...props}>
-      <div className="p-1.5 sm:p-2 bg-background rounded-lg shadow-sm">
+      <div className="p-1.5 sm:p-2 bg-background rounded-md shadow-sm">
         <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor || 'text-primary')} />
       </div>
       <div className="flex flex-col text-left">

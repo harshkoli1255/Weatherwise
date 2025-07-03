@@ -60,7 +60,7 @@ export default function RootLayout({
               <DefaultLocationProvider>
                 <SavedLocationsProvider>
                   <LastSearchProvider>
-                    <div className="flex flex-col min-h-screen bg-background dark:bg-dot-pattern-dark bg-dot-pattern">
+                    <div className="flex flex-col min-h-screen bg-background">
                       <Navbar />
                       <main className="flex-grow">
                         <PageTransitionWrapper>{children}</PageTransitionWrapper>
