@@ -87,13 +87,17 @@ export default {
           '0%, 100%': { opacity: '0.3' },
           '50%': { opacity: '1' },
         },
-        'radar-scan': {
-          '0%': { transform: 'scale(0.2)', opacity: '0.8' },
-          '80%, 100%': { transform: 'scale(1.5)', opacity: '0' },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.5', transform: 'scale(0.95)' },
+          '50%': { opacity: '1', transform: 'scale(1.05)' },
         },
-        'map-pin-bob': {
-          '0%, 100%': { transform: 'translateY(-5%)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
-          '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+        'cloud-drift-back': {
+            '0%, 100%': { transform: 'translate(0, 0)' },
+            '50%': { transform: 'translate(3px, -2px)' },
+        },
+        'cloud-drift-front': {
+            '0%, 100%': { transform: 'translate(-10px, -10px)' },
+            '50%': { transform: 'translate(-14px, -8px)' },
         },
       },
       animation: {
@@ -102,8 +106,9 @@ export default {
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'pulse-dot-loader': 'pulse-dot-loader 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'radar-scan': 'radar-scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'map-pin-bob': 'map-pin-bob 1.5s infinite',
+        'glow-pulse': 'glow-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'cloud-drift-back': 'cloud-drift-back 6s ease-in-out infinite',
+        'cloud-drift-front': 'cloud-drift-front 6s ease-in-out infinite',
       },
     },
   },

@@ -285,12 +285,9 @@ function WeatherPageContent() {
       </section>
 
       {isLoadingDisplay && (
-        <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl">
-          <CardContent className="flex flex-col items-center justify-center space-y-5 pt-6">
-            <WeatherLoadingAnimation className="h-20 w-20 sm:h-24 sm:w-24 text-primary" />
-            <p className="text-lg sm:text-xl text-muted-foreground font-medium">{weatherState.loadingMessage || "Loading..."}</p>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-xl animate-in fade-in-0">
+          <WeatherLoadingAnimation message={weatherState.loadingMessage || "Loading..."} />
+        </div>
       )}
 
       {!isLoadingDisplay && weatherState.data && (
