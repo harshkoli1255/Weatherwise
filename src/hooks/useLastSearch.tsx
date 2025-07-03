@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
@@ -41,6 +40,26 @@ export function LastSearchProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoaded]);
 
+  // Syncs changes across tabs for guest users
+  useEffect(() => {
+    if (user) return; // This is for guest users relying on localStorage
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === LAST_SEARCH_STORAGE_KEY) {
+        try {
+          setLastSearchState(event.newValue ? JSON.parse(event.newValue) : null);
+        } catch (e) {
+          console.error("Error parsing last search from storage event.", e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [user]);
+
   const setLastSearch = useCallback((search: CitySuggestion) => {
     const originalSearch = lastSearch;
     setLastSearchState(search); // Optimistic UI update
@@ -55,6 +74,7 @@ export function LastSearchProvider({ children }: { children: ReactNode }) {
         }
       });
     } else {
+      // For guests, save to localStorage. This will trigger the 'storage' event for other tabs.
       try {
         localStorage.setItem(LAST_SEARCH_STORAGE_KEY, JSON.stringify(search));
       } catch (error) {

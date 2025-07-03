@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
@@ -44,6 +43,27 @@ export function SavedLocationsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoaded]);
 
+  // Syncs changes across tabs for guest users
+  useEffect(() => {
+    if (user) return; // This is for guest users relying on localStorage
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === SAVED_LOCATIONS_STORAGE_KEY && event.newValue) {
+        try {
+          setSavedLocations(JSON.parse(event.newValue));
+        } catch (e) {
+          console.error("Error parsing saved locations from storage event.", e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [user]);
+
+
   const syncLocations = useCallback((newLocations: CitySuggestion[], successMessage: string) => {
     const originalLocations = savedLocations;
     // Optimistically update the local state for a snappy UI
@@ -71,7 +91,7 @@ export function SavedLocationsProvider({ children }: { children: ReactNode }) {
         }
       });
     } else {
-      // For guests, just save to localStorage.
+      // For guests, save to localStorage. This will trigger the 'storage' event for other tabs.
       try {
         localStorage.setItem(SAVED_LOCATIONS_STORAGE_KEY, JSON.stringify(newLocations));
         if (successMessage) toast({ title: "Success", description: successMessage, variant: 'success' });

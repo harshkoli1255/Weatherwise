@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
@@ -60,6 +59,27 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoaded]);
 
+  // Syncs changes across tabs for guest users
+  useEffect(() => {
+    if (user) return; // This is for guest users relying on localStorage
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === UNITS_STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          setUnitsState({ ...defaultUnits, ...parsed });
+        } catch (e) {
+          console.error("Error parsing unit preferences from storage event.", e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [user]);
+
   const setUnits = useCallback((newUnits: Partial<UnitPreferences>) => {
     const originalUnits = units;
     const updatedUnits = { ...originalUnits, ...newUnits };
@@ -83,7 +103,7 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
         }
       });
     } else {
-      // For guests, save to localStorage.
+      // For guests, save to localStorage. This will trigger the 'storage' event for other tabs.
       try {
         localStorage.setItem(UNITS_STORAGE_KEY, JSON.stringify(updatedUnits));
       } catch (error) {
