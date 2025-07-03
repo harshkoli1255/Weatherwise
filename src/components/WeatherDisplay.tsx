@@ -45,7 +45,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
     <button
       onClick={onClick}
       className={cn(
-        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-lg border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex h-32 w-24 shrink-0 flex-col items-center justify-between rounded-xl border bg-background/50 p-2 text-center text-left shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         borderColor
       )}
       aria-label={`View forecast for ${preciseTime}`}
@@ -436,7 +436,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
       <CardContent className="p-0">
         <Tabs defaultValue="forecast" className="w-full">
             <div className="px-4 pt-4">
-                <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-9 sm:h-10">
+                <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-11 sm:h-12">
                 <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
                     <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                     Forecast
@@ -453,7 +453,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             </div>
             
             <div className="p-4 sm:p-6">
-              <TabsContent value="forecast" className="space-y-4 pt-0">
+              <TabsContent value="forecast" className="space-y-6 pt-0">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
                           <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
@@ -466,7 +466,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                       </div>
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
                   </div>
-                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-center">
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-blue-500" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-gray-500" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
@@ -631,7 +631,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                             dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
                         />
                         {weatherData.aiImageUrl && (
-                            <div className="mt-3 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                            <div className="mt-4 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
                                 <Image
                                     src={weatherData.aiImageUrl}
                                     alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
@@ -725,9 +725,9 @@ interface InfoCardProps {
 
 function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps) {
     return (
-        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
-            <div className="flex flex-row items-center mb-3">
-                 <div className="p-2 bg-primary/10 rounded-md mr-3">
+        <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
+            <div className="flex flex-row items-center mb-4">
+                 <div className="p-2 bg-primary/10 rounded-lg mr-3">
                     <Icon className="h-5 w-5 text-primary flex-shrink-0" />
                 </div>
                 <h3 className="text-base font-headline font-semibold text-primary">{title}</h3>

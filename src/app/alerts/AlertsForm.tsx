@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown, MapPin } from 'lucide-react';
+import { Loader2, Clock, Zap, MailQuestion, Info, ChevronDown, MapPin, Check } from 'lucide-react';
 import { AlertsCitySearch } from './AlertsCitySearch';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -146,13 +146,13 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
   return (
     <form action={saveAction} className="space-y-8">
-      <h3 className="text-lg font-medium border-b pb-2">General Settings</h3>
+      <h3 className="text-lg font-medium border-b pb-3">General Settings</h3>
       <div>
         <Label htmlFor="email">Alerts Email</Label>
         <Input id="email" name="email" value={preferences.email} readOnly className="mt-2 bg-muted/60 cursor-not-allowed" />
         <p className="text-sm text-muted-foreground mt-1.5">This is the primary email on your account. To change it, please update your profile.</p>
       </div>
-      <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50">
+      <div className="flex items-center justify-between rounded-xl border p-4 shadow-sm bg-background/50">
         <div className="space-y-0.5">
           <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable Alerts</Label>
           <p className="text-sm text-muted-foreground">Master switch for all AI-powered weather notifications.</p>
@@ -160,7 +160,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
         <Switch id="alertsEnabled" name="alertsEnabled" checked={alertsEnabled} onCheckedChange={setAlertsEnabled} aria-label="Enable all alerts" />
       </div>
 
-      <div className={`space-y-8 pt-4 transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+      <div className={`space-y-8 pt-6 border-t transition-opacity duration-300 ${alertsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
         <div>
           <Label htmlFor="city" className="flex items-center gap-2 font-medium text-base mb-1">
             <MapPin className="h-5 w-5 text-primary" />
@@ -176,7 +176,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
         </div>
         
-        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
+        <div className="space-y-4 rounded-xl border p-4 shadow-sm bg-background/50">
           <div className="flex items-center gap-3 mb-1">
             <Zap className="h-6 w-6 text-primary" />
             <div className="space-y-0.5">
@@ -201,32 +201,41 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
               <p className="text-sm text-muted-foreground">Control how often you receive alerts for significant weather.</p>
             </div>
           </div>
-          <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
+          <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
              <div className="relative">
                 <RadioGroupItem value="everyHour" id="freq-max" className="sr-only peer" />
-                <Label htmlFor="freq-max" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-max" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Maximum</span>
                     <span className="text-xs text-muted-foreground mt-1">Every hour</span>
                 </Label>
+                 <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                    <Check className="h-3 w-3" />
+                </div>
              </div>
              <div className="relative">
                 <RadioGroupItem value="balanced" id="freq-bal" className="sr-only peer" />
-                <Label htmlFor="freq-bal" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-bal" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Balanced</span>
                     <span className="text-xs text-muted-foreground mt-1">Every 4 hours</span>
                 </Label>
+                 <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                    <Check className="h-3 w-3" />
+                </div>
              </div>
              <div className="relative">
                 <RadioGroupItem value="oncePerDay" id="freq-min" className="sr-only peer" />
-                <Label htmlFor="freq-min" className="flex flex-col p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-min" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Minimal</span>
                     <span className="text-xs text-muted-foreground mt-1">Once a day</span>
                 </Label>
+                 <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                    <Check className="h-3 w-3" />
+                </div>
              </div>
           </RadioGroup>
         </div>
         
-        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
+        <div className="space-y-4 rounded-xl border p-4 shadow-sm bg-background/50">
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Clock className="h-6 w-6 text-primary" />
@@ -303,7 +312,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
 
       </div>
       
-      <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
+      <div className="pt-6 border-t flex flex-col sm:flex-row items-center gap-4">
         <SubmitButton />
          <div className="inline-flex rounded-md shadow-sm">
             <Button

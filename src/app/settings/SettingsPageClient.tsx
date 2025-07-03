@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle, Settings as SettingsIcon, Check } from 'lucide-react';
 import Link from 'next/link';
 import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';
@@ -27,7 +27,7 @@ interface SettingsItemProps {
 function SettingsLinkItem({ icon: Icon, title, description, href }: SettingsItemProps) {
   return (
     <Link href={href} className="block group">
-      <div className="flex items-center justify-between p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 hover:border-primary/50">
+      <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 hover:border-primary/50">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />
@@ -47,7 +47,7 @@ function AppearanceSettings() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+        <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
             <div className="flex items-center gap-4 mb-4">
                 <div className="p-3 bg-primary/10 rounded-lg">
                     <Palette className="h-5 w-5 text-primary" />
@@ -60,28 +60,37 @@ function AppearanceSettings() {
             <RadioGroup 
                 defaultValue={theme} 
                 onValueChange={setTheme}
-                className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-border/50"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-border/50"
             >
                 <div className="relative">
                     <RadioGroupItem value="light" id="light" className="sr-only peer" />
-                    <Label htmlFor="light" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                    <Label htmlFor="light" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Sun className="mb-2 h-5 w-5" />
                         <span className="text-xs">Light</span>
                     </Label>
+                    <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                        <Check className="h-3 w-3" />
+                    </div>
                 </div>
                 <div className="relative">
                     <RadioGroupItem value="dark" id="dark" className="sr-only peer" />
-                    <Label htmlFor="dark" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                    <Label htmlFor="dark" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Moon className="mb-2 h-5 w-5" />
                         <span className="text-xs">Dark</span>
                     </Label>
+                    <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                        <Check className="h-3 w-3" />
+                    </div>
                 </div>
                 <div className="relative">
                     <RadioGroupItem value="system" id="system" className="sr-only peer" />
-                    <Label htmlFor="system" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                    <Label htmlFor="system" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Laptop className="mb-2 h-5 w-5" />
                         <span className="text-xs">System</span>
                     </Label>
+                    <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground items-center justify-center peer-data-[state=checked]:flex hidden">
+                        <Check className="h-3 w-3" />
+                    </div>
                 </div>
             </RadioGroup>
         </div>
@@ -97,7 +106,7 @@ function UnitSettings() {
   }, []);
 
   return (
-    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+    <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
       <div className="flex items-center gap-4 mb-4">
         <div className="p-3 bg-primary/10 rounded-lg">
           <Thermometer className="h-5 w-5 text-primary" />
@@ -107,7 +116,7 @@ function UnitSettings() {
           <p className="text-xs text-muted-foreground">Select your preferred units for display.</p>
         </div>
       </div>
-      <div className="space-y-4 pt-3 border-t border-border/50">
+      <div className="space-y-4 pt-4 border-t border-border/50">
         {!isMounted ? (
             <div className="space-y-4">
                 <div className="space-y-2">
@@ -141,17 +150,17 @@ function UnitSettings() {
                         onValueChange={(value) => setUnits({ temperature: value as TemperatureUnit })}
                         className="grid grid-cols-2 gap-2 mt-1"
                     >
-                        <div>
-                        <RadioGroupItem value="celsius" id="celsius" className="sr-only peer" />
-                        <Label htmlFor="celsius" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                            Celsius (°C)
-                        </Label>
+                        <div className="relative">
+                            <RadioGroupItem value="celsius" id="celsius" className="sr-only peer" />
+                            <Label htmlFor="celsius" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                                Celsius (°C)
+                            </Label>
                         </div>
-                        <div>
-                        <RadioGroupItem value="fahrenheit" id="fahrenheit" className="sr-only peer" />
-                        <Label htmlFor="fahrenheit" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                            Fahrenheit (°F)
-                        </Label>
+                        <div className="relative">
+                            <RadioGroupItem value="fahrenheit" id="fahrenheit" className="sr-only peer" />
+                            <Label htmlFor="fahrenheit" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                                Fahrenheit (°F)
+                            </Label>
                         </div>
                     </RadioGroup>
                 </div>
@@ -162,17 +171,17 @@ function UnitSettings() {
                         onValueChange={(value) => setUnits({ windSpeed: value as WindSpeedUnit })}
                         className="grid grid-cols-2 gap-2 mt-1"
                     >
-                        <div>
-                        <RadioGroupItem value="kmh" id="kmh" className="sr-only peer" />
-                        <Label htmlFor="kmh" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                            km/h
-                        </Label>
+                        <div className="relative">
+                            <RadioGroupItem value="kmh" id="kmh" className="sr-only peer" />
+                            <Label htmlFor="kmh" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                                km/h
+                            </Label>
                         </div>
-                        <div>
-                        <RadioGroupItem value="mph" id="mph" className="sr-only peer" />
-                        <Label htmlFor="mph" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                            mph
-                        </Label>
+                        <div className="relative">
+                            <RadioGroupItem value="mph" id="mph" className="sr-only peer" />
+                            <Label htmlFor="mph" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                                mph
+                            </Label>
                         </div>
                     </RadioGroup>
                 </div>
@@ -183,15 +192,15 @@ function UnitSettings() {
                     onValueChange={(value) => setUnits({ timeFormat: value as TimeFormatUnit })}
                     className="grid grid-cols-2 gap-2 mt-1"
                   >
-                    <div>
+                    <div className="relative">
                       <RadioGroupItem value="12h" id="12h" className="sr-only peer" />
-                      <Label htmlFor="12h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                      <Label htmlFor="12h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         12-hour (4 PM)
                       </Label>
                     </div>
-                    <div>
+                    <div className="relative">
                       <RadioGroupItem value="24h" id="24h" className="sr-only peer" />
-                      <Label htmlFor="24h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                      <Label htmlFor="24h" className="flex items-center justify-center rounded-md border-2 border-muted bg-popover p-2 text-sm hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         24-hour (16:00)
                       </Label>
                     </div>
@@ -236,7 +245,7 @@ function DefaultLocationSettings() {
   }
 
   return (
-    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
+    <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
       <div className="flex items-center gap-4 mb-4">
         <div className="p-3 bg-primary/10 rounded-lg">
           <MapPin className="h-5 w-5 text-primary" />
@@ -246,7 +255,7 @@ function DefaultLocationSettings() {
           <p className="text-xs text-muted-foreground">Set a city to show automatically when you open the app.</p>
         </div>
       </div>
-      <div className="space-y-4 pt-3 border-t border-border/50">
+      <div className="space-y-4 pt-4 border-t border-border/50">
         {!isMounted ? (
            <div className="space-y-3 p-1">
                 <Skeleton className="h-6 w-24" />
@@ -264,7 +273,7 @@ function DefaultLocationSettings() {
           </div>
         ) : (
           <div>
-            <Label htmlFor="default-city-search">Search for a city</Label>
+            <Label htmlFor="default-city-search" className="text-sm">Search for a city</Label>
             <AlertsCitySearch
               id="default-city-search"
               name="default-city-search"
@@ -303,10 +312,10 @@ export default function SettingsPageClient() {
             Manage your account, preferences, and application settings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-8 space-y-4">
+        <CardContent className="px-6 sm:px-8 pb-8 space-y-6">
             <SignedIn>
               <section>
-                <h3 className="text-lg font-medium text-foreground mb-4">Account</h3>
+                <h3 className="text-lg font-medium text-foreground mb-4 border-b pb-3">Account</h3>
                 <div className="space-y-3">
                   <SettingsLinkItem
                       icon={User}
@@ -324,7 +333,7 @@ export default function SettingsPageClient() {
               </section>
             </SignedIn>
             <section>
-                <h3 className="text-lg font-medium text-foreground mb-4">Application</h3>
+                <h3 className="text-lg font-medium text-foreground mb-4 border-b pb-3">Application</h3>
                 <div className="space-y-3">
                     <DefaultLocationSettings />
                     <UnitSettings />

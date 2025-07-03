@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -39,14 +40,16 @@ import { useUnits } from '@/hooks/useUnits';
 const SavedLocationItemSkeleton = () => (
   <div className="flex items-center justify-between p-2 m-1">
     <div className="flex items-center min-w-0 gap-3">
-      <Skeleton className="h-4 w-4 rounded-md flex-shrink-0" />
-      <div className="flex flex-col gap-1.5 w-full">
-        <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-4 w-4 rounded-sm flex-shrink-0" />
+      <div className="flex flex-col gap-1.5 w-24">
+        <Skeleton className="h-4 w-full" />
         <Skeleton className="h-3 w-16" />
       </div>
     </div>
     <div className="ml-auto flex items-center gap-3">
+        <Skeleton className="h-5 w-5 rounded-full" />
       <Skeleton className="h-5 w-12" />
+      <Skeleton className="h-5 w-5" />
     </div>
   </div>
 );
@@ -213,7 +216,7 @@ export function SavedLocationsDropdown() {
                     <ScrollArea className="h-[250px]">
                         <DropdownMenuGroup className="p-1">
                         {isLoadingWeather ? (
-                            Array.from({ length: Math.min(savedLocations.length, 3) || 3 }).map((_, i) => <SavedLocationItemSkeleton key={i} />)
+                            Array.from({ length: Math.min(savedLocations.length, 3) }).map((_, i) => <SavedLocationItemSkeleton key={i} />)
                         ) : (
                             savedLocations.map((city) => {
                                 const cityKey = `${city.lat.toFixed(4)},${city.lon.toFixed(4)}`;

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex h-full flex-col items-start rounded-lg bg-background/50 p-4 shadow-lg border border-border/30">
+  <div className="flex h-full flex-col items-start rounded-xl bg-background/50 p-4 shadow-lg border border-border/30">
     <div className="flex items-center gap-4 mb-3">
         <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />
@@ -40,7 +40,7 @@ const TechItem = ({ name }: { name: string }) => (
 );
 
 const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
-    <div className="mb-5 flex items-center justify-center gap-3">
+    <div className="mb-6 flex items-center justify-center gap-3">
         <Icon className="h-6 w-6 text-primary" />
         <h2 className="text-center font-headline text-xl font-semibold text-primary">
             {title}
@@ -112,7 +112,7 @@ export default function AboutPage() {
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-10 px-6 pb-8 sm:px-8">
+            <CardContent className="space-y-12 px-6 pb-8 sm:px-8">
                 <section>
                     <SectionHeader icon={Sparkles} title="Core Features" />
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -128,7 +128,7 @@ export default function AboutPage() {
 
                 <section>
                     <SectionHeader icon={Layers} title="Technology Stack" />
-                    <p className="mx-auto mb-5 max-w-xl text-center text-sm text-muted-foreground">
+                    <p className="mx-auto mb-6 max-w-xl text-center text-sm text-muted-foreground">
                         Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience.
                     </p>
                     <div className="flex flex-wrap justify-center gap-2">
@@ -142,7 +142,7 @@ export default function AboutPage() {
 
                 <section>
                     <SectionHeader icon={Heart} title="Our Mission" />
-                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-5 text-center shadow-inner dark:bg-primary/10 animate-in fade-in" style={{ animationDelay: '500ms' }}>
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center shadow-inner dark:bg-primary/10 animate-in fade-in" style={{ animationDelay: '500ms' }}>
                          <p className="mx-auto max-w-xl text-base italic leading-relaxed text-foreground/90">
                            &ldquo;To provide a weather application that is not only accurate and reliable but also a joy to use. By leveraging the power of generative AI, we deliver insights that go beyond raw data, helping you plan your day more effectively.&rdquo;
                         </p>

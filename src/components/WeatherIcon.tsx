@@ -61,8 +61,8 @@ export function WeatherIcon({ iconCode, className, ...props }: WeatherIconProps)
     // Snow: A light blue works best
     '13d': 'text-blue-300 dark:text-blue-200',
     // Night: Neutral grays are suitable for night icons
-    '01n': 'text-gray-300', 
-    '02n': 'text-gray-300',
+    '01n': 'text-gray-400', 
+    '02n': 'text-gray-400',
   };
   
   // Default color for neutral conditions like clouds, mist, etc.
