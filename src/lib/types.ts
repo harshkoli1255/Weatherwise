@@ -32,7 +32,7 @@ export interface WeatherData {
 
 export interface AirQualityData {
   aqi: 1 | 2 | 3 | 4 | 5;
-  level: 'Good' | 'Fair' | 'Moderate' | 'Poor' | 'Very Poor' | 'Unknown';
+  level: 'Good' | 'Satisfactory' | 'Moderately Polluted' | 'Poor' | 'Very Poor' | 'Unknown';
   components: {
     co: number;
     no2: number;
@@ -41,11 +41,6 @@ export interface AirQualityData {
     pm2_5: number;
     pm10: number;
   };
-}
-
-export interface AirQualitySummary {
-    summary: string;
-    recommendation: string;
 }
 
 export interface WeatherSummaryData extends WeatherData {
@@ -59,7 +54,6 @@ export interface WeatherSummaryData extends WeatherData {
   aiInsights?: string[];
   aiImageUrl?: string;
   airQuality?: AirQualityData;
-  airQualitySummary?: AirQualitySummary;
 }
 
 // For current weather from /data/2.5/weather
@@ -335,22 +329,3 @@ export const WeatherImageOutputSchema = z.object({
   imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
 });
 export type WeatherImageOutput = z.infer<typeof WeatherImageOutputSchema>;
-
-// AI Schema: Summarize Air Quality
-export const SummarizeAirQualityInputSchema = z.object({
-    aqi: z.number().min(1).max(5).describe('The Air Quality Index value, from 1 (Good) to 5 (Very Poor).'),
-    level: z.string().describe('The human-readable AQI level, e.g., "Good", "Moderate".'),
-    components: z.object({
-        co: z.number().describe('Carbon Monoxide concentration (μg/m³).'),
-        no2: z.number().describe('Nitrogen Dioxide concentration (μg/m³).'),
-        o3: z.number().describe('Ozone concentration (μg/m³).'),
-        pm2_5: z.number().describe('Fine Particulate Matter (PM2.5) concentration (μg/m³).'),
-    }).describe('Key pollutant component concentrations.')
-});
-export type SummarizeAirQualityInput = z.infer<typeof SummarizeAirQualityInputSchema>;
-
-export const SummarizeAirQualityOutputSchema = z.object({
-  summary: z.string().describe("A simple, one-sentence explanation of what the current air quality means. Example: 'The air quality is excellent right now.' or 'There is a moderate amount of pollution in the air.'"),
-  recommendation: z.string().describe("An actionable health recommendation based on the air quality. Example: 'It's a perfect day for outdoor activities!' or 'Sensitive groups should consider reducing strenuous outdoor activities.'")
-});
-export type SummarizeAirQualityOutput = z.infer<typeof SummarizeAirQualityOutputSchema>;

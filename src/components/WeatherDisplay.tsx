@@ -14,7 +14,6 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine, ReferenceD
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useIsMobile } from '@/hooks/use-mobile';
 import Image from 'next/image';
 
 interface WeatherDisplayProps {
@@ -230,25 +229,91 @@ const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, va
   );
 };
 
+const aqiScale = [
+  {
+    aqi: 1,
+    level: "Good",
+    range: "0-50",
+    impact: "Minimal impact.",
+    colorClass: "text-success",
+    bgColorClass: "bg-success/10",
+    borderColorClass: "border-success/50",
+  },
+  {
+    aqi: 2,
+    level: "Satisfactory",
+    range: "51-100",
+    impact: "May cause minor breathing discomfort to sensitive people.",
+    colorClass: "text-yellow-500",
+    bgColorClass: "bg-yellow-500/10",
+    borderColorClass: "border-yellow-500/50",
+  },
+  {
+    aqi: 3,
+    level: "Moderately Polluted",
+    range: "101-200",
+    impact: "May cause breathing discomfort to people with lung disease, children, and older adults.",
+    colorClass: "text-orange-500",
+    bgColorClass: "bg-orange-500/10",
+    borderColorClass: "border-orange-500/50",
+  },
+  {
+    aqi: 4,
+    level: "Poor",
+    range: "201-300",
+    impact: "May cause breathing discomfort to people on prolonged exposure and discomfort to people with heart disease.",
+    colorClass: "text-red-500",
+    bgColorClass: "bg-destructive/10",
+    borderColorClass: "border-destructive/50",
+  },
+  {
+    aqi: 5,
+    level: "Very Poor",
+    range: "301-400+",
+    impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.",
+    colorClass: "text-purple-600",
+    bgColorClass: "bg-purple-600/10",
+    borderColorClass: "border-purple-600/50",
+  },
+];
+
+function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
+  return (
+    <InfoCard icon={Leaf} title="Air Quality Guide" animationDelay="150ms">
+      <div className="space-y-2">
+        {aqiScale.map((item) => (
+          <div
+            key={item.aqi}
+            className={cn(
+              "flex flex-col sm:flex-row items-start sm:items-center p-3 rounded-lg border-2 transition-all duration-300",
+              currentAqi === item.aqi
+                ? `${item.bgColorClass} ${item.borderColorClass} scale-[1.02]`
+                : "bg-muted/50 border-transparent"
+            )}
+          >
+            <div className="flex items-center w-full sm:w-1/3 mb-2 sm:mb-0">
+              <span className={cn("text-base font-bold w-32", item.colorClass)}>{item.level}</span>
+              <span className="text-sm text-muted-foreground font-mono">({item.range})</span>
+            </div>
+            <p className="w-full sm:w-2/3 text-sm text-foreground/80">{item.impact}</p>
+          </div>
+        ))}
+      </div>
+    </InfoCard>
+  );
+}
+
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
-  const getAqiInfo = (aqi: number) => {
-    switch (aqi) {
-      case 1: return { level: 'Good', colorClass: 'text-success' };
-      case 2:
-      case 3:
-        return { level: 'Fair', colorClass: 'text-yellow-500' };
-      case 4: return { level: 'Poor', colorClass: 'text-red-500' };
-      case 5: return { level: 'Very Poor', colorClass: 'text-purple-600' };
-      default: return { level: 'Unknown', colorClass: 'text-muted-foreground' };
-    }
-  };
+  const aqiInfo = useMemo(() => {
+    if (!weatherData.airQuality) return null;
+    return aqiScale.find(item => item.level === weatherData.airQuality?.level) || null;
+  }, [weatherData.airQuality]);
 
-  const aqiInfo = weatherData.airQuality ? getAqiInfo(weatherData.airQuality.aqi) : null;
   const aqiComponents = weatherData.airQuality?.components;
 
   const chartData = useMemo(() => {
@@ -581,49 +646,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
               </TabsContent>
               
               <TabsContent value="health" className="space-y-4">
-              {aqiInfo && aqiComponents && weatherData.airQualitySummary ? (
-                  <InfoCard icon={Leaf} title="Air Quality & Health" animationDelay="150ms">
-                       <div className="flex justify-between items-center mb-4 pb-3 border-b border-border/50">
-                          <div>
-                              <p className="text-xs text-muted-foreground uppercase font-semibold">Overall Rating</p>
-                              <p className={cn("text-3xl font-bold tracking-tight", aqiInfo.colorClass)}>{aqiInfo.level}</p>
-                          </div>
-                          <div className="text-right">
-                              <p className="text-xs text-muted-foreground uppercase font-semibold">AQI</p>
-                              <p className="text-3xl font-bold font-mono text-foreground">{weatherData.airQuality.aqi}</p>
-                          </div>
-                      </div>
+                {weatherData.airQuality && aqiInfo ? (
+                    <>
+                        <AqiScaleGuide currentAqi={weatherData.airQuality.aqi} />
 
-                      <div className="mb-4">
-                          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">AI Recommendation</h4>
-                          <div className="p-3 rounded-md bg-muted/50 border border-border/50 shadow-inner">
-                              <p
-                                  className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
-                                  dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.summary }}
-                              />
-                              <p
-                                  className="mt-2 text-xs text-muted-foreground leading-relaxed"
-                                  dangerouslySetInnerHTML={{ __html: weatherData.airQualitySummary.recommendation }}
-                              />
-                          </div>
-                      </div>
-
-                      <div>
-                          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Pollutant Breakdown</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                              {Object.keys(pollutantConfig).map((key) => {
-                                  if (aqiComponents && aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
-                                      const value = aqiComponents[key as keyof typeof aqiComponents];
-                                      const config = pollutantConfig[key];
-                                      if (typeof value === 'number') {
-                                          return <PollutantDetail key={key} {...config} value={value} />;
-                                      }
-                                  }
-                                  return null;
-                              })}
-                          </div>
-                      </div>
-                  </InfoCard>
+                        {aqiComponents && (
+                            <InfoCard icon={Sparkles} title="Pollutant Breakdown" animationDelay="300ms">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                                    {Object.keys(pollutantConfig).map((key) => {
+                                        if (aqiComponents[key as keyof typeof aqiComponents] !== undefined) {
+                                            const value = aqiComponents[key as keyof typeof aqiComponents];
+                                            const config = pollutantConfig[key];
+                                            if (typeof value === 'number') {
+                                                return <PollutantDetail key={key} {...config} value={value} />;
+                                            }
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                           </InfoCard>
+                        )}
+                    </>
                   ) : (
                   <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground animate-in fade-in">
                       <Leaf className="h-12 w-12 text-muted-foreground/50 mb-4" />

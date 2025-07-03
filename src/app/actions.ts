@@ -11,7 +11,6 @@ import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
 import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 import { summarizeError } from '@/ai/flows/summarize-error';
-import { summarizeAirQuality } from '@/ai/flows/summarize-air-quality';
 import type { LocationIdentifier, IpApiLocationResponse, CitySuggestion, SavedLocationsWeatherMap, SavedLocationWeatherResult } from '@/lib/types';
 
 function isAiConfigured() {
@@ -108,14 +107,10 @@ export async function fetchWeatherAndSummaryAction(
 
     // --- Step 4: Generate AI summaries and images ---
     let aiSummaryResult;
-    let airQualitySummaryResult;
 
     if (isAiConfigured()) {
-        const aiPromises = [];
-
-        // Weather Summary AI call
-        aiPromises.push(
-            summarizeWeather({
+        try {
+            aiSummaryResult = await summarizeWeather({
                 city: finalDisplayName,
                 temperature: currentWeatherData.temperature,
                 feelsLike: currentWeatherData.feelsLike,
@@ -123,43 +118,20 @@ export async function fetchWeatherAndSummaryAction(
                 windSpeed: currentWeatherData.windSpeed,
                 condition: currentWeatherData.description,
                 hourlyForecast: hourlyForecastResult.data ?? [],
-            }).then(res => ({ type: 'weather', data: res })).catch(err => {
-                console.error("Error generating AI weather summary:", err);
-                const userFacingError = `<strong>AI Summary Error</strong>: ${err.message || "An unexpected error occurred."}`;
-                return { type: 'weather', error: userFacingError };
             })
-        );
-
-        // Air Quality AI call
-        if (airQualityResult.data) {
-            aiPromises.push(
-                summarizeAirQuality(airQualityResult.data).then(res => ({ type: 'aqi', data: res })).catch(err => {
-                    console.error("Error generating AI air quality summary:", err);
-                    return { type: 'aqi', error: err.message || "Could not generate air quality summary." };
-                })
-            );
+        } catch(err) {
+            console.error("Error generating AI weather summary:", err);
+            const userFacingError = `<strong>AI Summary Error</strong>: ${err instanceof Error ? err.message : "An unexpected error occurred."}`;
+            aiSummaryResult = {
+                summary: userFacingError,
+                subjectLine: null,
+                weatherSentiment: 'neutral',
+                activitySuggestion: "Check conditions before planning activities.",
+                aiInsights: []
+            };
         }
-
-        const allAiResults = await Promise.all(aiPromises);
-
-        const weatherAi = allAiResults.find(r => r.type === 'weather');
-        aiSummaryResult = weatherAi && !weatherAi.error ? weatherAi.data : {
-            summary: weatherAi?.error || "AI summary not available.",
-            subjectLine: null,
-            weatherSentiment: 'neutral',
-            activitySuggestion: "Check conditions before planning activities.",
-            aiInsights: []
-        };
-        
-        const aqiAi = allAiResults.find(r => r.type === 'aqi');
-        airQualitySummaryResult = aqiAi && !aqiAi.error ? aqiAi.data : {
-            summary: "AI air quality summary is currently unavailable.",
-            recommendation: "Please refer to local health advisories."
-        };
-
     } else {
         aiSummaryResult = { summary: "AI summary not available.", subjectLine: null, weatherSentiment: 'neutral', activitySuggestion: "Check conditions before planning activities.", aiInsights: [] };
-        airQualitySummaryResult = { summary: "AI air quality summary is not configured.", recommendation: "" };
     }
 
     let aiImageUrl: string | undefined = undefined;
@@ -192,7 +164,6 @@ export async function fetchWeatherAndSummaryAction(
         hourlyForecast: hourlyForecastResult.data ?? [], 
         aiImageUrl: aiImageUrl,
         airQuality: airQualityResult.data ?? undefined,
-        airQualitySummary: airQualitySummaryResult ?? undefined,
     };
 
     cacheService.set(cacheKey, finalData);

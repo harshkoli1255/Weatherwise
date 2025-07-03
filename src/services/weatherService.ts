@@ -146,12 +146,12 @@ export async function fetchAirQuality(lat: number, lon: number, apiKey: string):
         const aqiData = data.list[0];
         const aqiIndex = aqiData.main.aqi;
 
+        // Maps the OpenWeather 1-5 index to the descriptive levels.
         const getAqiLevel = (index: number): AirQualityData['level'] => {
             switch (index) {
                 case 1: return 'Good';
-                case 2:
-                case 3:
-                    return 'Fair';
+                case 2: return 'Satisfactory';
+                case 3: return 'Moderately Polluted';
                 case 4: return 'Poor';
                 case 5: return 'Very Poor';
                 default: return 'Unknown';
