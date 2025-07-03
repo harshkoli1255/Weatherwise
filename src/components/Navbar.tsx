@@ -115,80 +115,78 @@ export function Navbar() {
                           <span className="sr-only">Toggle navigation menu</span>
                       </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-full max-w-xs p-0">
-                      <div className="flex flex-col h-full">
-                          <div className="p-6 pb-4 border-b">
-                              <Link href="/" className="flex items-center space-x-2.5 group">
-                                  <CloudSun className="h-7 w-7 text-primary" />
-                                  <span className="font-headline text-xl font-bold text-foreground">
-                                      Weatherwise
-                                  </span>
+                  <SheetContent side="right" className="w-full max-w-xs p-0 flex flex-col">
+                      <div className="p-6 pb-4 border-b">
+                          <Link href="/" className="flex items-center space-x-2.5 group">
+                              <CloudSun className="h-7 w-7 text-primary" />
+                              <span className="font-headline text-xl font-bold text-foreground">
+                                  Weatherwise
+                              </span>
+                          </Link>
+                      </div>
+                      <nav className="flex-grow flex flex-col space-y-1 p-4">
+                          {navItems.map((item) => (
+                          <SheetClose key={item.href} asChild>
+                              <Link 
+                                  href={item.href} 
+                                  className={cn(
+                                      "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                      pathname === item.href && "bg-accent text-primary"
+                                  )}
+                              >
+                                  {item.label}
                               </Link>
-                          </div>
-                          <nav className="flex flex-col space-y-2 p-4">
-                              {navItems.map((item) => (
-                              <SheetClose key={item.href} asChild>
-                                  <Link 
-                                      href={item.href} 
-                                      className={cn(
-                                          "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                          pathname === item.href && "bg-accent text-primary"
-                                      )}
-                                  >
-                                      {item.label}
-                                  </Link>
-                              </SheetClose>
-                              ))}
-                              <SignedIn>
-                                  <>
-                                    <SheetClose asChild>
-                                        <Link
-                                            href="/settings"
-                                            className={cn(
-                                                "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                                pathname === '/settings' && "bg-accent text-primary"
-                                            )}
-                                        >
-                                            Settings
-                                        </Link>
-                                    </SheetClose>
-                                    <SheetClose asChild>
-                                        <Link
-                                            href="/profile"
-                                            className={cn(
-                                                "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
-                                                pathname === '/profile' && "bg-accent text-primary"
-                                            )}
-                                        >
-                                            Profile
-                                        </Link>
-                                    </SheetClose>
-                                  </>
-                              </SignedIn>
-                          </nav>
-                          
-                          <div className="mt-auto p-6 border-t space-y-6">
-                               <SignedIn>
-                                  <div className="flex items-center justify-between">
-                                      <div className="text-base font-medium">My Account</div>
-                                      <div className="flex items-center gap-4">
-                                          <SavedLocationsDropdown />
-                                          <UserButton />
-                                      </div>
-                                  </div>
-                              </SignedIn>
+                          </SheetClose>
+                          ))}
+                          <SignedIn>
+                              <>
+                                <SheetClose asChild>
+                                    <Link
+                                        href="/settings"
+                                        className={cn(
+                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                            pathname === '/settings' && "bg-accent text-primary"
+                                        )}
+                                    >
+                                        Settings
+                                    </Link>
+                                </SheetClose>
+                                <SheetClose asChild>
+                                    <Link
+                                        href="/profile"
+                                        className={cn(
+                                            "text-base font-medium text-muted-foreground rounded-md p-3 transition-colors hover:bg-accent hover:text-primary",
+                                            pathname === '/profile' && "bg-accent text-primary"
+                                        )}
+                                    >
+                                        Profile
+                                    </Link>
+                                </SheetClose>
+                              </>
+                          </SignedIn>
+                      </nav>
+                      
+                      <div className="mt-auto p-4 border-t space-y-4">
+                           <SignedIn>
                               <div className="flex items-center justify-between">
-                                  <div className="text-base font-medium">Theme</div>
-                                  <ThemeToggle />
+                                  <UserButton afterSignOutUrl="/" />
+                                  <div className="flex items-center gap-2">
+                                      <SavedLocationsDropdown />
+                                      <ThemeToggle />
+                                  </div>
                               </div>
-                             <SignedOut>
-                                  <SheetClose asChild>
-                                      <SignInButton mode="modal">
-                                          <Button className="w-full">Sign In</Button>
-                                      </SignInButton>
-                                  </SheetClose>
-                              </SignedOut>
-                          </div>
+                          </SignedIn>
+                          <SignedOut>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-medium text-muted-foreground">Theme</p>
+                                    <ThemeToggle />
+                                </div>
+                              <SheetClose asChild>
+                                  <SignInButton mode="modal">
+                                      <Button className="w-full">Sign In</Button>
+                                  </SignInButton>
+                              </SheetClose>
+                          </SignedOut>
                       </div>
                   </SheetContent>
                 </Sheet>
