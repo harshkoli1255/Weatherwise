@@ -250,7 +250,7 @@ function DefaultLocationSettings() {
         {!isMounted ? (
            <div className="space-y-3 p-1">
                 <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-11 w-full" />
             </div>
         ) : defaultLocation ? (
           <div className="flex items-center justify-between p-3 rounded-md bg-muted/70">
@@ -303,7 +303,7 @@ export default function SettingsPageClient() {
             Manage your account, preferences, and application settings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-8 space-y-8">
+        <CardContent className="px-6 sm:px-8 pb-8 space-y-4">
             <SignedIn>
               <section>
                 <h3 className="text-lg font-medium text-foreground mb-4">Account</h3>
