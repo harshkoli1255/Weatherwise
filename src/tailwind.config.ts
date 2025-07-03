@@ -82,12 +82,17 @@ export default {
             height: '0',
           },
         },
+        'cloud-pulse': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.9' },
+          '50%': { transform: 'scale(1.03)', opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'cloud-pulse': 'cloud-pulse 3s ease-in-out infinite',
       },
     },
   },
