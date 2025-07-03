@@ -11,6 +11,8 @@ import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
+import { WeatherIcon } from './WeatherIcon';
+import { useUnits } from '@/hooks/useUnits';
 
 interface SearchBarProps {
   onSearch: (city: string, lat?: number, lon?: number) => void;
@@ -28,6 +30,12 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (initialValue) {
@@ -125,18 +133,18 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-lg border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+            "relative w-full overflow-visible rounded-md border bg-card/60 backdrop-blur-md shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
         )}
       >
         <div className="relative flex items-center">
-            <SearchIconLucide className="absolute left-4 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+            <SearchIconLucide className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
-                className="block w-full h-14 pl-12 pr-24 text-base text-foreground bg-transparent border-0 rounded-lg placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-12 pl-10 pr-20 text-base text-foreground bg-transparent border-0 rounded-md placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
@@ -146,7 +154,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 text-muted-foreground hover:text-primary rounded-md"
+                    className="h-9 w-9 text-muted-foreground hover:text-primary rounded-md"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -164,14 +172,14 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     size="icon"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-10 w-10 rounded-md text-lg"
+                    className="h-9 w-9 rounded-md"
                 >
                     <SearchIconLucide className="h-5 w-5" />
                 </Button>
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-2 w-full rounded-lg bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+        <CommandList className="absolute top-full mt-2 w-full rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">
@@ -192,17 +200,23 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                   key={uniqueKey}
                   value={uniqueKey}
                   onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer text-base py-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
+                  className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                 >
                   <div className="flex items-center min-w-0">
                     <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <div className="flex flex-col items-start truncate">
                       <span className="font-medium text-foreground">{suggestion.name}</span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
                       </span>
                     </div>
                   </div>
+                   {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                    <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                      <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
+                      <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
                 </CommandItem>
               )
             })}

@@ -253,21 +253,16 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       return { suggestions: null, error: `Geocoding service failed: ${geoResult.error}` };
     }
 
-    const data = geoResult.data;
-    if (data.length === 0) {
-      return { suggestions: [], error: null };
-    }
-
-    const finalSuggestions: CitySuggestion[] = [];
+    let suggestionsWithoutWeather: CitySuggestion[] = [];
     const seenKeys = new Set<string>();
 
-    if (interpretationResult?.isSpecificLocation && data.length > 0) {
-      const topHit = data[0];
+    if (interpretationResult?.isSpecificLocation && geoResult.data.length > 0) {
+      const topHit = geoResult.data[0];
       const friendlyName = interpretationResult.locationName && interpretationResult.cityName
         ? `${interpretationResult.locationName}, ${interpretationResult.cityName}`
         : interpretationResult.cityName || topHit.name;
       
-      finalSuggestions.push({
+      suggestionsWithoutWeather.push({
         name: friendlyName,
         lat: topHit.lat,
         lon: topHit.lon,
@@ -278,11 +273,11 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
       const key = `${topHit.name}|${topHit.state || 'NO_STATE'}|${topHit.country}`;
       seenKeys.add(key);
     }
-
-    data.forEach((item: any) => {
+    
+    geoResult.data.forEach((item: any) => {
       const key = `${item.name}|${item.state || 'NO_STATE'}|${item.country}`;
       if (item.name && item.country && !seenKeys.has(key)) {
-        finalSuggestions.push({
+        suggestionsWithoutWeather.push({
           name: item.name,
           lat: item.lat,
           lon: item.lon,
@@ -291,6 +286,28 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         });
         seenKeys.add(key);
       }
+    });
+
+    if (suggestionsWithoutWeather.length === 0) {
+      return { suggestions: [], error: null };
+    }
+
+    // Fetch weather for each suggestion in parallel
+    const weatherPromises = suggestionsWithoutWeather.map(city => 
+      fetchCurrentWeather({ type: 'coords', lat: city.lat, lon: city.lon }, apiKeys)
+    );
+    const weatherResults = await Promise.allSettled(weatherPromises);
+    
+    const finalSuggestions = suggestionsWithoutWeather.map((city, index) => {
+        const weatherResult = weatherResults[index];
+        if (weatherResult.status === 'fulfilled' && weatherResult.value.data) {
+            return {
+                ...city,
+                temperature: weatherResult.value.data.temperature,
+                iconCode: weatherResult.value.data.iconCode,
+            };
+        }
+        return city; // Return city without weather data if fetch failed
     });
     
     cacheService.set(cacheKey, finalSuggestions);
