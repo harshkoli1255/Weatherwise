@@ -32,7 +32,12 @@
     --chart-4: 142.1 76.2% 36.3%; /* green */
     --chart-5: 24 9.8% 78%; /* gray */
     --radius: 0.5rem;
-    --gradient-start: 206 90% 94%;
+    
+    /* New background variables */
+    --bg-gradient-1: hsl(var(--primary) / 0.15);
+    --bg-gradient-2: hsl(var(--chart-2) / 0.1);
+    --bg-gradient-3: hsl(var(--chart-3) / 0.1);
+    --bg-gradient-4: hsl(var(--secondary) / 0.5);
   }
 
   .dark {
@@ -62,7 +67,12 @@
     --chart-3: 48 96% 72%; /* yellow */
     --chart-4: 142.1 70.6% 45.3%; /* green */
     --chart-5: 24 9.8% 38%; /* gray */
-    --gradient-start: 220 40% 10%;
+    
+    /* New background variables */
+    --bg-gradient-1: hsl(var(--primary) / 0.1);
+    --bg-gradient-2: hsl(var(--chart-2) / 0.05);
+    --bg-gradient-3: hsl(var(--secondary) / 0.2);
+    --bg-gradient-4: hsl(var(--background) / 0.5);
   }
 }
 
@@ -74,8 +84,13 @@
     @apply text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-color: hsl(var(--background));
-    background-image: linear-gradient(180deg, hsl(var(--gradient-start)) 0%, hsl(var(--background)) 100%);
+    background-image: 
+      radial-gradient(at 15% 25%, var(--bg-gradient-1) 0px, transparent 50%),
+      radial-gradient(at 85% 20%, var(--bg-gradient-2) 0px, transparent 50%),
+      radial-gradient(at 70% 85%, var(--bg-gradient-3) 0px, transparent 50%),
+      radial-gradient(at 25% 95%, var(--bg-gradient-4) 0px, transparent 50%);
     background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 }
 
