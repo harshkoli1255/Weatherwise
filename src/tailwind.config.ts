@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -86,15 +87,6 @@ export default {
           '0%, 100%': { transform: 'scale(1)', opacity: '0.9' },
           '50%': { transform: 'scale(1.03)', opacity: '1' },
         },
-        'map-pin-bob': {
-          '0%, 100%': { transform: 'translateY(-2px) scale(1.02)' },
-          '50%': { transform: 'translateY(2px) scale(1)' },
-        },
-        'radar-scan': {
-          '0%': { transform: 'scale(0.5)', opacity: '0' },
-          '50%': { transform: 'scale(1)', opacity: '1' },
-          '100%': { transform: 'scale(1.4)', opacity: '0' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -102,8 +94,6 @@ export default {
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'cloud-pulse': 'cloud-pulse 3s ease-in-out infinite',
-        'map-pin-bob': 'map-pin-bob 2.5s ease-in-out infinite',
-        'radar-scan': 'radar-scan 2s ease-out infinite',
       },
     },
   },
