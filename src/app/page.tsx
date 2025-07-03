@@ -83,10 +83,8 @@ function WeatherPageContent() {
             lat: result.data.lat,
             lon: result.data.lon,
         };
-        // Use the new hook to set and sync the last search
         setLastSearch(cityForStorage);
         try {
-            // CRITICAL FIX: Do not save the large AI image to localStorage.
             const dataForStorage = { ...result.data };
             delete dataForStorage.aiImageUrl;
             localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(dataForStorage));
@@ -146,7 +144,7 @@ function WeatherPageContent() {
         locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
     } catch (geoError: any) {
         console.warn(`Geolocation error: ${geoError.message}. Falling back to IP.`);
-        if (!isAutoLocate) { // Only toast on manual click
+        if (!isAutoLocate) {
             toast({
                 title: "Location via GPS failed",
                 description: "Falling back to IP-based location, which may be less accurate.",
@@ -180,10 +178,8 @@ function WeatherPageContent() {
     if (!isAutoLocate) setIsLocating(false);
   }, [performWeatherFetch, toast]);
   
-  // This effect runs only once on mount to determine initial state.
   useEffect(() => {
     const initializeWeather = () => {
-      // Priority 1: Instant restore from localStorage for quick refresh.
       try {
         const savedResult = localStorage.getItem(LAST_RESULT_KEY);
         if (savedResult) {
@@ -197,7 +193,6 @@ function WeatherPageContent() {
           localStorage.removeItem(LAST_RESULT_KEY);
       }
 
-      // Priority 2: Synced default location set by the user.
       if (defaultLocation) {
         console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
         setInitialSearchTerm(defaultLocation.name);
@@ -205,7 +200,6 @@ function WeatherPageContent() {
         return;
       }
 
-      // Priority 3: Synced last searched city.
       if (lastSearch) {
         console.log(`[Perf] Initializing with user's last search: ${lastSearch.name}`);
         setInitialSearchTerm(lastSearch.name);
@@ -213,7 +207,6 @@ function WeatherPageContent() {
         return;
       }
       
-      // Priority 4: Auto-detection for first-time users.
       handleLocate(true);
     };
 
@@ -221,7 +214,6 @@ function WeatherPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultLocation, lastSearch]);
 
-  // Listen for search events from other components (like the navbar)
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
         const citySuggestion = (event as CustomEvent<CitySuggestion>).detail;
@@ -303,7 +295,6 @@ function WeatherPageContent() {
       )}
       
       {!isLoadingDisplay && weatherState.data && (
-        // For signed-out users, show display without the save button
         <SignedOut>
              <WeatherDisplay
                 weatherData={weatherState.data}

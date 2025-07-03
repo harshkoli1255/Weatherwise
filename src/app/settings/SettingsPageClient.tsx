@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle, Clock, Settings as SettingsIcon } from 'lucide-react';
+import { ChevronRight, User, Bell, Palette, Info, Sun, Moon, Laptop, Thermometer, MapPin, XCircle, Settings as SettingsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { SignedIn } from '@clerk/nextjs';
 import { useTheme } from 'next-themes';

@@ -5,74 +5,83 @@
 
 @layer base {
   :root {
-    --background: 240 10% 98%;
-    --foreground: 240 10% 3.9%;
-    --card: 240 10% 98%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 240 10% 98%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --background: 220 20% 98%;
+    --foreground: 220 15% 10%;
+    
+    --card: 220 20% 98%;
+    --card-foreground: 220 15% 10%;
+    
+    --popover: 220 20% 98%;
+    --popover-foreground: 220 15% 10%;
+    
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 20% 98%;
+    
+    --secondary: 220 15% 96%;
+    --secondary-foreground: 220 15% 10%;
+    
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 10% 45%;
+    
+    --accent: 220 15% 96%;
+    --accent-foreground: 220 15% 10%;
+    
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 221.2 83.2% 53.3%;
+    --destructive-foreground: 210 20% 98%;
+
     --success: 142.1 76.2% 36.3%;
     --success-foreground: 355.7 100% 97.3%;
-    --chart-1: 221.2 83.2% 53.3%; /* primary */
+    
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 217.2 91.2% 59.8%;
+    
+    --radius: 0.8rem;
+
+    --chart-1: 217.2 91.2% 59.8%; /* primary */
     --chart-2: 198 93% 60%; /* cyan */
     --chart-3: 48 96% 62%; /* yellow */
     --chart-4: 142.1 76.2% 36.3%; /* green */
     --chart-5: 24 9.8% 78%; /* gray */
-    --radius: 0.5rem;
-    
-    /* New background variables */
-    --bg-gradient-1: hsl(var(--primary) / 0.15);
-    --bg-gradient-2: hsl(var(--chart-2) / 0.1);
-    --bg-gradient-3: hsl(var(--chart-3) / 0.1);
-    --bg-gradient-4: hsl(var(--secondary) / 0.5);
   }
 
   .dark {
-    --background: 240 6% 6%;
-    --foreground: 210 40% 98%;
-    --card: 240 5% 10%;
-    --card-foreground: 210 40% 98%;
-    --popover: 240 5% 8%;
-    --popover-foreground: 210 40% 98%;
+    --background: 220 15% 10%;
+    --foreground: 210 20% 98%;
+
+    --card: 220 15% 12%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 220 15% 10%;
+    --popover-foreground: 210 20% 98%;
+
     --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 4% 14%;
-    --input: 240 4% 14%;
-    --ring: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 220 15% 18%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 20% 98%;
+    
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 144 60% 9%;
+
+    --border: 220 15% 15%;
+    --input: 220 15% 15%;
+    --ring: 217.2 91.2% 59.8%;
+
     --chart-1: 217.2 91.2% 59.8%; /* primary */
     --chart-2: 198 93% 70%; /* cyan */
     --chart-3: 48 96% 72%; /* yellow */
     --chart-4: 142.1 70.6% 45.3%; /* green */
     --chart-5: 24 9.8% 38%; /* gray */
-    
-    /* New background variables */
-    --bg-gradient-1: hsl(var(--primary) / 0.1);
-    --bg-gradient-2: hsl(var(--chart-2) / 0.05);
-    --bg-gradient-3: hsl(var(--secondary) / 0.2);
-    --bg-gradient-4: hsl(var(--background) / 0.5);
   }
 }
 
@@ -84,12 +93,7 @@
     @apply text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-color: hsl(var(--background));
-    background-image: 
-      radial-gradient(at 15% 25%, var(--bg-gradient-1) 0px, transparent 50%),
-      radial-gradient(at 85% 20%, var(--bg-gradient-2) 0px, transparent 50%),
-      radial-gradient(at 70% 85%, var(--bg-gradient-3) 0px, transparent 50%),
-      radial-gradient(at 25% 95%, var(--bg-gradient-4) 0px, transparent 50%);
-    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath fill-rule='evenodd' d='M0 0h4v4H0V0zm4 4h4v4H4V4z'/%3E%3C/g%3E%3C/svg%3E");
     background-attachment: fixed;
   }
 }
@@ -99,12 +103,11 @@
     @apply bg-card/60 backdrop-blur-xl;
   }
 
-  /* Custom horizontal scrollbar - visually hidden */
   .horizontal-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   .horizontal-scrollbar::-webkit-scrollbar {
-    display: none; /* Safari and Chrome */
+    display: none;
   }
 }

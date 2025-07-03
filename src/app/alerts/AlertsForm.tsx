@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -48,7 +49,6 @@ const daysOfWeek = [
   { id: 0, label: 'Sun', name: 'sunday' },
 ];
 
-// Generate time options consistently on both server and client to avoid hydration errors.
 const hourOptions = Array.from({ length: 24 }, (_, i) => {
     const hour = i % 12 === 0 ? 12 : i % 12;
     const ampm = i < 12 ? 'AM' : 'PM';
@@ -72,7 +72,6 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [isForceSending, startForceSendTransition] = useTransition();
   const { pending: isSaving } = useFormStatus();
 
-  // State to prevent hydration mismatch from client-side only logic
   const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
@@ -89,10 +88,8 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   }, [saveState, toast]);
 
   useEffect(() => {
-    // Wait until component has mounted on the client to run this effect
     if (!hasMounted) return;
 
-    // On the client, if schedule is enabled but no timezone is set, auto-detect it.
     if (scheduleEnabled && !timezone) {
         try {
             const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
