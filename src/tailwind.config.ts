@@ -82,42 +82,12 @@ export default {
             height: '0',
           },
         },
-        'pulse-dot-loader': {
-          '0%, 100%': { opacity: '0.3' },
-          '50%': { opacity: '1' },
-        },
-        'glow-pulse': {
-          '0%, 100%': { opacity: '0.5', transform: 'scale(0.95)' },
-          '50%': { opacity: '1', transform: 'scale(1.05)' },
-        },
-        'cloud-drift-back': {
-            '0%, 100%': { transform: 'translate(0, 0)' },
-            '50%': { transform: 'translate(3px, -2px)' },
-        },
-        'cloud-drift-front': {
-            '0%, 100%': { transform: 'translate(0, 0)' },
-            '50%': { transform: 'translate(-4px, 2px)' },
-        },
-        'map-pin-bob': {
-          '0%, 100%': { transform: 'translateY(-5%)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
-          '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
-        },
-        'radar-scan': {
-          '0%': { transform: 'scale(0.2)', opacity: '0.8' },
-          '80%, 100%': { transform: 'scale(1.5)', opacity: '0' },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'spin': 'spin 1s linear infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
-        'pulse-dot-loader': 'pulse-dot-loader 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'glow-pulse': 'glow-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'cloud-drift-back': 'cloud-drift-back 8s ease-in-out infinite',
-        'cloud-drift-front': 'cloud-drift-front 7s ease-in-out infinite',
-        'radar-scan': 'radar-scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'map-pin-bob': 'map-pin-bob 1.5s infinite',
       },
     },
   },

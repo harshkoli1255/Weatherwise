@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
@@ -9,8 +10,6 @@ import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { WeatherIcon } from './WeatherIcon';
-import { useUnits } from '@/hooks/useUnits';
 import { Skeleton } from './ui/skeleton';
 
 interface SearchBarProps {
@@ -29,12 +28,6 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { convertTemperature, getTemperatureUnitSymbol } = useUnits();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     if (initialValue) {
@@ -77,7 +70,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         if (inputValue && isSuggestionsOpen) {
             fetchSuggestions(inputValue);
         }
-    }, 300); // Debounce time
+    }, 200);
 
     return () => {
         clearTimeout(handler);
@@ -86,9 +79,9 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
 
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
-    setInputValue(suggestion.name); // Use the clean name in the input
+    setInputValue(suggestion.name);
     setIsSuggestionsOpen(false);
-    onSearch(suggestion.name, suggestion.lat, suggestion.lon); // Search with precise coordinates
+    onSearch(suggestion.name, suggestion.lat, suggestion.lon);
     inputRef.current?.blur();
   };
 
@@ -132,7 +125,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm shadow-md transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:shadow-lg"
+            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
         )}
       >
         <div className="relative flex items-center">
@@ -173,15 +166,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     aria-label="Search weather"
                     className="h-12 w-12 rounded-full text-lg"
                 >
-                    {isSearchingWeather ? (
-                       <div className="flex items-center justify-center space-x-1.5" aria-label="Searching...">
-                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.1s' }}></span>
-                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.2s' }}></span>
-                           <span className="h-2 w-2 bg-primary-foreground rounded-full animate-pulse-dot-loader" style={{ animationDelay: '0.3s' }}></span>
-                       </div>
-                    ) : (
-                        <SearchIconLucide className="h-6 w-6" />
-                    )}
+                    <SearchIconLucide className="h-6 w-6" />
                 </Button>
             </div>
         </div>
@@ -218,18 +203,6 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                       </span>
                     </div>
                   </div>
-                   {typeof suggestion.temperature === 'number' && suggestion.iconCode ? (
-                    <div className="flex items-center gap-2 text-base ml-4 flex-shrink-0">
-                      {isMounted ? (
-                        <>
-                          <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
-                          <WeatherIcon iconCode={suggestion.iconCode} className="h-6 w-6 text-muted-foreground" />
-                        </>
-                      ) : (
-                        <Skeleton className="h-6 w-20" />
-                      )}
-                    </div>
-                  ) : null}
                 </CommandItem>
               )
             })}
