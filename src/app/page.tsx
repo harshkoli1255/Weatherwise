@@ -86,7 +86,10 @@ function WeatherPageContent() {
         setLastSearch(cityForStorage);
         try {
             const dataForStorage = { ...result.data };
-            delete dataForStorage.aiImageUrl;
+            // Do not store large image data URIs in localStorage
+            if (dataForStorage.aiImageUrl && dataForStorage.aiImageUrl.startsWith('data:')) {
+                delete dataForStorage.aiImageUrl;
+            }
             localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(dataForStorage));
         } catch (e) {
             console.warn("Could not save last result to localStorage.");
@@ -305,7 +308,7 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && (weatherState.error || weatherState.cityNotFound) && (
-           <Card className="w-full max-w-2xl mt-4 border-destructive/50 bg-destructive/10 backdrop-blur-lg shadow-xl p-6 sm:p-8 rounded-xl">
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-destructive/50 shadow-2xl p-6 sm:p-8 rounded-xl">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
                     {weatherState.cityNotFound ?

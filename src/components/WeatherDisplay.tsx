@@ -394,7 +394,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
   };
   
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2">
           <div className="w-8 sm:w-9" /> 
