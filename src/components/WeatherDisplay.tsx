@@ -1,4 +1,3 @@
-
 import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
@@ -241,7 +240,7 @@ const aqiScale = [
   },
   {
     aqi: 2,
-    level: "Satisfactory",
+    level: "Fair",
     range: "51-100",
     impact: "May cause minor breathing discomfort to sensitive people.",
     colorClass: "text-yellow-500",
@@ -250,7 +249,7 @@ const aqiScale = [
   },
   {
     aqi: 3,
-    level: "Moderately Polluted",
+    level: "Moderate",
     range: "101-200",
     impact: "May cause breathing discomfort to people with lung disease, children, and older adults.",
     colorClass: "text-orange-500",
@@ -291,9 +290,9 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
                 : "bg-muted/50 border-transparent"
             )}
           >
-            <div className="flex items-center w-full sm:w-1/3 mb-2 sm:mb-0">
-              <span className={cn("text-base font-bold w-32", item.colorClass)}>{item.level}</span>
-              <span className="text-sm text-muted-foreground font-mono">({item.range})</span>
+            <div className="flex items-baseline w-full sm:w-1/3 mb-2 sm:mb-0">
+              <span className={cn("text-base font-bold w-24 shrink-0", item.colorClass)}>{item.level}</span>
+              <span className="text-xs text-muted-foreground font-mono">({item.range})</span>
             </div>
             <p className="w-full sm:w-2/3 text-sm text-foreground/80">{item.impact}</p>
           </div>
@@ -311,7 +310,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
   const aqiInfo = useMemo(() => {
     if (!weatherData.airQuality) return null;
-    return aqiScale.find(item => item.level === weatherData.airQuality?.level) || null;
+    return aqiScale.find(item => item.aqi === weatherData.airQuality?.aqi) || null;
   }, [weatherData.airQuality]);
 
   const aqiComponents = weatherData.airQuality?.components;
@@ -610,17 +609,17 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
                   {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
                       <InfoCard icon={Sparkles} title="Key Insights" animationDelay="250ms">
-                          <ul className="space-y-3">
+                          <div className="space-y-3">
                             {weatherData.aiInsights.map((insight, index) => (
-                                <li key={index} className="flex items-start rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60 animate-in fade-in-up" style={{ animationDelay: `${index * 100 + 100}ms`}}>
+                                <div key={index} className="flex items-start rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60 animate-in fade-in-up" style={{ animationDelay: `${index * 100 + 100}ms`}}>
                                 <Sparkles className="h-4 w-4 text-primary/90 mr-3 mt-0.5 flex-shrink-0" />
                                 <span
                                     className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary"
                                     dangerouslySetInnerHTML={{ __html: insight }}
                                 />
-                                </li>
+                                </div>
                             ))}
-                          </ul>
+                          </div>
                       </InfoCard>
                   )}
 
@@ -727,10 +726,12 @@ function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps
     return (
         <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
             <div className="flex flex-row items-center mb-3">
-                <Icon className="h-5 w-5 mr-2.5 text-primary flex-shrink-0" />
+                 <div className="p-2 bg-primary/10 rounded-md mr-3">
+                    <Icon className="h-5 w-5 text-primary flex-shrink-0" />
+                </div>
                 <h3 className="text-base font-headline font-semibold text-primary">{title}</h3>
             </div>
-            <div className="pl-[2.125rem]">
+            <div className="space-y-3">
                 {children}
             </div>
         </div>

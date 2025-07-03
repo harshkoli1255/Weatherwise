@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
@@ -125,7 +124,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-full border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+            "relative w-full overflow-visible rounded-xl border bg-background/80 backdrop-blur-sm shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
         )}
       >
         <div className="relative flex items-center">
@@ -136,7 +135,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
-                className="block w-full h-16 pl-14 pr-32 text-lg text-foreground bg-transparent border-0 rounded-full placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-16 pl-14 pr-32 text-lg text-foreground bg-transparent border-0 rounded-xl placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
@@ -146,7 +145,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-12 w-12 text-muted-foreground hover:text-primary rounded-full"
+                    className="h-12 w-12 text-muted-foreground hover:text-primary rounded-lg"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -164,7 +163,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                     size="icon"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-12 w-12 rounded-full text-lg"
+                    className="h-12 w-12 rounded-lg text-lg"
                 >
                     <SearchIconLucide className="h-6 w-6" />
                 </Button>
