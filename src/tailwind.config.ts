@@ -95,6 +95,10 @@ export default {
           '0%, 100%': { transform: 'translateY(-5%)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
           '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
         },
+        'gradient-bg': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -104,6 +108,7 @@ export default {
         'cloud-pulse': 'cloud-pulse 3s ease-in-out infinite',
         'radar-scan': 'radar-scan 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'map-pin-bob': 'map-pin-bob 1.5s infinite',
+        'gradient-bg': 'gradient-bg 20s ease infinite',
       },
     },
   },
