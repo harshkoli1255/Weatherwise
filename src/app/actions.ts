@@ -35,45 +35,65 @@ export async function fetchWeatherAndSummaryAction(
     
     let locationIdentifier: LocationIdentifier;
     let userFriendlyDisplayName: string | undefined = params.city;
+    let geoResult: { data: any[] | null; error: string | null; status?: number };
+
 
     // --- Step 1: Resolve the query into precise coordinates ---
     if (typeof params.lat === 'number' && typeof params.lon === 'number') {
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
+      // Use the provided city name if available, otherwise it will be resolved later.
       userFriendlyDisplayName = params.city; 
       console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
     } else if (params.city) {
       let queryForGeocoding = params.city;
       
-      if (isAiConfigured()) {
-        try {
-          console.log(`[AI] Interpreting search query for geocoding: "${params.city}"`);
-          const interpretation = await interpretSearchQuery({ query: params.city });
-          queryForGeocoding = interpretation.cityName || interpretation.searchQueryForApi;
-          
-          if (interpretation.isSpecificLocation && interpretation.locationName && interpretation.cityName) {
-            userFriendlyDisplayName = `${interpretation.locationName}, ${interpretation.cityName}`;
-          } else {
-            userFriendlyDisplayName = interpretation.cityName || interpretation.searchQueryForApi || params.city;
-          }
-          console.log(`[AI] Geocoding city: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
+      // --- Performance Optimization: Attempt direct geocoding first. ---
+      console.log(`[Perf] Attempting direct geocoding for: "${queryForGeocoding}"`);
+      geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
 
+      // --- Fallback to AI: If direct geocoding fails and AI is available, use AI to interpret the query. ---
+      if ((!geoResult.data || geoResult.data.length === 0) && isAiConfigured()) {
+        console.log(`[Perf] Direct geocoding failed. Falling back to AI query interpretation.`);
+        try {
+          const interpretation = await interpretSearchQuery({ query: params.city });
+          const interpretedQuery = interpretation.cityName || interpretation.searchQueryForApi;
+
+          if (interpretedQuery) {
+            queryForGeocoding = interpretedQuery;
+            if (interpretation.isSpecificLocation && interpretation.locationName && interpretation.cityName) {
+              userFriendlyDisplayName = `${interpretation.locationName}, ${interpretation.cityName}`;
+            } else {
+              userFriendlyDisplayName = interpretation.cityName || interpretation.searchQueryForApi || params.city;
+            }
+            console.log(`[AI] Retrying geocoding with: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
+            geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
+          } else {
+             // AI didn't return a usable query, so we stick with the failed geoResult
+             console.log(`[AI] Interpretation did not yield a new query.`);
+          }
         } catch (err) {
-          console.error("AI search interpretation failed, falling back to original query:", err);
+          console.error("AI search interpretation failed, proceeding with original geocode failure:", err);
         }
       }
-
-      const geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
       
+      // --- Final Location Check: After attempting geocoding (and AI fallback), check if we have a valid location. ---
       if (geoResult.error || !geoResult.data || geoResult.data.length === 0) {
         console.error("Geocoding API error:", { status: geoResult.status, error: geoResult.error });
-        return { data: null, error: `Could not find a valid location for "${userFriendlyDisplayName}". Please check your search term.`, cityNotFound: true };
+        const finalDisplayName = userFriendlyDisplayName || params.city;
+        return { data: null, error: `Could not find a valid location for "${finalDisplayName}". Please check your search term.`, cityNotFound: true };
       }
       
       const geoData = geoResult.data[0];
       const resolvedCoords = { lat: geoData.lat, lon: geoData.lon };
-      console.log(`[Geocoding] Successfully resolved "${queryForGeocoding}" to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}`);
       locationIdentifier = { type: 'coords', ...resolvedCoords };
       
+      // If we didn't get a friendly name from the AI, use the one from the successful geocoding.
+      // This ensures landmarks are named correctly.
+      if (!userFriendlyDisplayName || userFriendlyDisplayName === params.city) {
+          userFriendlyDisplayName = geoData.name;
+      }
+      console.log(`[Geocoding] Successfully resolved to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}. Display name: "${userFriendlyDisplayName}"`);
+
     } else {
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
@@ -82,10 +102,12 @@ export async function fetchWeatherAndSummaryAction(
     const cacheKey = `weather-${locationIdentifier.lat.toFixed(4)}-${locationIdentifier.lon.toFixed(4)}`;
     const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
     if (cachedData) {
+      // Ensure the display name is updated even when serving from cache
       cachedData.city = userFriendlyDisplayName || cachedData.city;
+      console.log(`[Cache] HIT for key "${cacheKey}". Returning cached data for "${cachedData.city}".`);
       return { data: cachedData, error: null, cityNotFound: false };
     }
-    console.log(`[Cache] No valid cache entry found for key "${cacheKey}". Fetching fresh data.`);
+    console.log(`[Cache] MISS for key "${cacheKey}". Fetching fresh data.`);
 
     // --- Step 3: Fetch all data in parallel ---
     const [weatherResult, hourlyForecastResult, airQualityResult] = await Promise.all([
