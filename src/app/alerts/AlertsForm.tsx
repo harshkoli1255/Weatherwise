@@ -65,9 +65,11 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
   const [city, setCity] = useState(preferences.city);
   const [timezone, setTimezone] = useState(preferences.timezone ?? '');
   
-  const [scheduleEnabled, setScheduleEnabled] = useState(preferences.schedule?.enabled ?? false);
-  const [selectedDays, setSelectedDays] = useState<number[]>(preferences.schedule?.days ?? []);
-  
+  const [scheduleEnabled, setScheduleEnabled] = useState(preferences.schedule.enabled);
+  const [selectedDays, setSelectedDays] = useState<number[]>(preferences.schedule.days);
+  const [startHour, setStartHour] = useState(preferences.schedule.startHour);
+  const [endHour, setEndHour] = useState(preferences.schedule.endHour);
+
   const [isTesting, startTestTransition] = useTransition();
   const [isForceSending, startForceSendTransition] = useTransition();
   const { pending: isSaving } = useFormStatus();
@@ -141,6 +143,14 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
     );
   };
   
+  const handleStartHourChange = (value: string) => {
+    setStartHour(parseInt(value, 10));
+  };
+  
+  const handleEndHourChange = (value: string) => {
+    setEndHour(parseInt(value, 10));
+  };
+
   const canTest = alertsEnabled && city.trim().length > 0;
   const isAnyActionPending = isTesting || isForceSending || isSaving;
 
@@ -285,23 +295,23 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                       <Label htmlFor="scheduleStartHour">Start Time</Label>
-                      <Select name="scheduleStartHour" defaultValue={preferences.schedule?.startHour.toString()}>
+                      <Select name="scheduleStartHour" value={startHour.toString()} onValueChange={handleStartHourChange}>
                           <SelectTrigger id="scheduleStartHour" className="mt-2">
                               <SelectValue placeholder="Select start time" />
                           </SelectTrigger>
                           <SelectContent>
-                              {hourOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                              {hourOptions.map(opt => <SelectItem key={`start-${opt.value}`} value={opt.value} disabled={parseInt(opt.value, 10) === endHour}>{opt.label}</SelectItem>)}
                           </SelectContent>
                       </Select>
                   </div>
                   <div>
                       <Label htmlFor="scheduleEndHour">End Time</Label>
-                      <Select name="scheduleEndHour" defaultValue={preferences.schedule?.endHour.toString()}>
+                      <Select name="scheduleEndHour" value={endHour.toString()} onValueChange={handleEndHourChange}>
                           <SelectTrigger id="scheduleEndHour" className="mt-2">
                               <SelectValue placeholder="Select end time" />
                           </SelectTrigger>
                           <SelectContent>
-                              {hourOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                              {hourOptions.map(opt => <SelectItem key={`end-${opt.value}`} value={opt.value} disabled={parseInt(opt.value, 10) === startHour}>{opt.label}</SelectItem>)}
                           </SelectContent>
                       </Select>
                   </div>
