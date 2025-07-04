@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useTransition, useRef } from '
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIconLucide, MapPin, LocateFixed } from 'lucide-react';
+import { Search as SearchIconLucide, MapPin, LocateFixed, Frown } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,22 @@ interface SearchBarProps {
   onLocate: () => void;
   isLocating: boolean;
 }
+
+const SuggestionItemSkeleton = () => (
+    <div className="flex items-center justify-between px-3 py-2.5">
+      <div className="flex items-center gap-3 min-w-0">
+        <Skeleton className="h-5 w-5 rounded-md" />
+        <div className="flex flex-col gap-1.5 w-32">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-5 w-8" />
+        <Skeleton className="h-5 w-5 rounded-full" />
+      </div>
+    </div>
+);
 
 export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate, isLocating }: SearchBarProps) {
   const [inputValue, setInputValue] = useState(initialValue || '');
@@ -180,47 +196,51 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         </div>
         {isSuggestionsOpen && (
         <CommandList className="absolute top-full mt-2 left-0 right-0 rounded-lg bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
-            {isLoadingSuggestions && (
-            <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
-                <span className="relative flex h-3 w-3 mr-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                </span>
-                 Loading suggestions...
-            </div>
-            )}
-            {!isLoadingSuggestions && suggestions.length === 0 && inputValue.length > 0 && (
-            <CommandEmpty>No cities found for &quot;{inputValue}&quot;.</CommandEmpty>
-            )}
-            <CommandGroup>
-            {suggestions.map((suggestion) => {
-              const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
-              return (
-                <CommandItem
-                  key={uniqueKey}
-                  value={uniqueKey}
-                  onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer text-sm py-2.5 px-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
-                >
-                  <div className="flex items-center min-w-0">
-                    <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    <div className="flex flex-col items-start truncate">
-                      <span className="font-medium text-foreground">{suggestion.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
-                      </span>
+            {isLoadingSuggestions ? (
+              <div className="p-1">
+                <SuggestionItemSkeleton />
+                <SuggestionItemSkeleton />
+                <SuggestionItemSkeleton />
+              </div>
+            ) : suggestions.length === 0 && inputValue.length > 0 ? (
+                <CommandEmpty>
+                    <div className="py-6 text-center text-sm flex flex-col items-center gap-2">
+                        <Frown className="h-8 w-8 text-muted-foreground/50" />
+                        <p className="font-semibold text-foreground">No results found</p>
+                        <p className="text-muted-foreground">Could not find a city matching "{inputValue}".</p>
                     </div>
-                  </div>
-                   {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
-                    <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
-                      <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
-                      <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                </CommandEmpty>
+            ) : (
+                <CommandGroup>
+                {suggestions.map((suggestion) => {
+                const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
+                return (
+                    <CommandItem
+                    key={uniqueKey}
+                    value={uniqueKey}
+                    onSelect={() => handleSelectSuggestion(suggestion)}
+                    className="cursor-pointer text-sm py-2.5 px-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between transition-colors duration-150"
+                    >
+                    <div className="flex items-center min-w-0">
+                        <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex flex-col items-start truncate">
+                        <span className="font-medium text-foreground">{suggestion.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                            {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
+                        </span>
+                        </div>
                     </div>
-                  )}
-                </CommandItem>
-              )
-            })}
-            </CommandGroup>
+                    {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                        <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                        <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
+                        <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    )}
+                    </CommandItem>
+                )
+                })}
+                </CommandGroup>
+            )}
         </CommandList>
         )}
       </Command>
