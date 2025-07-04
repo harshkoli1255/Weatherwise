@@ -435,8 +435,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
 
       <CardContent className="p-0 pb-4">
         <Tabs defaultValue="forecast" className="w-full">
-            <div className="px-4 sm:px-6 pt-4">
-                <TabsList className="grid w-full grid-cols-3">
+            <div className="flex justify-center px-4 sm:px-6 pt-4">
+                <TabsList>
                     <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5 sm:gap-2">
                         <AreaChartIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                         <span className="truncate">Forecast</span>
