@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
-import { CloudSun, Menu, Settings, Bookmark } from 'lucide-react';
+import { CloudSun, Menu, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import {
@@ -21,17 +20,9 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SavedLocationsDropdown } from './SavedLocationsDropdown';
-import { useSavedLocations } from '@/hooks/useSavedLocations';
-import { useEffect, useState } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { savedLocations } = useSavedLocations();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const navItems = [
     { href: '/', label: 'Home' },

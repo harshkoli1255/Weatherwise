@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
@@ -151,13 +150,8 @@ export function SavedLocationsDropdown() {
                     <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="relative gap-2">
-                                <Bookmark className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
+                                <Bookmark className={cn("h-5 w-5 transition-colors duration-300", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
                                 <span className="hidden md:inline">Saved</span>
-                                {isMounted && savedLocations.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                                        {savedLocations.length}
-                                    </span>
-                                )}
                             </Button>
                         </DropdownMenuTrigger>
                     </TooltipTrigger>
@@ -207,7 +201,7 @@ export function SavedLocationsDropdown() {
                 <>
                     <DropdownMenuItem
                         onSelect={(e) => e.preventDefault()}
-                        className="focus:bg-transparent text-muted-foreground"
+                        className="focus:bg-transparent text-muted-foreground hover:bg-transparent"
                     >
                         <div className="flex items-center space-x-3 p-1">
                             <Checkbox
@@ -242,7 +236,7 @@ export function SavedLocationsDropdown() {
                                 <DropdownMenuItem
                                     key={cityKey}
                                     className={cn(
-                                        "flex justify-between items-center p-2 cursor-pointer transition-colors focus:bg-accent rounded-md m-1",
+                                        "flex justify-between items-center p-2 cursor-pointer transition-colors focus:bg-accent hover:bg-accent rounded-md m-1",
                                         isSelected && "bg-primary/10"
                                     )}
                                     onSelect={(e) => {
