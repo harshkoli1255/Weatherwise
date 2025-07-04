@@ -433,10 +433,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         <CardDescription className="text-center text-base capitalize text-muted-foreground mt-1 sm:mt-2">{weatherData.description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="p-0 pb-2">
+      <CardContent className="p-0 pb-4">
         <Tabs defaultValue="forecast" className="w-full">
             <div className="px-4 pt-4">
-                <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-11 sm:h-12">
+                <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm">
                     <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-2">
                         <AreaChartIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                         <span>Forecast</span>
