@@ -607,42 +607,44 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                         dangerouslySetInnerHTML={{ __html: weatherData.aiSummary }}
                       />
                   </InfoCard>
-
-                  {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
-                      <InfoCard icon={Sparkles} title="Key Insights" animationDelay="250ms">
-                          <div className="space-y-3">
-                            {weatherData.aiInsights.map((insight, index) => (
-                                <div key={index} className="flex items-start rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60 animate-in fade-in-up" style={{ animationDelay: `${index * 100 + 100}ms`}}>
-                                <Sparkles className="h-4 w-4 text-primary/90 mr-3 mt-0.5 flex-shrink-0" />
-                                <span
-                                    className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary"
-                                    dangerouslySetInnerHTML={{ __html: insight }}
-                                />
-                                </div>
-                            ))}
-                          </div>
-                      </InfoCard>
-                  )}
-
-                  {weatherData.activitySuggestion && (
-                      <InfoCard icon={Lightbulb} title="Activity Suggestion" animationDelay="350ms">
-                        <div
-                            className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
-                            dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
-                        />
-                        {weatherData.aiImageUrl && (
-                            <div className="mt-4 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
-                                <Image
-                                    src={weatherData.aiImageUrl}
-                                    alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
-                                    width={600}
-                                    height={400}
-                                    className="w-full h-auto aspect-[16/9] object-cover"
-                                />
+                  
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {weatherData.aiInsights && weatherData.aiInsights.length > 0 && (
+                        <InfoCard icon={Sparkles} title="Key Insights" animationDelay="250ms">
+                            <div className="space-y-3">
+                              {weatherData.aiInsights.map((insight, index) => (
+                                  <div key={index} className="flex items-start rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60 animate-in fade-in-up" style={{ animationDelay: `${index * 100 + 100}ms`}}>
+                                  <Sparkles className="h-4 w-4 text-primary/90 mr-3 mt-0.5 flex-shrink-0" />
+                                  <span
+                                      className="text-sm text-foreground/90 flex-1 [&_strong]:font-bold [&_strong]:text-primary"
+                                      dangerouslySetInnerHTML={{ __html: insight }}
+                                  />
+                                  </div>
+                              ))}
                             </div>
-                        )}
-                      </InfoCard>
-                  )}
+                        </InfoCard>
+                    )}
+
+                    {weatherData.activitySuggestion && (
+                        <InfoCard icon={Lightbulb} title="Activity Suggestion" animationDelay="350ms">
+                          <div
+                              className="text-sm text-foreground/90 leading-relaxed [&_strong]:font-bold [&_strong]:text-primary"
+                              dangerouslySetInnerHTML={{ __html: weatherData.activitySuggestion }}
+                          />
+                          {weatherData.aiImageUrl && (
+                              <div className="mt-4 animate-in fade-in zoom-in-95 overflow-hidden rounded-md shadow-md border border-border/30">
+                                  <Image
+                                      src={weatherData.aiImageUrl}
+                                      alt={`AI-generated image for ${weatherData.activitySuggestion} in ${weatherData.city}`}
+                                      width={600}
+                                      height={400}
+                                      className="w-full h-auto aspect-[16/9] object-cover"
+                                  />
+                              </div>
+                          )}
+                        </InfoCard>
+                    )}
+                  </div>
               </TabsContent>
               
               <TabsContent value="health" className="space-y-4">
@@ -725,7 +727,7 @@ interface InfoCardProps {
 
 function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps) {
     return (
-        <div className="p-3 sm:p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
+        <div className="h-full p-3 sm:p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up transition-all duration-300 hover:border-primary/40 hover:scale-[1.02] hover:bg-muted/60" style={{ animationDelay }}>
             <div className="flex flex-row items-center mb-4">
                  <div className="p-2 bg-primary/10 rounded-lg mr-3">
                     <Icon className="h-5 w-5 text-primary flex-shrink-0" />
