@@ -13,6 +13,10 @@ import {
   WeatherImageOutputSchema,
 } from '@/lib/types';
 
+// A simple in-memory cache for failing API keys for image generation.
+const keyFailureTimestamps = new Map<string, number>();
+const KEY_FAILURE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 const generateWeatherImageFlow = ai.defineFlow(
   {
     name: 'generateWeatherImageFlow',
@@ -38,27 +42,73 @@ Instructions for the AI:
 
     console.log(`[AI/Image] Generating image with prompt: "${imagePrompt}"`);
     
-    try {
-        const { media } = await ai.generate({
-          model: 'googleai/gemini-2.0-flash-preview-image-generation',
-          prompt: imagePrompt,
-          config: {
-            // Per documentation, both TEXT and IMAGE are required for this model.
-            responseModalities: ['TEXT', 'IMAGE'],
-          },
-        });
-        
-        if (!media?.url) {
-            console.warn(`[AI/Image] Generation returned no media object for prompt: "${imagePrompt}"`);
-            return { imageUrl: '' };
-        }
-
-        return { imageUrl: media.url };
-    } catch(err) {
-        console.error(`[AI/Image] Image generation flow failed for city ${input.city}.`, err);
-        // Return an empty URL on failure so the UI can handle it gracefully.
+    const allApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+    if (allApiKeys.length === 0) {
+        console.error("[AI/Image] No Gemini API keys are configured. Cannot generate image.");
         return { imageUrl: '' };
     }
+
+    let lastError: any = new Error('All Gemini API keys failed for image generation.');
+
+    const now = Date.now();
+    const availableKeys = allApiKeys.filter(key => {
+        const failureTime = keyFailureTimestamps.get(key);
+        if (!failureTime) return true;
+        const isExpired = (now - failureTime > KEY_FAILURE_TTL_MS);
+        if (isExpired) {
+            keyFailureTimestamps.delete(key);
+        }
+        return isExpired;
+    });
+
+    if (availableKeys.length === 0) {
+        console.warn(`[AI/Image] All API keys are temporarily unavailable due to recent failures.`);
+        return { imageUrl: '' };
+    }
+
+    for (const apiKey of availableKeys) {
+        try {
+            console.log(`[AI/Image] Attempting image generation with a key.`);
+            const { media } = await ai.generate({
+              model: 'googleai/gemini-2.0-flash-preview-image-generation',
+              prompt: imagePrompt,
+              config: {
+                // Per documentation, both TEXT and IMAGE are required for this model.
+                responseModalities: ['TEXT', 'IMAGE'],
+                apiKey,
+              },
+            });
+            
+            if (!media?.url) {
+                lastError = new Error("Generation returned no media object.");
+                console.warn(`[AI/Image] Generation returned no media object.`);
+                continue;
+            }
+            
+            console.log(`[AI/Image] Successfully generated image.`);
+            return { imageUrl: media.url };
+
+        } catch(err) {
+            lastError = err;
+            const errorMessage = (err.message || '').toLowerCase();
+            const isQuotaError = errorMessage.includes('quota') || errorMessage.includes('429');
+            const isInvalidKeyError = errorMessage.includes('api key not valid');
+
+            if (isQuotaError || isInvalidKeyError) {
+                console.warn(`[AI/Image] Key failed with ${isQuotaError ? 'quota' : 'invalid key'} error. Trying next key...`);
+                keyFailureTimestamps.set(apiKey, Date.now());
+                continue; // Try next available key
+            } else {
+                console.error(`[AI/Image] A non-key-related error occurred.`, err);
+                // Don't try other keys if it's a content filter or other non-recoverable error
+                break;
+            }
+        }
+    }
+
+    // If we get here, all keys failed.
+    console.error(`[AI/Image] Image generation flow failed with all keys. Last error:`, lastError);
+    return { imageUrl: '' };
   }
 );
 
