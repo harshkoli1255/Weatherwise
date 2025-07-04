@@ -43,6 +43,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoadingSuggestions, startSuggestionTransition] = useTransition();
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -62,9 +63,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
   const fetchSuggestions = useCallback((query: string) => {
     if (query.length < 1) {
       setSuggestions([]);
-      if (query.length === 0) {
-        setIsSuggestionsOpen(false);
-      }
+      setIsSuggestionsOpen(false);
       return;
     }
     startSuggestionTransition(async () => {
@@ -77,29 +76,27 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
           description: result.error,
         });
         setSuggestions([]);
-        setIsSuggestionsOpen(false);
       } else if (result.suggestions) {
         setSuggestions(result.suggestions.slice(0, 8));
         setIsSuggestionsOpen(true);
       } else {
         setSuggestions([]);
         console.error("Suggestion fetch error:", result.error);
-        setIsSuggestionsOpen(false);
       }
     });
   }, [toast]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-        if (inputValue && isSuggestionsOpen) {
+        if (inputValue && hasFocus) {
             fetchSuggestions(inputValue);
         }
-    }, 200);
+    }, 300);
 
     return () => {
         clearTimeout(handler);
     };
-}, [inputValue, fetchSuggestions, isSuggestionsOpen]);
+  }, [inputValue, hasFocus, fetchSuggestions]);
 
 
   const handleSelectSuggestion = (suggestion: CitySuggestion) => {
@@ -127,11 +124,19 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         setSuggestions([]);
     }
   };
+
+  const handleInputFocus = () => {
+    setHasFocus(true);
+    if (inputValue) {
+      setIsSuggestionsOpen(true);
+    }
+  };
   
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (commandRef.current && !commandRef.current.contains(event.target as Node)) {
         setIsSuggestionsOpen(false);
+        setHasFocus(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -158,7 +163,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
-                onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
+                onFocus={handleInputFocus}
                 placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
                 className="block w-full h-14 pl-12 pr-28 text-base text-foreground bg-transparent border-0 rounded-md placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
@@ -194,7 +199,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 </Button>
             </div>
         </div>
-        {isSuggestionsOpen && (
+        {isSuggestionsOpen && hasFocus && (
         <CommandList className="absolute top-full mt-2 left-0 right-0 rounded-lg bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions ? (
               <div className="p-1">
