@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertsForm } from './AlertsForm';
 import { getAlertPreferencesAction } from './actions';
 import type { AlertPreferences } from '@/lib/types';
@@ -16,28 +16,70 @@ export function AlertsPageClient() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        const result = await getAlertPreferencesAction();
-        if (result.error || !result.preferences) {
-          throw new Error(result.error || 'Could not load your preferences.');
-        }
+  const fetchPreferences = useCallback(async (isInitialLoad = false) => {
+    if (isInitialLoad) {
+      setIsLoading(true);
+    }
+    try {
+      const result = await getAlertPreferencesAction();
+      if (result.error || !result.preferences) {
+        throw new Error(result.error || 'Could not load your preferences.');
+      }
+      
+      // Deep comparison to see if an update is needed.
+      // This prevents unnecessary re-renders and toast notifications if the data is the same.
+      const hasChanged = JSON.stringify(preferences) !== JSON.stringify(result.preferences);
+
+      if (hasChanged) {
         setPreferences(result.preferences);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+        // Only show a toast for updates that happen *after* the initial load.
+        if (!isInitialLoad) {
+          toast({
+            title: "Settings Synced",
+            description: "Your alert preferences have been updated from another device.",
+            variant: "success"
+          });
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+      if (isInitialLoad) {
         setError(message);
         toast({
             variant: 'destructive',
             title: 'Error Loading Preferences',
             description: message,
         })
-      } finally {
+      } else {
+        // Don't show an error toast for background poll failures, just log it.
+        console.error("Error during background preferences sync:", message);
+      }
+    } finally {
+      if (isInitialLoad) {
         setIsLoading(false);
       }
-    };
-    fetchPreferences();
-  }, [toast]);
+    }
+  }, [toast, preferences]);
+
+
+  // Initial fetch
+  useEffect(() => {
+    fetchPreferences(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+  
+  // Set up polling for real-time updates
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // Only poll if the document is visible to save resources
+      if (document.visibilityState === 'visible') {
+        fetchPreferences(false);
+      }
+    }, 15000); // Poll every 15 seconds for updates
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [fetchPreferences]);
+
 
   if (isLoading) {
     return <AlertsFormSkeleton />;
