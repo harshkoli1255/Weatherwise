@@ -19,7 +19,7 @@ function isAiConfigured() {
 }
 
 export async function fetchWeatherAndSummaryAction(
-  params: { city?: string; lat?: number; lon?: number }
+  params: { city?: string; lat?: number; lon?: number; forceRefresh?: boolean }
 ): Promise<{ data: WeatherSummaryData | null; error: string | null; cityNotFound: boolean }> {
   try {
     const openWeatherApiKeysString = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEYS;
@@ -100,6 +100,11 @@ export async function fetchWeatherAndSummaryAction(
 
     // --- Step 2: Check cache using the resolved coordinates ---
     const cacheKey = `weather-${locationIdentifier.lat.toFixed(4)}-${locationIdentifier.lon.toFixed(4)}`;
+    
+    if (params.forceRefresh) {
+        cacheService.clear(cacheKey);
+    }
+    
     const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
     if (cachedData) {
       // Ensure the display name is updated even when serving from cache

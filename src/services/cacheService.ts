@@ -24,7 +24,6 @@ function get<T>(key: string): T | null {
   const entry = cache.get(key);
 
   if (!entry) {
-    console.log(`[Cache] MISS for key: ${key}`);
     return null;
   }
 
@@ -53,7 +52,18 @@ function set<T>(key: string, data: T): void {
   console.log(`[Cache] SET for key: ${key}. Will expire in ${DEFAULT_TTL_MS / 1000} seconds.`);
 }
 
+/**
+ * Removes an item from the cache.
+ * @param key The unique key of the item to remove.
+ */
+function clear(key: string): void {
+  cache.delete(key);
+  console.log(`[Cache] CLEARED key: ${key}`);
+}
+
+
 export const cacheService = {
   get,
   set,
+  clear,
 };

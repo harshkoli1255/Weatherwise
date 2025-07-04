@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
 import { useLastSearch } from '@/hooks/useLastSearch.tsx';
+import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
@@ -28,12 +29,13 @@ interface ApiLocationParams {
   city?: string;
   lat?: number;
   lon?: number;
+  forceRefresh?: boolean;
 }
 
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: true, // Start in loading state for auto-detection
+  isLoading: true, // Start in loading state until initialization is complete
   loadingMessage: 'Initializing...',
   cityNotFound: false,
 };
@@ -48,11 +50,14 @@ function WeatherPageContent() {
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
   const { defaultLocation } = useDefaultLocation();
   const { lastSearch, setLastSearch } = useLastSearch();
+  const { lastWeatherResult, setLastWeatherResult } = useLastWeatherResult();
   const { isLoaded: isClerkLoaded } = useUser();
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
-    const loadingMessage = params.city 
+    const loadingMessage = params.forceRefresh
+      ? `Refreshing data for ${params.city}...`
+      : params.city 
       ? `Searching for ${params.city}...` 
       : 'Fetching weather for your location...';
       
@@ -84,6 +89,10 @@ function WeatherPageContent() {
             lon: result.data.lon,
         };
         setLastSearch(cityForStorage);
+        setLastWeatherResult(result.data); // Save the full result to the session
+      } else {
+        // Clear last result on error to prevent showing stale data
+        setLastWeatherResult(null);
       }
       
       setWeatherState({
@@ -94,7 +103,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, [setLastSearch]);
+  }, [setLastSearch, setLastWeatherResult]);
 
   const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
@@ -171,49 +180,65 @@ function WeatherPageContent() {
     if (!isAutoLocate) setIsLocating(false);
   }, [performWeatherFetch, toast]);
   
-  // This new effect handles initialization and subsequent default location changes robustly.
+  const handleRefresh = useCallback(() => {
+    if (!weatherState.data) return;
+    console.log(`[Perf] Manual refresh requested for "${weatherState.data.city}"`);
+    performWeatherFetch({
+      lat: weatherState.data.lat,
+      lon: weatherState.data.lon,
+      city: weatherState.data.city,
+      forceRefresh: true,
+    });
+  }, [weatherState.data, performWeatherFetch]);
+
   useEffect(() => {
-    // Wait for Clerk to load user data and hooks to be ready.
-    if (!isClerkLoaded) return;
-
-    // This block runs only ONCE when the component is ready.
-    if (!hasInitialized) {
-      const initializeWeather = () => {
-        // Priority: 1. Default Location, 2. Last Search, 3. IP Geolocation
-        if (defaultLocation) {
-          console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
-          setInitialSearchTerm(defaultLocation.name);
-          handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
-          return;
-        }
-
-        if (lastSearch) {
-          console.log(`[Perf] Initializing with user's last search: ${lastSearch.name}`);
-          setInitialSearchTerm(lastSearch.name);
-          handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
-          return;
-        }
-        
-        handleLocate(true);
-      };
-      
-      initializeWeather();
-      setHasInitialized(true);
-    } else {
-      // After initialization, this block will ONLY react to changes in defaultLocation.
-      // This is to handle the case where a user sets a new default in Settings and navigates back.
-      const currentLocKey = weatherState.data ? `${weatherState.data.lat.toFixed(4)},${weatherState.data.lon.toFixed(4)}` : null;
-      const defaultLocKey = defaultLocation ? `${defaultLocation.lat.toFixed(4)},${defaultLocation.lon.toFixed(4)}` : null;
-
-      if (defaultLocation && (currentLocKey !== defaultLocKey)) {
-         console.log(`[Perf] Default location changed to: ${defaultLocation.name}. Fetching new weather.`);
-         handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
-      }
+    if (hasInitialized || !isClerkLoaded) {
+      return;
     }
-    // This effect intentionally does NOT depend on `lastSearch` to prevent the update loop.
-    // It correctly depends on `defaultLocation` to react to user setting changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClerkLoaded, defaultLocation, hasInitialized]);
+  
+    // Priority 1: Restore from last session
+    if (lastWeatherResult) {
+      console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
+      setWeatherState({
+        data: lastWeatherResult,
+        isLoading: false,
+        error: null,
+        loadingMessage: null,
+        cityNotFound: false,
+      });
+      setInitialSearchTerm(lastWeatherResult.city);
+      setHasInitialized(true);
+      return;
+    }
+  
+    // If no session, show loading and proceed with fetching
+    setWeatherState(prev => ({...prev, isLoading: true, loadingMessage: "Finding your location..."}));
+  
+    const initializeWeather = () => {
+      // Priority 2: Default location (if set)
+      if (defaultLocation) {
+        console.log(`[Perf] No session found. Initializing with default location: ${defaultLocation.name}`);
+        setInitialSearchTerm(defaultLocation.name);
+        handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
+        return;
+      }
+  
+      // Priority 3: Last search term (if set)
+      if (lastSearch) {
+        console.log(`[Perf] No session or default found. Initializing with last search: ${lastSearch.name}`);
+        setInitialSearchTerm(lastSearch.name);
+        handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
+        return;
+      }
+  
+      // Priority 4: IP Geolocation as final fallback
+      console.log('[Perf] No session, default, or last search. Initializing with IP Geolocation.');
+      handleLocate(true);
+    };
+  
+    initializeWeather();
+    setHasInitialized(true);
+  }, [hasInitialized, isClerkLoaded, lastWeatherResult, defaultLocation, lastSearch, handleSearch, handleLocate]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -291,6 +316,8 @@ function WeatherPageContent() {
             weatherData={weatherState.data}
             isLocationSaved={isCurrentLocationSaved}
             onSaveCityToggle={handleSaveCityToggle}
+            onRefresh={handleRefresh}
+            isRefreshing={isLoadingDisplay}
             />
         </SignedIn>
       )}
@@ -301,6 +328,8 @@ function WeatherPageContent() {
                 weatherData={weatherState.data}
                 isLocationSaved={false}
                 onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
+                onRefresh={handleRefresh}
+                isRefreshing={isLoadingDisplay}
             />
         </SignedOut>
       )}
@@ -358,5 +387,3 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
-
-    

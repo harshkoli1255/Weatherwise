@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -20,6 +20,8 @@ interface WeatherDisplayProps {
   weatherData: WeatherSummaryData;
   isLocationSaved: boolean;
   onSaveCityToggle: () => void;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 interface ForecastCardProps {
@@ -304,7 +306,7 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
 }
 
 
-export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle }: WeatherDisplayProps) {
+export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle, onRefresh, isRefreshing }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
@@ -401,7 +403,27 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
           <CardTitle className="min-w-0 text-center text-xl sm:text-2xl md:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
-          <div className="flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onRefresh}
+                    aria-label="Refresh weather data"
+                    disabled={isRefreshing}
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-muted-foreground hover:text-primary"
+                  >
+                    <RefreshCw className={cn("h-5 w-5 sm:h-5 sm:w-5 transition-transform duration-500", isRefreshing && "animate-spin")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Refresh Data</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
             <TooltipProvider>
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
