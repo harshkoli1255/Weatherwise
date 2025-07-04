@@ -183,19 +183,23 @@ function WeatherPageContent() {
   
   useEffect(() => {
     const initializeWeather = () => {
+      // New logic: Prioritize fetching fresh data for the last-viewed city.
+      // This ensures data (including the AI image) is never stale on page load.
       try {
         const savedResult = localStorage.getItem(LAST_RESULT_KEY);
         if (savedResult) {
             const lastData: WeatherSummaryData = JSON.parse(savedResult);
-            setWeatherState({ data: lastData, error: null, isLoading: false, loadingMessage: null, cityNotFound: false });
+            console.log(`[Perf] Initializing with last-viewed city from cache: ${lastData.city}`);
             setInitialSearchTerm(lastData.city);
-            return;
+            // Use the cached city info to perform a fresh search.
+            handleSearch(lastData.city, lastData.lat, lastData.lon);
+            return; // We've started a search, so we're done here.
         }
       } catch (e) {
-          console.warn("Could not read last session from localStorage.");
+          console.warn("Could not read last session from localStorage. Proceeding with normal initialization.");
           localStorage.removeItem(LAST_RESULT_KEY);
       }
-
+      
       if (defaultLocation) {
         console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
         setInitialSearchTerm(defaultLocation.name);
@@ -360,3 +364,5 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
+
+    
