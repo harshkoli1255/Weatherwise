@@ -9,11 +9,11 @@ import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
-import { useLastSearch } from '@/hooks/useLastSearch';
+import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle, MapPin, Compass } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
-import { SignedIn, SignedOut } from '@clerk/nextjs';
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 
 interface WeatherPageState {
@@ -38,8 +38,6 @@ const initialState: WeatherPageState = {
   cityNotFound: false,
 };
 
-const LAST_RESULT_KEY = 'weatherwise-last-result';
-
 function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
@@ -50,6 +48,8 @@ function WeatherPageContent() {
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
   const { defaultLocation } = useDefaultLocation();
   const { lastSearch, setLastSearch } = useLastSearch();
+  const { isLoaded: isClerkLoaded } = useUser();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.city 
@@ -84,16 +84,6 @@ function WeatherPageContent() {
             lon: result.data.lon,
         };
         setLastSearch(cityForStorage);
-        try {
-            const dataForStorage = { ...result.data };
-            // Do not store large image data URIs in localStorage
-            if (dataForStorage.aiImageUrl && dataForStorage.aiImageUrl.startsWith('data:')) {
-                delete dataForStorage.aiImageUrl;
-            }
-            localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(dataForStorage));
-        } catch (e) {
-            console.warn("Could not save last result to localStorage.");
-        }
       }
       
       setWeatherState({
@@ -181,45 +171,49 @@ function WeatherPageContent() {
     if (!isAutoLocate) setIsLocating(false);
   }, [performWeatherFetch, toast]);
   
+  // This new effect handles initialization and subsequent default location changes robustly.
   useEffect(() => {
-    const initializeWeather = () => {
-      // New logic: Prioritize fetching fresh data for the last-viewed city.
-      // This ensures data (including the AI image) is never stale on page load.
-      try {
-        const savedResult = localStorage.getItem(LAST_RESULT_KEY);
-        if (savedResult) {
-            const lastData: WeatherSummaryData = JSON.parse(savedResult);
-            console.log(`[Perf] Initializing with last-viewed city from cache: ${lastData.city}`);
-            setInitialSearchTerm(lastData.city);
-            // Use the cached city info to perform a fresh search.
-            handleSearch(lastData.city, lastData.lat, lastData.lon);
-            return; // We've started a search, so we're done here.
+    // Wait for Clerk to load user data and hooks to be ready.
+    if (!isClerkLoaded) return;
+
+    // This block runs only ONCE when the component is ready.
+    if (!hasInitialized) {
+      const initializeWeather = () => {
+        // Priority: 1. Default Location, 2. Last Search, 3. IP Geolocation
+        if (defaultLocation) {
+          console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
+          setInitialSearchTerm(defaultLocation.name);
+          handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
+          return;
         }
-      } catch (e) {
-          console.warn("Could not read last session from localStorage. Proceeding with normal initialization.");
-          localStorage.removeItem(LAST_RESULT_KEY);
-      }
-      
-      if (defaultLocation) {
-        console.log(`[Perf] Initializing with user's default location: ${defaultLocation.name}`);
-        setInitialSearchTerm(defaultLocation.name);
-        handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
-        return;
-      }
 
-      if (lastSearch) {
-        console.log(`[Perf] Initializing with user's last search: ${lastSearch.name}`);
-        setInitialSearchTerm(lastSearch.name);
-        handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
-        return;
-      }
+        if (lastSearch) {
+          console.log(`[Perf] Initializing with user's last search: ${lastSearch.name}`);
+          setInitialSearchTerm(lastSearch.name);
+          handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
+          return;
+        }
+        
+        handleLocate(true);
+      };
       
-      handleLocate(true);
-    };
+      initializeWeather();
+      setHasInitialized(true);
+    } else {
+      // After initialization, this block will ONLY react to changes in defaultLocation.
+      // This is to handle the case where a user sets a new default in Settings and navigates back.
+      const currentLocKey = weatherState.data ? `${weatherState.data.lat.toFixed(4)},${weatherState.data.lon.toFixed(4)}` : null;
+      const defaultLocKey = defaultLocation ? `${defaultLocation.lat.toFixed(4)},${defaultLocation.lon.toFixed(4)}` : null;
 
-    initializeWeather();
+      if (defaultLocation && (currentLocKey !== defaultLocKey)) {
+         console.log(`[Perf] Default location changed to: ${defaultLocation.name}. Fetching new weather.`);
+         handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
+      }
+    }
+    // This effect intentionally does NOT depend on `lastSearch` to prevent the update loop.
+    // It correctly depends on `defaultLocation` to react to user setting changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultLocation, lastSearch]);
+  }, [isClerkLoaded, defaultLocation, hasInitialized]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -233,7 +227,7 @@ function WeatherPageContent() {
     return () => {
         window.removeEventListener('weather-search', handleSearchEvent);
     };
-}, [handleSearch]);
+  }, [handleSearch]);
   
   useEffect(() => {
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
