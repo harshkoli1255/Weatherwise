@@ -1,3 +1,4 @@
+
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
@@ -312,6 +313,7 @@ export async function setAlertCityAction(
     });
     
     revalidatePath('/alerts');
+    revalidatePath('/'); // Revalidate home page in case saved locations are shown there
     return { success: true, message: `Alert city has been set to ${city.name}.` };
   } catch (error) {
     console.error('Failed to set alert city:', error);

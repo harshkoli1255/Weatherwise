@@ -133,28 +133,28 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-md border bg-card/60 backdrop-blur-md shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
+            "relative w-full overflow-visible rounded-xl border bg-card/60 backdrop-blur-md shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
         )}
       >
         <div className="relative flex items-center">
-            <SearchIconLucide className="absolute left-3 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+            <SearchIconLucide className="absolute left-3.5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onValueChange={handleInputChange}
                 onFocus={() => { if(inputValue) setIsSuggestionsOpen(true) }}
                 placeholder={initialValue ? `Try "${initialValue}" or another city...` : "Search for a city or landmark..."}
-                className="block w-full h-12 pl-10 pr-20 text-base text-foreground bg-transparent border-0 rounded-md placeholder:text-muted-foreground/70 focus:ring-0"
+                className="block w-full h-14 pl-12 pr-28 text-base text-foreground bg-transparent border-0 rounded-md placeholder:text-muted-foreground/70 focus:ring-0"
                 aria-label="City name"
                 name="city"
                 autoComplete="off"
             />
-            <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-x-1">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-x-1.5">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-muted-foreground hover:text-primary rounded-md"
+                    className="h-10 w-10 text-muted-foreground hover:text-primary rounded-md"
                     onClick={onLocate}
                     aria-label="Use current location"
                 >
@@ -169,17 +169,17 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                 </Button>
                 <Button
                     type="submit"
-                    size="icon"
+                    size="lg"
                     disabled={!inputValue.trim() || isSearchingWeather}
                     aria-label="Search weather"
-                    className="h-9 w-9 rounded-md"
+                    className="h-10 rounded-lg"
                 >
                     <SearchIconLucide className="h-5 w-5" />
                 </Button>
             </div>
         </div>
         {isSuggestionsOpen && (
-        <CommandList className="absolute top-full mt-2 left-0 right-0 rounded-md bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+        <CommandList className="absolute top-full mt-2 left-0 right-0 rounded-lg bg-popover text-popover-foreground shadow-lg z-50 border border-border max-h-64 overflow-y-auto horizontal-scrollbar animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
             {isLoadingSuggestions && (
             <div className="p-2 flex items-center justify-center text-sm text-muted-foreground">
                 <span className="relative flex h-3 w-3 mr-2">
@@ -200,7 +200,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
                   key={uniqueKey}
                   value={uniqueKey}
                   onSelect={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer text-sm py-2.5 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
+                  className="cursor-pointer text-sm py-2.5 px-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between"
                 >
                   <div className="flex items-center min-w-0">
                     <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />

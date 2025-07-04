@@ -146,12 +146,26 @@ export function SavedLocationsDropdown() {
   return (
     <SignedIn>
         <DropdownMenu onOpenChange={handleOpenChange}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Bookmark className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
-                <span className="hidden md:inline">Saved</span>
-              </Button>
-            </DropdownMenuTrigger>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative gap-2">
+                                <Bookmark className={cn("h-5 w-5 transition-colors", isMounted && savedLocations.length > 0 && "text-primary fill-primary")} />
+                                <span className="hidden md:inline">Saved</span>
+                                {isMounted && savedLocations.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                                        {savedLocations.length}
+                                    </span>
+                                )}
+                            </Button>
+                        </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Saved Locations</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
             <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between p-3">
                 <span className="font-bold text-base">Saved Locations</span>

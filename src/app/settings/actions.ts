@@ -82,6 +82,8 @@ export async function saveSavedLocations(locations: CitySuggestion[]) {
 
     // Revalidate paths where saved locations might be displayed to ensure consistency
     revalidatePath('/');
+    revalidatePath('/settings');
+    revalidatePath('/alerts');
     return { success: true };
   } catch (error) {
     console.error('Failed to save saved locations:', error);
