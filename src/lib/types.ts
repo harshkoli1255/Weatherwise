@@ -193,10 +193,10 @@ export interface AlertPreferences {
   email: string;
   city: string;
   alertsEnabled: boolean;
-  schedule?: AlertSchedule;
-  notificationFrequency?: 'everyHour' | 'balanced' | 'oncePerDay';
-  lastAlertSentTimestamp?: number;
-  timezone?: string; // IANA timezone string e.g., "America/New_York"
+  schedule: AlertSchedule;
+  notificationFrequency: 'everyHour' | 'balanced' | 'oncePerDay';
+  lastAlertSentTimestamp: number;
+  timezone: string; // IANA timezone string e.g., "America/New_York"
 }
 
 export interface IpApiLocationResponse {
@@ -216,6 +216,7 @@ export interface CitySuggestion {
   state?: string; // Optional: For states/provinces within countries like US, CA
   temperature?: number; // Optional: For live weather in suggestions
   iconCode?: string; // Optional: For live weather in suggestions
+  isLandmark?: boolean;
 }
 
 // State type for form actions

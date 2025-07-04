@@ -268,6 +268,7 @@ export async function fetchCitySuggestionsAction(query: string): Promise<{ sugge
         lon: topHit.lon,
         country: topHit.country,
         state: topHit.state,
+        isLandmark: true,
       });
 
       const key = `${topHit.name}|${topHit.state || 'NO_STATE'}|${topHit.country}`;

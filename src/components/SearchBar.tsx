@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useTransition, useRef } from '
 import { Command, CommandList, CommandItem, CommandEmpty, CommandGroup } from '@/components/ui/command';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIconLucide, MapPin, LocateFixed, Frown } from 'lucide-react';
+import { Search as SearchIconLucide, MapPin, LocateFixed, Frown, Landmark } from 'lucide-react';
 import { fetchCitySuggestionsAction } from '@/app/actions';
 import type { CitySuggestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -213,31 +213,35 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
             ) : (
                 <CommandGroup>
                 {suggestions.map((suggestion) => {
-                const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
-                return (
-                    <CommandItem
-                    key={uniqueKey}
-                    value={uniqueKey}
-                    onSelect={() => handleSelectSuggestion(suggestion)}
-                    className="cursor-pointer text-sm py-2.5 px-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between transition-colors duration-150"
-                    >
-                    <div className="flex items-center min-w-0">
-                        <MapPin className="mr-3 h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        <div className="flex flex-col items-start truncate">
-                        <span className="font-medium text-foreground">{suggestion.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                            {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
-                        </span>
-                        </div>
-                    </div>
-                    {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
-                        <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
-                        <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
-                        <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                    )}
-                    </CommandItem>
-                )
+                  const uniqueKey = `${suggestion.name}|${suggestion.country}|${suggestion.state || 'NO_STATE'}|${suggestion.lat.toFixed(4)}|${suggestion.lon.toFixed(4)}`;
+                  const Icon = suggestion.isLandmark ? Landmark : MapPin;
+                  const iconColor = suggestion.isLandmark ? "text-primary" : "text-muted-foreground";
+                  return (
+                      <CommandItem
+                      key={uniqueKey}
+                      value={uniqueKey}
+                      onSelect={() => handleSelectSuggestion(suggestion)}
+                      className="cursor-pointer text-sm py-2.5 px-3 aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between transition-colors duration-150"
+                      >
+                      <div className="flex items-center min-w-0 gap-3">
+                          <Icon className={cn("h-5 w-5 flex-shrink-0", iconColor)} />
+                          <div className="flex flex-col items-start truncate">
+                            <span className="font-medium text-foreground">{suggestion.name}</span>
+                            {!suggestion.isLandmark && (
+                              <span className="text-xs text-muted-foreground">
+                                  {suggestion.state ? `${suggestion.state}, ${suggestion.country}`: suggestion.country}
+                              </span>
+                            )}
+                          </div>
+                      </div>
+                      {isMounted && typeof suggestion.temperature === 'number' && suggestion.iconCode && (
+                          <div className="flex items-center gap-2 text-sm ml-4 flex-shrink-0">
+                          <span className="font-semibold text-foreground">{convertTemperature(suggestion.temperature)}{getTemperatureUnitSymbol()}</span>
+                          <WeatherIcon iconCode={suggestion.iconCode} className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                      )}
+                      </CommandItem>
+                  )
                 })}
                 </CommandGroup>
             )}
