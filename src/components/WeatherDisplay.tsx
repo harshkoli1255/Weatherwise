@@ -316,6 +316,18 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     return aqiScale.find(item => item.aqi === weatherData.airQuality?.aqi) || null;
   }, [weatherData.airQuality]);
 
+  const humidityColor = useMemo(() => {
+    if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-5))]'; // Blue for high humidity
+    if (weatherData.humidity < 30) return 'text-[hsl(var(--chart-4))]'; // Yellow for low humidity
+    return undefined;
+  }, [weatherData.humidity]);
+
+  const windColor = useMemo(() => {
+    if (weatherData.windSpeed > 35) return 'text-[hsl(var(--chart-3))]'; // Red/Orange for high wind
+    if (weatherData.windSpeed > 15) return 'text-[hsl(var(--chart-2))]'; // Teal for moderate wind
+    return undefined;
+  }, [weatherData.windSpeed]);
+
   const aqiComponents = weatherData.airQuality?.components;
 
   const chartData = useMemo(() => {
@@ -496,8 +508,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
-                      <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-blue-500" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
-                      <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor="text-gray-500" className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                      <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor={humidityColor} className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
+                      <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor={windColor} className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
                           <WeatherDetailItem 
                               icon={GaugeCircle} 
@@ -741,7 +753,7 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
       </div>
       <div className="flex flex-col text-left">
         <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="text-sm font-semibold text-foreground">{value}</span>
+        <span className={cn("text-sm font-semibold", iconColor || 'text-foreground')}>{value}</span>
       </div>
     </div>
   );
