@@ -285,7 +285,7 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
           <div
             key={item.aqi}
             className={cn(
-              "flex flex-col sm:flex-row items-start sm:items-center p-3 rounded-lg border-2 transition-all duration-300",
+              "flex flex-col sm:flex-row items-start sm:items-center p-2 sm:p-3 rounded-lg border-2 transition-all duration-300",
               currentAqi === item.aqi
                 ? `${item.bgColorClass} ${item.borderColorClass} scale-[1.02]`
                 : "bg-muted/50 border-transparent"
@@ -454,7 +454,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
             
             <div className="p-4 sm:p-6">
               <TabsContent value="forecast" className="space-y-6 pt-0">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-2 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
                           <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
                               <span>{convertTemperature(weatherData.temperature)}</span>
@@ -725,7 +725,7 @@ interface InfoCardProps {
 
 function InfoCard({ icon: Icon, title, children, animationDelay }: InfoCardProps) {
     return (
-        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
+        <div className="p-3 sm:p-4 rounded-lg bg-background/50 shadow-lg border border-border/30 animate-in fade-in-up" style={{ animationDelay }}>
             <div className="flex flex-row items-center mb-4">
                  <div className="p-2 bg-primary/10 rounded-lg mr-3">
                     <Icon className="h-5 w-5 text-primary flex-shrink-0" />

@@ -148,7 +148,7 @@ function UnitSettings() {
                     <RadioGroup
                         value={units.temperature}
                         onValueChange={(value) => setUnits({ temperature: value as TemperatureUnit })}
-                        className="grid grid-cols-2 gap-2 mt-1"
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1"
                     >
                         <div className="relative">
                             <RadioGroupItem value="celsius" id="celsius" className="sr-only peer" />
@@ -169,7 +169,7 @@ function UnitSettings() {
                     <RadioGroup
                         value={units.windSpeed}
                         onValueChange={(value) => setUnits({ windSpeed: value as WindSpeedUnit })}
-                        className="grid grid-cols-2 gap-2 mt-1"
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1"
                     >
                         <div className="relative">
                             <RadioGroupItem value="kmh" id="kmh" className="sr-only peer" />
@@ -190,7 +190,7 @@ function UnitSettings() {
                   <RadioGroup
                     value={units.timeFormat}
                     onValueChange={(value) => setUnits({ timeFormat: value as TimeFormatUnit })}
-                    className="grid grid-cols-2 gap-2 mt-1"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1"
                   >
                     <div className="relative">
                       <RadioGroupItem value="12h" id="12h" className="sr-only peer" />
@@ -312,10 +312,10 @@ export default function SettingsPageClient() {
             Manage your account, preferences, and application settings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 sm:px-8 pb-8 space-y-6">
+        <CardContent className="px-4 sm:px-8 pb-8 space-y-4 md:space-y-6">
             <SignedIn>
               <section>
-                <h3 className="text-lg font-medium text-foreground mb-4 border-b pb-3">Account</h3>
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-4 border-b pb-3">Account</h3>
                 <div className="space-y-3">
                   <SettingsLinkItem
                       icon={User}
@@ -333,7 +333,7 @@ export default function SettingsPageClient() {
               </section>
             </SignedIn>
             <section>
-                <h3 className="text-lg font-medium text-foreground mb-4 border-b pb-3">Application</h3>
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-4 border-b pb-3">Application</h3>
                 <div className="space-y-3">
                     <DefaultLocationSettings />
                     <UnitSettings />

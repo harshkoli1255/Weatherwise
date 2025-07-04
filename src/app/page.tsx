@@ -262,8 +262,8 @@ function WeatherPageContent() {
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-      <section className="relative z-10 w-full max-w-2xl mb-8 text-center animate-in fade-in-up">
+    <div className="container mx-auto px-4 py-6 sm:py-10 md:py-12 flex flex-col items-center">
+      <section className="relative z-10 w-full max-w-2xl mb-6 sm:mb-8 text-center animate-in fade-in-up">
         <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
           Weatherwise
         </h1>

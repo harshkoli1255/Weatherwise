@@ -42,7 +42,7 @@ const TechItem = ({ name }: { name: string }) => (
 const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
     <div className="mb-6 flex items-center justify-center gap-3">
         <Icon className="h-6 w-6 text-primary" />
-        <h2 className="text-center font-headline text-xl font-semibold text-primary">
+        <h2 className="text-center font-headline text-lg sm:text-xl font-semibold text-primary">
             {title}
         </h2>
     </div>
@@ -98,7 +98,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
+    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-12">
         <Card className="mx-auto w-full max-w-4xl rounded-xl border-primary/20 bg-glass shadow-2xl">
             <CardHeader className="items-center pt-8 pb-6 text-center">
                  <div className="mb-4 rounded-full border border-primary/30 bg-primary/20 p-4 animate-in fade-in zoom-in-95">
@@ -115,7 +115,7 @@ export default function AboutPage() {
             <CardContent className="space-y-12 px-6 pb-8 sm:px-8">
                 <section>
                     <SectionHeader icon={Sparkles} title="Core Features" />
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
                         {features.map((feature, index) => (
                            <div key={feature.title} className="animate-in fade-in-up" style={{ animationDelay: `${150 + index * 100}ms` }}>
                              <FeatureItem icon={feature.icon} title={feature.title}>
