@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo } from 'react';
@@ -395,6 +395,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     );
   };
   
+  const defaultTab = useMemo(() => {
+    if (weatherData.airQuality && weatherData.airQuality.aqi >= 3) {
+      return 'health';
+    }
+    return 'forecast';
+  }, [weatherData.airQuality]);
+
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
@@ -456,7 +463,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
       </CardHeader>
 
       <CardContent className="p-0 pb-4">
-        <Tabs defaultValue="forecast" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
             <div className="flex justify-center px-4 sm:px-6 pt-4">
                 <TabsList>
                     <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5 sm:gap-2">
