@@ -437,18 +437,18 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
         <Tabs defaultValue="forecast" className="w-full">
             <div className="px-4 pt-4">
                 <TabsList className="grid w-full grid-cols-3 mx-auto max-w-sm h-11 sm:h-12">
-                <TabsTrigger value="forecast" className="group text-xs sm:text-sm">
-                    <AreaChartIcon className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-                    Forecast
-                </TabsTrigger>
-                <TabsTrigger value="insights" className="group text-xs sm:text-sm">
-                    <Brain className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-                    AI Insights
-                </TabsTrigger>
-                <TabsTrigger value="health" className="group text-xs sm:text-sm">
-                    <Leaf className="mr-1.5 h-4 w-4 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
-                    Health
-                </TabsTrigger>
+                    <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5">
+                        <AreaChartIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                        Forecast
+                    </TabsTrigger>
+                    <TabsTrigger value="insights" className="group text-xs sm:text-sm gap-1.5">
+                        <Brain className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                        AI Insights
+                    </TabsTrigger>
+                    <TabsTrigger value="health" className="group text-xs sm:text-sm gap-1.5">
+                        <Leaf className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
+                        Health
+                    </TabsTrigger>
                 </TabsList>
             </div>
             
