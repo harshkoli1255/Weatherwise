@@ -5,26 +5,26 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 224 71.4% 4.1%;
+    --background: 215 20% 96.5%;
+    --foreground: 215 30% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 215 30% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 215 30% 15%;
 
-    --primary: 175 65% 38%;
-    --primary-foreground: 175 65% 98%;
+    --primary: 175 60% 40%;
+    --primary-foreground: 175 60% 98%;
 
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 215 15% 91%;
+    --secondary-foreground: 215 25% 10%;
 
-    --muted: 220 13% 91%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 215 15% 91%;
+    --muted-foreground: 215 10% 45%;
 
-    --accent: 220 13% 91%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 215 15% 91%;
+    --accent-foreground: 215 25% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -32,55 +32,55 @@
     --success: 142.1 76.2% 36.3%;
     --success-foreground: 355.7 100% 97.3%;
     
-    --border: 220 13% 89%;
-    --input: 220 13% 91%;
-    --ring: 175 65% 38%;
+    --border: 215 20% 89%;
+    --input: 215 20% 91%;
+    --ring: 175 60% 40%;
     
     --radius: 0.5rem;
 
-    --chart-1: 175 65% 38%;
+    --chart-1: 175 60% 40%;
     --chart-2: 210 70% 55%;
-    --chart-3: 350 80% 65%;
-    --chart-4: 30 90% 60%;
-    --chart-5: 260 60% 60%;
+    --chart-3: 5 80% 65%;
+    --chart-4: 45 90% 60%;
+    --chart-5: 260 60% 65%;
   }
 
   .dark {
-    --background: 220 25% 12%;
+    --background: 215 28% 17%;
     --foreground: 210 40% 98%;
 
-    --card: 220 25% 17%;
+    --card: 215 28% 22%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 220 25% 17%;
+    --popover: 215 28% 22%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 175 70% 55%;
-    --primary-foreground: 175 70% 10%;
+    --primary: 175 75% 50%;
+    --primary-foreground: 175 75% 10%;
 
-    --secondary: 220 25% 22%;
+    --secondary: 215 28% 27%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 25% 22%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 28% 27%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 220 25% 22%;
+    --accent: 215 28% 27%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 50.6%;
+    --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 210 40% 98%;
     
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 144 60% 9%;
 
-    --border: 220 25% 25%;
-    --input: 220 25% 25%;
-    --ring: 175 70% 55%;
+    --border: 215 28% 30%;
+    --input: 215 28% 30%;
+    --ring: 175 75% 50%;
 
-    --chart-1: 175 70% 55%;
+    --chart-1: 175 75% 50%;
     --chart-2: 210 80% 65%;
-    --chart-3: 350 85% 70%;
-    --chart-4: 35 95% 65%;
+    --chart-3: 5 85% 70%;
+    --chart-4: 45 95% 65%;
     --chart-5: 260 70% 70%;
   }
 }
@@ -97,19 +97,19 @@
 
   body.light {
     background:
-      radial-gradient(circle at 10% 20%, hsl(var(--primary) / 0.05), transparent 40%),
+      radial-gradient(circle at 10% 20%, hsl(var(--chart-1) / 0.05), transparent 40%),
       radial-gradient(circle at 90% 10%, hsl(var(--chart-2) / 0.07), transparent 50%),
-      radial-gradient(circle at 30% 90%, hsl(var(--chart-3) / 0.08), transparent 50%),
-      radial-gradient(circle at 70% 80%, hsl(var(--primary) / 0.05), transparent 40%),
+      radial-gradient(circle at 30% 90%, hsl(var(--chart-3) / 0.06), transparent 50%),
+      radial-gradient(circle at 70% 80%, hsl(var(--chart-4) / 0.05), transparent 40%),
       hsl(var(--background));
     background-attachment: fixed;
   }
   body.dark {
     background:
-      radial-gradient(circle at 15% 20%, hsl(var(--primary) / 0.15), transparent 30%),
-      radial-gradient(circle at 85% 30%, hsl(var(--chart-2) / 0.25), transparent 40%),
-      radial-gradient(circle at 20% 85%, hsl(var(--chart-3) / 0.2), transparent 45%),
-      radial-gradient(circle at 80% 75%, hsl(var(--primary) / 0.15), transparent 35%),
+      radial-gradient(circle at 15% 20%, hsl(var(--chart-1) / 0.15), transparent 30%),
+      radial-gradient(circle at 85% 30%, hsl(var(--chart-2) / 0.20), transparent 40%),
+      radial-gradient(circle at 20% 85%, hsl(var(--chart-3) / 0.18), transparent 45%),
+      radial-gradient(circle at 80% 75%, hsl(var(--chart-4) / 0.15), transparent 35%),
       hsl(var(--background));
     background-attachment: fixed;
   }
