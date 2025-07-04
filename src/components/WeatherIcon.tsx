@@ -54,15 +54,15 @@ export function WeatherIcon({ iconCode, className, ...props }: WeatherIconProps)
     '01d': 'text-[hsl(var(--chart-4))]', 
     '02d': 'text-[hsl(var(--chart-4))]',
     // Rain: Use a blue color from the theme
-    '09d': 'text-[hsl(var(--chart-2))]', 
-    '10d': 'text-[hsl(var(--chart-2))]',
+    '09d': 'text-[hsl(var(--chart-5))]', 
+    '10d': 'text-[hsl(var(--chart-5))]',
     // Lightning: A universal yellow/amber works best
     '11d': 'text-amber-500', 
     // Snow: A light blue works best
     '13d': 'text-blue-300 dark:text-blue-200',
-    // Night: Neutral grays are suitable for night icons
-    '01n': 'text-gray-400', 
-    '02n': 'text-gray-400',
+    // Night: Use a soft indigo to match the new theme
+    '01n': 'text-indigo-300 dark:text-indigo-200', 
+    '02n': 'text-indigo-300 dark:text-indigo-200',
   };
   
   // Default color for neutral conditions like clouds, mist, etc.
