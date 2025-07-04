@@ -101,6 +101,13 @@ export async function shouldSendWeatherAlert(input: AlertDecisionInput): Promise
         if (hour.temp > 32) {
             triggers.push(`Forecast temperature is very hot (${hour.temp}°C) ${hourLabel}`);
         }
+        // Check feels like temperature in the forecast as well, as this is often more impactful
+        if (hour.feelsLike < 2) {
+            triggers.push(`Forecast 'feels like' temperature is very cold (${hour.feelsLike}°C) ${hourLabel}`);
+        }
+        if (hour.feelsLike > 32) {
+            triggers.push(`Forecast 'feels like' temperature is very hot (${hour.feelsLike}°C) ${hourLabel}`);
+        }
         if (hour.windSpeed > 35) {
             triggers.push(`High wind speed (${hour.windSpeed} km/h) forecast ${hourLabel}`);
         }
