@@ -452,7 +452,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                 </TabsList>
             </div>
             
-            <div className="p-4 sm:p-6">
+            <div className="p-4 sm:p-6 pb-2">
               <TabsContent value="forecast" className="space-y-6 pt-0">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
@@ -464,7 +464,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle 
                               Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
                           </span>
                       </div>
-                      <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl animate-in fade-in zoom-in-95 order-2" style={{ animationDelay: '100ms' }} />
+                      <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor="text-blue-500" className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>

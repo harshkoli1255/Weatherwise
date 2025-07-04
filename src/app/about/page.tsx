@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex h-full flex-col items-start rounded-xl bg-background/50 p-4 shadow-lg border border-border/30">
+  <div className="flex h-full flex-col items-start rounded-xl bg-background/50 p-4 shadow-lg border border-border/30 transition-all duration-300 hover:bg-muted/60 hover:border-primary/40 hover:scale-[1.02]">
     <div className="flex items-center gap-4 mb-3">
         <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />

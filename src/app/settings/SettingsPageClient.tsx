@@ -27,7 +27,7 @@ interface SettingsItemProps {
 function SettingsLinkItem({ icon: Icon, title, description, href }: SettingsItemProps) {
   return (
     <Link href={href} className="block group">
-      <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-colors duration-300 shadow-lg border border-border/30 hover:border-primary/50">
+      <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:border-primary/50 hover:scale-[1.02]">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />
@@ -300,7 +300,7 @@ function DefaultLocationSettings() {
 export default function SettingsPageClient() {
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
-      <Card className="w-full max-w-2xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-xl">
+      <Card className="w-full max-w-2xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-xl animate-in fade-in-up duration-500">
         <CardHeader className="text-center items-center pt-8 pb-6">
             <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <SettingsIcon className="h-10 w-10 text-primary drop-shadow-lg" />
@@ -314,7 +314,7 @@ export default function SettingsPageClient() {
         </CardHeader>
         <CardContent className="px-4 sm:px-8 pb-8 space-y-4 md:space-y-6">
             <SignedIn>
-              <section>
+              <section className="animate-in fade-in-up duration-500" style={{ animationDelay: '200ms' }}>
                 <h3 className="text-base sm:text-lg font-medium text-foreground mb-4 border-b pb-3">Account</h3>
                 <div className="space-y-3">
                   <SettingsLinkItem
@@ -332,7 +332,7 @@ export default function SettingsPageClient() {
                 </div>
               </section>
             </SignedIn>
-            <section>
+            <section className="animate-in fade-in-up duration-500" style={{ animationDelay: '300ms' }}>
                 <h3 className="text-base sm:text-lg font-medium text-foreground mb-4 border-b pb-3">Application</h3>
                 <div className="space-y-3">
                     <DefaultLocationSettings />
