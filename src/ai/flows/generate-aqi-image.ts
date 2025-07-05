@@ -30,7 +30,6 @@ Instructions for the AI:
 - Do NOT show people wearing masks or anything overly dystopian. The style should be artistic and evocative, not a literal public health announcement.
 - The style should be a vibrant and artistic digital illustration or a moody, atmospheric digital painting. Make it aesthetically pleasing and premium, even if the subject is haze.`;
 
-    console.log(`[AI/Image/AQI] Generating image with prompt: "${imagePrompt}"`);
     
     const allApiKeys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
     if (allApiKeys.length === 0) {
@@ -58,7 +57,6 @@ Instructions for the AI:
 
     for (const apiKey of availableKeys) {
         try {
-            console.log(`[AI/Image/AQI] Attempting image generation with a key.`);
             const { media } = await ai.generate({
               model: 'googleai/gemini-2.0-flash-preview-image-generation',
               prompt: imagePrompt,
@@ -70,11 +68,9 @@ Instructions for the AI:
             
             if (!media?.url) {
                 lastError = new Error("Generation returned no media object.");
-                console.warn(`[AI/Image/AQI] Generation returned no media object.`);
                 continue;
             }
             
-            console.log(`[AI/Image/AQI] Successfully generated image.`);
             return { imageUrl: media.url };
 
         } catch(err) {
@@ -84,11 +80,9 @@ Instructions for the AI:
             const isInvalidKeyError = errorMessage.includes('api key not valid');
 
             if (isQuotaError || isInvalidKeyError) {
-                console.warn(`[AI/Image/AQI] Key failed with ${isQuotaError ? 'quota' : 'invalid key'} error. Trying next key...`);
                 keyFailureTimestamps.set(apiKey, Date.now());
                 continue;
             } else {
-                console.error(`[AI/Image/AQI] A non-key-related error occurred.`, err);
                 break;
             }
         }

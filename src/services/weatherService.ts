@@ -37,7 +37,6 @@ async function fetchWithKeyRotation<T>(
 
             // 401: Invalid key, 429: Rate limit/quota. These are key-specific errors.
             if (response.status === 401 || response.status === 429) {
-                console.warn(`[WeatherService/${source}] API key failed (status: ${response.status}). Trying next key.`);
                 continue; // Try the next key
             } else {
                  // For other errors (like 404 Not Found or 5xx server errors),
@@ -46,11 +45,9 @@ async function fetchWithKeyRotation<T>(
             }
         } catch (e) {
             lastError = e instanceof Error ? e.message : 'Unknown fetch error';
-            console.error(`[WeatherService/${source}] Network or fetch error for URL part: ${baseUrl}`, e);
         }
     }
     
-    console.error(`[WeatherService/${source}] All API keys failed for URL part: ${baseUrl}. Last error:`, lastError);
     return { data: null, error: lastError, status: lastStatus };
 }
 

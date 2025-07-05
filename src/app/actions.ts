@@ -46,17 +46,14 @@ export async function fetchWeatherAndSummaryAction(
       locationIdentifier = { type: 'coords', lat: params.lat, lon: params.lon };
       // Use the provided city name if available, otherwise it will be resolved later.
       userFriendlyDisplayName = params.city; 
-      console.log(`[Perf] Using precise coordinates: ${params.lat}, ${params.lon}`);
     } else if (params.city) {
       let queryForGeocoding = params.city;
       
       // --- Performance Optimization: Attempt direct geocoding first. ---
-      console.log(`[Perf] Attempting direct geocoding for: "${queryForGeocoding}"`);
       geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
 
       // --- Fallback to AI: If direct geocoding fails and AI is available, use AI to interpret the query. ---
       if ((!geoResult.data || geoResult.data.length === 0) && isAiConfigured()) {
-        console.log(`[Perf] Direct geocoding failed. Falling back to AI query interpretation.`);
         try {
           const interpretation = await interpretSearchQuery({ query: params.city });
           const interpretedQuery = interpretation.cityName || interpretation.searchQueryForApi;
@@ -68,11 +65,9 @@ export async function fetchWeatherAndSummaryAction(
             } else {
               userFriendlyDisplayName = interpretation.cityName || interpretation.searchQueryForApi || params.city;
             }
-            console.log(`[AI] Retrying geocoding with: "${queryForGeocoding}", Display name: "${userFriendlyDisplayName}"`);
             geoResult = await geocodeCity(queryForGeocoding, openWeatherApiKeys);
           } else {
              // AI didn't return a usable query, so we stick with the failed geoResult
-             console.log(`[AI] Interpretation did not yield a new query.`);
           }
         } catch (err) {
           console.error("AI search interpretation failed, proceeding with original geocode failure:", err);
@@ -81,7 +76,6 @@ export async function fetchWeatherAndSummaryAction(
       
       // --- Final Location Check: After attempting geocoding (and AI fallback), check if we have a valid location. ---
       if (geoResult.error || !geoResult.data || geoResult.data.length === 0) {
-        console.error("Geocoding API error:", { status: geoResult.status, error: geoResult.error });
         const finalDisplayName = userFriendlyDisplayName || params.city;
         return { data: null, error: `Could not find a valid location for "${finalDisplayName}". Please check your search term.`, cityNotFound: true };
       }
@@ -95,24 +89,25 @@ export async function fetchWeatherAndSummaryAction(
       if (!userFriendlyDisplayName || userFriendlyDisplayName === params.city) {
           userFriendlyDisplayName = geoData.name;
       }
-      console.log(`[Geocoding] Successfully resolved to lat: ${resolvedCoords.lat}, lon: ${resolvedCoords.lon}. Display name: "${userFriendlyDisplayName}"`);
-
     } else {
+      // If we are in this block, it means no valid search parameters were provided at all.
+      // This prevents the app from trying to restore a session when it shouldn't.
       return { data: null, error: "City name or coordinates must be provided.", cityNotFound: false };
     }
+
 
     // --- Step 2: Check cache using the resolved coordinates ---
     const cacheKey = `weather-${locationIdentifier.lat.toFixed(4)}-${locationIdentifier.lon.toFixed(4)}`;
     
     if (params.forceRefresh) {
         cacheService.clear(cacheKey);
+    } else {
+        const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
+        if (cachedData) {
+            return { data: cachedData, error: null, cityNotFound: false };
+        }
     }
     
-    // We no longer restore from cache here to ensure fresh data and image generation.
-    // The last-viewed city logic is now handled on the client.
-    
-    console.log(`[Cache] MISS for key "${cacheKey}". Fetching fresh data.`);
-
     // --- Step 3: Fetch all data in parallel ---
     const [weatherResult, hourlyForecastResult, airQualityResult] = await Promise.all([
         fetchCurrentWeather(locationIdentifier, openWeatherApiKeys),
@@ -159,7 +154,6 @@ export async function fetchWeatherAndSummaryAction(
     let aiImageUrl: string | undefined = undefined;
     if (isAiConfigured() && aiSummaryResult.activitySuggestion) {
       try {
-        console.log("[AI] Generating weather image based on activity suggestion.");
         const imageResult = await generateWeatherImage({
           city: finalDisplayName,
           condition: currentWeatherData.description,
@@ -219,7 +213,6 @@ export async function fetchCityByIpAction(): Promise<{ city: string | null; coun
   } catch (error) {
     console.error("Error fetching city by IP (ipapi.co):", error);
     try {
-        console.log("Falling back to ip-api.com for IP geolocation.");
         const fallbackResponse = await fetch('https://ip-api.com/json/?fields=status,message,country,city,lat,lon');
         if (!fallbackResponse.ok) {
             throw new Error(`IP Geolocation service (ip-api.com) failed with status: ${fallbackResponse.status}`);

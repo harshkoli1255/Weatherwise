@@ -14,7 +14,7 @@ import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MapPin, Compass, Loader2, Leaf, ShieldAlert, Waypoints } from 'lucide-react';
+import { AlertCircle, MapPin, Compass, Leaf, Waypoints } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
@@ -39,8 +39,8 @@ interface ApiLocationParams {
 const initialState: WeatherPageState = {
   data: null,
   error: null,
-  isLoading: true, // Start in loading state until initialization is complete
-  loadingMessage: 'Initializing...',
+  isLoading: false, 
+  loadingMessage: null,
   cityNotFound: false,
 };
 
@@ -63,11 +63,8 @@ function WeatherPageContent() {
   
   const { toast } = useToast();
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
-  const { defaultLocation } = useDefaultLocation();
-  const { lastSearch, setLastSearch } = useLastSearch();
   const { lastWeatherResult, setLastWeatherResult, clearLastWeatherResult, isInitialized: isSessionInitialized } = useLastWeatherResult();
   const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
-  const isInitializationDone = useRef(false);
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
@@ -98,11 +95,9 @@ function WeatherPageContent() {
     setIsAqiNotificationVisible(false);
 
     startTransition(async () => {
-      console.log(`[Perf] Performing weather fetch with params:`, params);
       const result = await fetchWeatherAndSummaryAction(params);
       
       if (!result) {
-        console.error('[Perf] Fetch returned no result.');
         setWeatherState({
           ...initialState,
           isLoading: false,
@@ -112,14 +107,12 @@ function WeatherPageContent() {
       }
 
       if (result.data) {
-        console.log(`[Perf] Fetch successful for "${result.data.city}". Setting last search and weather result.`);
         const cityForStorage: CitySuggestion = {
             name: result.data.city,
             country: result.data.country,
             lat: result.data.lat,
             lon: result.data.lon,
         };
-        setLastSearch(cityForStorage);
         setLastWeatherResult(result.data);
 
         if (result.data.airQuality && result.data.airQuality.aqi >= 3) {
@@ -131,7 +124,6 @@ function WeatherPageContent() {
 
       } else {
         // This is the key change: do NOT clear the last successful result on a failed search.
-        console.warn(`[Perf] Fetch failed. Error: ${result.error}. The last successful weather result will be preserved.`);
       }
       
       setWeatherState({
@@ -142,7 +134,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, [setLastSearch, setLastWeatherResult]);
+  }, [setLastWeatherResult]);
 
   const aqiInfo = useMemo(() => {
     if (!weatherState.data?.airQuality) return null;
@@ -198,7 +190,6 @@ function WeatherPageContent() {
         const position = await getPosition();
         locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
     } catch (geoError: any) {
-        console.warn(`Geolocation error: ${geoError.message}. Falling back to IP.`);
         if (!isAutoLocate) {
             toast({
                 title: "Location via GPS failed",
@@ -254,15 +245,7 @@ function WeatherPageContent() {
 
   // This is the core initialization logic. It runs only once when contexts are ready.
   useEffect(() => {
-    // Wait until both Clerk and the session are initialized.
-    if (isInitializationDone.current || !isClerkLoaded || !isSessionInitialized) {
-      return;
-    }
-    isInitializationDone.current = true;
-
-    // Priority 1: Restore from a previous session result.
     if (lastWeatherResult) {
-      console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
       setWeatherState({
         data: lastWeatherResult,
         isLoading: false,
@@ -271,21 +254,9 @@ function WeatherPageContent() {
         cityNotFound: false,
       });
       setInitialSearchTerm(lastWeatherResult.city);
-      return; // IMPORTANT: Exit after restoring session.
     }
-    
-    // If no session is found, simply stop loading and show the welcome state.
-    // DO NOT automatically fetch weather data.
-    console.log('[Perf] No session found. Awaiting user interaction.');
-    setWeatherState({
-      data: null,
-      isLoading: false,
-      error: null,
-      loadingMessage: null,
-      cityNotFound: false,
-    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClerkLoaded, isSessionInitialized]);
+  }, []);
 
 
   useEffect(() => {
@@ -338,7 +309,6 @@ function WeatherPageContent() {
             }
         }
         
-        console.log('[Proactive Check] Significant location change detected. Checking weather...');
         lastProactiveCheckCoords.current = { lat: latitude, lon: longitude };
         
         startTransition(async () => {
@@ -351,7 +321,6 @@ function WeatherPageContent() {
     };
 
     const handleError = (error: GeolocationPositionError) => {
-        console.warn(`[Geolocation Watch] Error: ${error.message}`);
         if (watchId) {
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
@@ -365,7 +334,6 @@ function WeatherPageContent() {
                 handleError,
                 { enableHighAccuracy: false, timeout: 30000, maximumAge: 15000 }
             );
-            console.log('[Geolocation Watch] Started real-time location tracking.');
         }
     };
 
@@ -373,7 +341,6 @@ function WeatherPageContent() {
         if (watchId !== null) {
             navigator.geolocation.clearWatch(watchId);
             watchId = null;
-            console.log('[Geolocation Watch] Stopped real-time location tracking.');
         }
     };
 
@@ -642,7 +609,5 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
-
-    
 
     
