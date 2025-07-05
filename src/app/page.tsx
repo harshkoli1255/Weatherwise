@@ -65,7 +65,7 @@ function WeatherPageContent() {
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
   const { defaultLocation } = useDefaultLocation();
   const { lastSearch, setLastSearch } = useLastSearch();
-  const { lastWeatherResult, setLastWeatherResult, clearLastWeatherResult } = useLastWeatherResult();
+  const { lastWeatherResult, setLastWeatherResult, clearLastWeatherResult, isInitialized: isSessionInitialized } = useLastWeatherResult();
   const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -75,12 +75,9 @@ function WeatherPageContent() {
 
   const lastProactiveCheckCoords = useRef<{ lat: number; lon: number } | null>(null);
 
-  // New state for the portal container
   const [notificationPortal, setNotificationPortal] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    // This effect runs only on the client, after the initial render.
-    // It finds the portal root element in the DOM.
     const portalRoot = document.getElementById('notification-portal-root');
     setNotificationPortal(portalRoot);
   }, []);
@@ -98,7 +95,6 @@ function WeatherPageContent() {
   };
 
   const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad = false) => {
-    // On initial page load, don't show loading state if restoring a session
     const shouldShowLoading = !isInitialLoad || !lastWeatherResult || params.forceRefresh;
 
     if (shouldShowLoading) {
@@ -116,7 +112,7 @@ function WeatherPageContent() {
             cityNotFound: false,
         }));
     }
-    setIsAqiNotificationVisible(false); // Hide any previous notification
+    setIsAqiNotificationVisible(false);
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
@@ -127,7 +123,7 @@ function WeatherPageContent() {
           isLoading: false,
           error: 'An unexpected server error occurred. Please try again.',
         });
-        setLastWeatherResult(null); // Clear session on failure
+        setLastWeatherResult(null);
         return;
       }
 
@@ -139,18 +135,16 @@ function WeatherPageContent() {
             lon: result.data.lon,
         };
         setLastSearch(cityForStorage);
-        setLastWeatherResult(result.data); // Save the full result to the session
+        setLastWeatherResult(result.data);
 
-        // Check if we should show the AQI notification or switch tabs
         if (result.data.airQuality && result.data.airQuality.aqi >= 3) {
-            setActiveTab('forecast'); // Reset to default tab
+            setActiveTab('forecast');
             setIsAqiNotificationVisible(true);
         } else if (result.data.airQuality && result.data.airQuality.aqi >= 2) {
              setActiveTab('health');
         }
 
       } else {
-        // Clear last result on error to prevent showing stale data
         setLastWeatherResult(null);
       }
       
@@ -256,10 +250,9 @@ function WeatherPageContent() {
 
 
   useEffect(() => {
-    if (hasInitialized || !isClerkLoaded) return;
+    if (hasInitialized || !isClerkLoaded || !isSessionInitialized) return;
   
     const initializeWeather = () => {
-        // Priority 1: Restore from last session's weather result
         if (lastWeatherResult) {
           console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
           setWeatherState({
@@ -274,7 +267,6 @@ function WeatherPageContent() {
           return;
         }
 
-        // Priority 2: Use the user's default location if set
         if (defaultLocation) {
             console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
             performWeatherFetch({ city: defaultLocation.name, lat: defaultLocation.lat, lon: defaultLocation.lon }, true);
@@ -283,7 +275,6 @@ function WeatherPageContent() {
             return;
         }
 
-        // Priority 3: Use the last search term if available
         if (lastSearch) {
             console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
             performWeatherFetch({ city: lastSearch.name, lat: lastSearch.lat, lon: lastSearch.lon }, true);
@@ -292,7 +283,6 @@ function WeatherPageContent() {
             return;
         }
 
-        // Priority 4: Final fallback to IP-based geolocation
         console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
         handleLocate(true);
         setHasInitialized(true);
@@ -300,7 +290,7 @@ function WeatherPageContent() {
 
     initializeWeather();
 
-  }, [hasInitialized, isClerkLoaded, lastWeatherResult, defaultLocation, lastSearch, performWeatherFetch, handleLocate]);
+  }, [hasInitialized, isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch, performWeatherFetch, handleLocate]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -317,7 +307,6 @@ function WeatherPageContent() {
   }, [handleSearch]);
   
   useEffect(() => {
-    // We only want to show toasts for "real" errors, not for "city not found" which has its own UI state.
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
         const t = toast({
             variant: "destructive",
@@ -348,7 +337,6 @@ function WeatherPageContent() {
                 longitude
             );
 
-            // Trigger check if moved more than 1 km
             if (distance < 1) {
                 return;
             }
@@ -415,7 +403,6 @@ function WeatherPageContent() {
 
     checkPermissionsAndWatch();
 
-    // Cleanup on unmount
     return () => {
         stopWatching();
     };
@@ -441,7 +428,6 @@ function WeatherPageContent() {
   const isCurrentLocationSaved = weatherState.data ? isLocationSaved(weatherState.data) : false;
   const isLoadingDisplay = (weatherState.isLoading && !lastWeatherResult) || isTransitionPending;
 
-  // On sign-out, clear session data to prevent showing another user's weather.
   useEffect(() => {
     if (isClerkLoaded && !isSignedIn) {
       clearLastWeatherResult();

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
@@ -10,6 +11,7 @@ interface LastWeatherResultContextType {
   lastWeatherResult: WeatherSummaryData | null;
   setLastWeatherResult: (data: WeatherSummaryData | null) => void;
   clearLastWeatherResult: () => void;
+  isInitialized: boolean;
 }
 
 const LastWeatherResultContext = createContext<LastWeatherResultContextType | undefined>(undefined);
@@ -56,9 +58,10 @@ export function LastWeatherResultProvider({ children }: { children: ReactNode })
   }, [setLastWeatherResult]);
 
   const value = useMemo(() => ({
-    lastWeatherResult: isInitialized ? lastWeatherResult : null, // Don't provide stale data before initialization
+    lastWeatherResult,
     setLastWeatherResult,
     clearLastWeatherResult,
+    isInitialized,
   }), [isInitialized, lastWeatherResult, setLastWeatherResult, clearLastWeatherResult]);
 
   return (
