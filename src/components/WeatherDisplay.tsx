@@ -490,12 +490,12 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
             </div>
             
             <div className="p-4 sm:p-6 pb-2">
-              <TabsContent value="forecast" className="space-y-6 pt-0">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-center sm:text-left">
+              <TabsContent value="forecast" className="space-y-4 pt-0">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-x-3 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
-                          <div className="flex items-start text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
+                          <div className="flex items-start text-6xl sm:text-7xl font-bold text-foreground drop-shadow-lg">
                               <span>{Math.round(convertTemperature(weatherData.temperature))}</span>
-                              <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/80 font-semibold mt-1">
+                              <span className="text-3xl sm:text-4xl text-muted-foreground/80 font-semibold mt-1">
                                   {getTemperatureUnitSymbol()}
                               </span>
                           </div>
@@ -503,9 +503,9 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                               Feels like {Math.round(convertTemperature(weatherData.feelsLike))}{getTemperatureUnitSymbol()}
                           </span>
                       </div>
-                      <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
+                      <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor={humidityColor} className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor={windColor} className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       <WeatherDetailItem icon={Gauge} label="Pressure" value={`${weatherData.pressure} hPa`} iconColor="text-primary" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
@@ -776,13 +776,13 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-     <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60", className)} {...props}>
-      <div className="p-2 bg-background rounded-lg shadow-sm">
-        <Icon className={cn("h-5 w-5", iconColor)} />
+    <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60", className)} {...props}>
+      <div className="flex-shrink-0">
+        <Icon className={cn("h-6 w-6", iconColor)} />
       </div>
-      <div className="flex flex-col text-left">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <span className={cn("text-xl font-bold whitespace-nowrap", "text-foreground")}>{value}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-muted-foreground truncate">{label}</p>
+        <p className={cn("text-lg font-bold truncate", "text-foreground")}>{value}</p>
       </div>
     </div>
   );
