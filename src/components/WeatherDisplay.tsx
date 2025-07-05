@@ -3,10 +3,10 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, AlertCircle } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { HourlyForecastDialog } from './HourlyForecastDialog';
 import { useUnits } from '@/hooks/useUnits';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
@@ -308,6 +308,8 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle, onRefresh, isRefreshing }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
+  const [activeTab, setActiveTab] = useState('forecast');
+  const [isAqiAlertVisible, setIsAqiAlertVisible] = useState(true);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
@@ -315,6 +317,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     if (!weatherData.airQuality) return null;
     return aqiScale.find(item => item.aqi === weatherData.airQuality?.aqi) || null;
   }, [weatherData.airQuality]);
+
+  useEffect(() => {
+    if (weatherData.airQuality && weatherData.airQuality.aqi >= 2) { // Show for Fair or worse
+      setIsAqiAlertVisible(true);
+    }
+  }, [weatherData.city, weatherData.airQuality]);
+
 
   const humidityColor = useMemo(() => {
     if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-5))]'; // Blue for high humidity
@@ -407,13 +416,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     );
   };
   
-  const defaultTab = useMemo(() => {
-    if (weatherData.airQuality && weatherData.airQuality.aqi >= 3) {
-      return 'health';
-    }
-    return 'forecast';
-  }, [weatherData.airQuality]);
-
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
@@ -475,18 +477,62 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
       </CardHeader>
 
       <CardContent className="p-0 pb-4">
-        <Tabs defaultValue={defaultTab} className="w-full">
+        {aqiInfo && aqiInfo.aqi >= 2 && isAqiAlertVisible && (
+          <div className="p-4 sm:p-6 pt-4 pb-2">
+            <Card className={cn("overflow-hidden border-2 shadow-xl animate-in fade-in-up", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
+                <div className="relative h-24 w-full">
+                    <Image 
+                        src="https://placehold.co/600x400.png"
+                        data-ai-hint="city air pollution"
+                        alt="An artistic image representing air quality"
+                        fill
+                        className="object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute bottom-0 left-0 p-4 flex items-center gap-3">
+                        <AlertTriangle className={cn("h-6 w-6 flex-shrink-0 text-white drop-shadow-lg")} />
+                        <CardTitle className={cn("text-xl font-headline text-white drop-shadow-lg")}>
+                            {aqiInfo.level} Air Quality
+                        </CardTitle>
+                    </div>
+                </div>
+                <CardContent className="p-4">
+                    <p className="mb-4 text-sm text-foreground/90">{aqiInfo.impact}</p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button 
+                          className="w-full"
+                          onClick={() => {
+                              setActiveTab('health');
+                              setIsAqiAlertVisible(false); // Hide after clicking
+                          }}
+                        >
+                          View Health Details
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            className="w-full"
+                            onClick={() => setIsAqiAlertVisible(false)}
+                        >
+                            Dismiss
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+          </div>
+        )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-center px-4 sm:px-6 pt-4">
-                <TabsList>
-                    <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5 sm:gap-2">
+                <TabsList className="h-auto">
+                    <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5 sm:gap-2 px-2 sm:px-3 h-10">
                         <AreaChartIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                         <span className="truncate">Forecast</span>
                     </TabsTrigger>
-                    <TabsTrigger value="insights" className="group text-xs sm:text-sm gap-1.5 sm:gap-2">
+                    <TabsTrigger value="insights" className="group text-xs sm:text-sm gap-1.5 sm:gap-2 px-2 sm:px-3 h-10">
                         <Brain className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                         <span className="truncate">AI Insights</span>
                     </TabsTrigger>
-                    <TabsTrigger value="health" className="group text-xs sm:text-sm gap-1.5 sm:gap-2">
+                    <TabsTrigger value="health" className="group text-xs sm:text-sm gap-1.5 sm:gap-2 px-2 sm:px-3 h-10">
                         <Leaf className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground transition-colors group-data-[state=active]:text-primary" />
                         <span className="truncate">Health</span>
                     </TabsTrigger>
