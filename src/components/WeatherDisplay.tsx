@@ -321,13 +321,13 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
   const humidityColor = useMemo(() => {
     if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-5))]'; // Blue for high humidity
     if (weatherData.humidity < 30) return 'text-[hsl(var(--chart-4))]'; // Yellow for low humidity
-    return undefined;
+    return 'text-primary';
   }, [weatherData.humidity]);
 
   const windColor = useMemo(() => {
     if (weatherData.windSpeed > 35) return 'text-[hsl(var(--chart-3))]'; // Red/Orange for high wind
     if (weatherData.windSpeed > 15) return 'text-[hsl(var(--chart-2))]'; // Teal for moderate wind
-    return undefined;
+    return 'text-primary';
   }, [weatherData.windSpeed]);
 
   const aqiComponents = weatherData.airQuality?.components;
@@ -744,11 +744,11 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
   return (
      <div className={cn("flex items-center space-x-2 sm:space-x-3 rounded-lg bg-muted/50 p-2 sm:p-3 shadow-inner border border-border/60", className)} {...props}>
       <div className="p-1.5 sm:p-2 bg-background rounded-md shadow-sm">
-        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor || 'text-primary')} />
+        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
       </div>
       <div className="flex flex-col text-left">
         <span className="text-xs text-muted-foreground">{label}</span>
-        <span className={cn("text-sm font-semibold", iconColor || 'text-foreground')}>{value}</span>
+        <span className={cn("text-sm font-semibold", "text-foreground")}>{value}</span>
       </div>
     </div>
   );

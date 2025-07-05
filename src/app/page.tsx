@@ -44,11 +44,11 @@ const initialState: WeatherPageState = {
 
 // This scale is duplicated here to be used by the AQI notification logic.
 const aqiScale = [
-  { aqi: 1, level: "Good", impact: "Minimal impact.", borderColorClass: "border-success/50", bgColorClass: "bg-success/10" },
-  { aqi: 2, level: "Fair", impact: "May cause minor breathing discomfort to sensitive people.", borderColorClass: "border-yellow-500/50", bgColorClass: "bg-yellow-500/10" },
-  { aqi: 3, level: "Moderate", impact: "May cause breathing discomfort to people with lung disease, children, and older adults.", borderColorClass: "border-orange-500/50", bgColorClass: "bg-orange-500/10" },
-  { aqi: 4, level: "Poor", impact: "May cause breathing discomfort on prolonged exposure and discomfort to people with heart disease.", borderColorClass: "border-destructive/50", bgColorClass: "bg-destructive/10" },
-  { aqi: 5, level: "Very Poor", impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.", borderColorClass: "border-purple-600/50", bgColorClass: "bg-purple-600/10" },
+  { aqi: 1, level: "Good", impact: "Minimal impact.", borderColorClass: "border-success/50", bgColorClass: "bg-success/10", colorClass: "text-success" },
+  { aqi: 2, level: "Fair", impact: "May cause minor breathing discomfort to sensitive people.", borderColorClass: "border-yellow-500/50", bgColorClass: "bg-yellow-500/10", colorClass: "text-yellow-500" },
+  { aqi: 3, level: "Moderate", impact: "May cause breathing discomfort to people with lung disease, children, and older adults.", borderColorClass: "border-orange-500/50", bgColorClass: "bg-orange-500/10", colorClass: "text-orange-500" },
+  { aqi: 4, level: "Poor", impact: "May cause breathing discomfort on prolonged exposure and discomfort to people with heart disease.", borderColorClass: "border-destructive/50", bgColorClass: "bg-destructive/10", colorClass: "text-destructive" },
+  { aqi: 5, level: "Very Poor", impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.", borderColorClass: "border-purple-600/50", bgColorClass: "bg-purple-600/10", colorClass: "text-purple-600" },
 ];
 
 
@@ -408,26 +408,37 @@ function WeatherPageContent() {
           </Card>
       )}
 
-      {isAqiNotificationVisible && aqiInfo && (
+      {isAqiNotificationVisible && aqiInfo && weatherState.data && (
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
             <Card className={cn("overflow-hidden border-2 shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
                 <div className="relative h-24 w-full">
                     <Image
                         src="https://placehold.co/600x400.png"
-                        data-ai-hint="city air pollution"
+                        data-ai-hint="air pollution"
                         alt="An artistic image representing air quality"
                         fill
                         className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-4 flex items-center gap-3">
-                        <AlertTriangle className="h-6 w-6 flex-shrink-0 text-white drop-shadow-lg" />
-                        <CardTitle className="text-xl font-headline text-white drop-shadow-lg">
-                            {aqiInfo.level} Air Quality
-                        </CardTitle>
+                    <div className="absolute bottom-0 left-0 p-4 w-full">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-6 w-6 flex-shrink-0 text-white drop-shadow-lg" />
+                            <CardTitle className="text-xl font-headline text-white drop-shadow-lg">
+                                {aqiInfo.level} Air Quality
+                            </CardTitle>
+                        </div>
+                        <p className="mt-1 text-sm text-white/90 drop-shadow-md">
+                          in {weatherState.data.city}
+                        </p>
                     </div>
                 </div>
                 <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4 text-sm">
+                      <span className="text-muted-foreground">Index Value</span>
+                      <span className={cn("font-bold", aqiInfo.colorClass)}>
+                          {weatherState.data.airQuality?.aqi} / 5
+                      </span>
+                    </div>
                     <p className="mb-4 text-sm text-foreground/90">{aqiInfo.impact}</p>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <Button
