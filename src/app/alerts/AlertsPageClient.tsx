@@ -108,7 +108,7 @@ export function AlertsPageClient() {
 
   return (
      <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-      <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl animate-in fade-in-up duration-500">
+      <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-lg animate-in fade-in-up duration-500">
         <CardHeader className="text-center items-center pt-8 pb-6">
            <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <Bell className="h-10 w-10 text-primary drop-shadow-lg" />

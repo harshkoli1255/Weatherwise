@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, Sunrise, Sunset } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -58,7 +58,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       
       <div className="flex flex-col items-center">
         <WeatherIcon iconCode={data.iconCode} className="h-8 w-8 drop-shadow-lg" />
-        <p className="mt-1 text-2xl font-bold text-foreground">{convertTemperature(data.temp)}°</p>
+        <p className="mt-1 text-2xl font-bold text-foreground">{Math.round(convertTemperature(data.temp))}°</p>
       </div>
 
       <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -312,7 +312,7 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
 
 export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle, onRefresh, isRefreshing, activeTab, onTabChange }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
+  const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime, formatTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
   const aqiInfo = useMemo(() => {
@@ -339,8 +339,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     
     const nowData = {
       time: "Now",
-      temperature: convertTemperature(weatherData.temperature),
-      feelsLike: convertTemperature(weatherData.feelsLike),
+      temperature: Math.round(convertTemperature(weatherData.temperature)),
+      feelsLike: Math.round(convertTemperature(weatherData.feelsLike)),
       iconCode: weatherData.iconCode,
       condition: weatherData.description,
       precipitationChance: weatherData.hourlyForecast[0].precipitationChance,
@@ -351,8 +351,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
 
     const forecastPoints = weatherData.hourlyForecast.map(hour => ({
       time: formatShortTime(hour.timestamp, weatherData.timezone),
-      temperature: convertTemperature(hour.temp),
-      feelsLike: convertTemperature(hour.feelsLike),
+      temperature: Math.round(convertTemperature(hour.temp)),
+      feelsLike: Math.round(convertTemperature(hour.feelsLike)),
       iconCode: hour.iconCode,
       condition: hour.condition,
       precipitationChance: hour.precipitationChance,
@@ -412,7 +412,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
   };
   
   return (
-    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-xl transition-transform duration-300 mt-4 animate-in fade-in-up">
+    <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-lg transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
         <div className="flex w-full items-center justify-between gap-2">
           <div className="w-8 sm:w-9" /> 
@@ -494,17 +494,19 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
               <TabsContent value="forecast" className="space-y-6 pt-0">
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-center sm:text-left">
                       <div className="flex flex-col items-center sm:items-start animate-in fade-in zoom-in-95 order-1">
-                          <div className="flex items-baseline text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
-                              <span>{convertTemperature(weatherData.temperature)}</span>
-                              <span className="text-4xl sm:text-5xl md:text-6xl text-muted-foreground/70">{getTemperatureUnitSymbol()}</span>
+                          <div className="flex items-start text-6xl sm:text-7xl md:text-8xl font-bold text-foreground drop-shadow-lg">
+                              <span>{Math.round(convertTemperature(weatherData.temperature))}</span>
+                              <span className="text-3xl sm:text-4xl md:text-5xl text-muted-foreground/80 font-semibold mt-1">
+                                  {getTemperatureUnitSymbol()}
+                              </span>
                           </div>
                           <span className="text-base text-muted-foreground -mt-1">
-                              Feels like {convertTemperature(weatherData.feelsLike)}{getTemperatureUnitSymbol()}
+                              Feels like {Math.round(convertTemperature(weatherData.feelsLike))}{getTemperatureUnitSymbol()}
                           </span>
                       </div>
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
-                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor={humidityColor} className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor={windColor} className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
@@ -517,6 +519,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                               style={{ animationDelay: '500ms' }}
                           />
                       )}
+                      <WeatherDetailItem icon={Sunrise} label="Sunrise" value={formatTime(weatherData.sunrise, weatherData.timezone)} className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
+                      <WeatherDetailItem icon={Sunset} label="Sunset" value={formatTime(weatherData.sunset, weatherData.timezone)} className="animate-in fade-in" style={{ animationDelay: '700ms' }}/>
                   </div>
                   <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                       <div className="flex w-max space-x-3 py-2">
@@ -689,7 +693,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                 {weatherData.airQuality && aqiInfo ? (
                     <>
                         <div className={cn(
-                            "flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl p-4 sm:p-5 border-2 shadow-lg",
+                            "flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg p-4 sm:p-5 border-2 shadow-lg",
                             aqiInfo.borderColorClass,
                             aqiInfo.bgColorClass.replace('/10', '/20') // slightly stronger bg
                         )}>

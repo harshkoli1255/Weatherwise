@@ -27,7 +27,7 @@ interface SettingsItemProps {
 function SettingsLinkItem({ icon: Icon, title, description, href }: SettingsItemProps) {
   return (
     <Link href={href} className="block group">
-      <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:border-primary/50 hover:scale-[1.02]">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-background/50 hover:bg-muted/80 transition-all duration-300 shadow-lg border border-border/30 hover:border-primary/50 hover:scale-[1.02]">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />
@@ -47,7 +47,7 @@ function AppearanceSettings() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
+        <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
             <div className="flex items-center gap-4 mb-4">
                 <div className="p-3 bg-primary/10 rounded-lg">
                     <Palette className="h-5 w-5 text-primary" />
@@ -64,7 +64,7 @@ function AppearanceSettings() {
             >
                 <div className="relative">
                     <RadioGroupItem value="light" id="light" className="sr-only peer" />
-                    <Label htmlFor="light" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                    <Label htmlFor="light" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Sun className="mb-2 h-5 w-5" />
                         <span className="text-xs">Light</span>
                     </Label>
@@ -74,7 +74,7 @@ function AppearanceSettings() {
                 </div>
                 <div className="relative">
                     <RadioGroupItem value="dark" id="dark" className="sr-only peer" />
-                    <Label htmlFor="dark" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                    <Label htmlFor="dark" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Moon className="mb-2 h-5 w-5" />
                         <span className="text-xs">Dark</span>
                     </Label>
@@ -84,7 +84,7 @@ function AppearanceSettings() {
                 </div>
                 <div className="relative">
                     <RadioGroupItem value="system" id="system" className="sr-only peer" />
-                    <Label htmlFor="system" className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
+                    <Label htmlFor="system" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-colors">
                         <Laptop className="mb-2 h-5 w-5" />
                         <span className="text-xs">System</span>
                     </Label>
@@ -106,7 +106,7 @@ function UnitSettings() {
   }, []);
 
   return (
-    <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
+    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
       <div className="flex items-center gap-4 mb-4">
         <div className="p-3 bg-primary/10 rounded-lg">
           <Thermometer className="h-5 w-5 text-primary" />
@@ -245,7 +245,7 @@ function DefaultLocationSettings() {
   }
 
   return (
-    <div className="p-4 rounded-xl bg-background/50 shadow-lg border border-border/30">
+    <div className="p-4 rounded-lg bg-background/50 shadow-lg border border-border/30">
       <div className="flex items-center gap-4 mb-4">
         <div className="p-3 bg-primary/10 rounded-lg">
           <MapPin className="h-5 w-5 text-primary" />
@@ -300,7 +300,7 @@ function DefaultLocationSettings() {
 export default function SettingsPageClient() {
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
-      <Card className="w-full max-w-2xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-xl animate-in fade-in-up duration-500">
+      <Card className="w-full max-w-2xl mx-auto bg-glass border-primary/20 shadow-2xl rounded-lg animate-in fade-in-up duration-500">
         <CardHeader className="text-center items-center pt-8 pb-6">
             <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
               <SettingsIcon className="h-10 w-10 text-primary drop-shadow-lg" />

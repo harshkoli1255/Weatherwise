@@ -351,7 +351,7 @@ function WeatherPageContent() {
       </section>
 
       {isLoadingDisplay && (
-        <div className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-xl animate-in fade-in-0">
+        <div className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-lg animate-in fade-in-0">
           <WeatherLoadingAnimation message={weatherState.loadingMessage || "Loading..."} />
         </div>
       )}
@@ -385,7 +385,7 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && (weatherState.error || weatherState.cityNotFound) && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-destructive/50 shadow-2xl p-6 sm:p-8 rounded-xl">
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-destructive/50 shadow-2xl p-6 sm:p-8 rounded-lg">
               <CardHeader className="items-center text-center pt-2 pb-4">
                   <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
                     {weatherState.cityNotFound ?
@@ -404,7 +404,7 @@ function WeatherPageContent() {
       )}
 
       {!isLoadingDisplay && !weatherState.data && !weatherState.error && !weatherState.cityNotFound && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-xl shadow-2xl relative overflow-hidden">
+           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-lg shadow-2xl relative overflow-hidden">
                 <Image
                     src="https://placehold.co/600x400.png"
                     data-ai-hint="weather map"
@@ -427,25 +427,21 @@ function WeatherPageContent() {
       )}
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("shadow-xl bg-glass border-2", aqiInfo.borderColorClass)}>
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-xs animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className={cn("shadow-xl bg-glass", aqiInfo.borderColorClass)}>
                 <div className="p-4">
                     <div className="flex items-start gap-4">
-                        {/* Icon and Title */}
-                        <div className="flex-1 flex items-center gap-3">
-                            <div className={cn("flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
-                                <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
-                            </div>
-                            <div>
-                                 <h3 className={cn("font-headline text-base font-semibold", aqiInfo.colorClass)}>
-                                    {aqiInfo.level} Air Quality
-                                </h3>
-                                <p className="text-sm text-muted-foreground -mt-1">
-                                    in {weatherState.data.city}
-                                </p>
-                            </div>
+                        <div className={cn("flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
+                            <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
                         </div>
-                        {/* AQI Value */}
+                        <div className="flex-1 grid gap-y-1">
+                            <h3 className={cn("font-headline text-base font-semibold", aqiInfo.colorClass)}>
+                                {aqiInfo.level} Air Quality
+                            </h3>
+                            <p className="text-sm text-muted-foreground -mt-1">
+                                in {weatherState.data.city}
+                            </p>
+                        </div>
                         <div className="text-right">
                             <div className="flex items-baseline justify-end gap-0.5">
                                 <p className={cn("text-4xl font-bold font-headline", aqiInfo.colorClass)}>
@@ -457,12 +453,12 @@ function WeatherPageContent() {
                         </div>
                     </div>
                     
-                    {/* Health Impact Text */}
-                    <p className="text-sm text-foreground/90 mt-3 border-t border-border pt-3">
+                    <div className="w-full h-px my-3 bg-border" />
+
+                    <p className="text-sm text-foreground/90">
                         {aqiInfo.impact}
                     </p>
 
-                    {/* Buttons */}
                     <div className="flex justify-end gap-2 mt-4">
                         <Button
                             size="sm"

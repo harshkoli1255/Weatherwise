@@ -154,7 +154,7 @@ export function SearchBar({ onSearch, isSearchingWeather, initialValue, onLocate
         ref={commandRef}
         shouldFilter={false}
         className={cn(
-            "relative w-full overflow-visible rounded-xl border bg-card/60 backdrop-blur-md shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
+            "relative w-full overflow-visible rounded-lg border bg-card/60 backdrop-blur-md shadow-lg transition-all group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
         )}
       >
         <div className="relative flex items-center">

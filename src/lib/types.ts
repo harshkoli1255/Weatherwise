@@ -28,6 +28,8 @@ export interface WeatherData {
   description: string; // e.g., "scattered clouds"
   iconCode: string; // e.g., "03d"
   timezone: number; // Timezone shift in seconds from UTC
+  sunrise: number;
+  sunset: number;
 }
 
 export interface AirQualityData {

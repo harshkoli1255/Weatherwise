@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex h-full flex-col items-start rounded-xl bg-background/50 p-4 shadow-lg border border-border/30 transition-all duration-300 hover:bg-muted/60 hover:border-primary/40 hover:scale-[1.02]">
+  <div className="flex h-full flex-col items-start rounded-lg bg-background/50 p-4 shadow-lg border border-border/30 transition-all duration-300 hover:bg-muted/60 hover:border-primary/40 hover:scale-[1.02]">
     <div className="flex items-center gap-4 mb-3">
         <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-5 w-5 text-primary" />
@@ -99,7 +99,7 @@ export default function AboutPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8 md:py-12">
-        <Card className="mx-auto w-full max-w-4xl rounded-xl border-primary/20 bg-glass shadow-2xl">
+        <Card className="mx-auto w-full max-w-4xl rounded-lg border-primary/20 bg-glass shadow-2xl">
             <CardHeader className="items-center pt-8 pb-6 text-center">
                  <div className="mb-4 rounded-full border border-primary/30 bg-primary/20 p-4 animate-in fade-in zoom-in-95">
                     <Sparkles className="h-10 w-10 text-primary drop-shadow-lg" />
@@ -142,7 +142,7 @@ export default function AboutPage() {
 
                 <section>
                     <SectionHeader icon={Heart} title="Our Mission" />
-                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center shadow-inner dark:bg-primary/10 animate-in fade-in" style={{ animationDelay: '500ms' }}>
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-6 text-center shadow-inner dark:bg-primary/10 animate-in fade-in" style={{ animationDelay: '500ms' }}>
                          <p className="mx-auto max-w-xl text-base italic leading-relaxed text-foreground/90">
                            &ldquo;To provide a weather application that is not only accurate and reliable but also a joy to use. By leveraging the power of generative AI, we deliver insights that go beyond raw data, helping you plan your day more effectively.&rdquo;
                         </p>

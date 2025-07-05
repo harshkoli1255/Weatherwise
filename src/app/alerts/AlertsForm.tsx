@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -161,7 +162,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
         <Input id="email" name="email" value={preferences.email} readOnly className="mt-2 bg-muted/60 cursor-not-allowed" />
         <p className="text-sm text-muted-foreground mt-1.5">This is the primary email on your account. To change it, please update your profile.</p>
       </div>
-      <div className="flex items-center justify-between rounded-xl border p-4 shadow-sm bg-background/50">
+      <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm bg-background/50">
         <div className="space-y-0.5">
           <Label htmlFor="alertsEnabled" className="text-base font-bold">Enable Alerts</Label>
           <p className="text-sm text-muted-foreground">Master switch for all AI-powered weather notifications.</p>
@@ -185,7 +186,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <p className="text-sm text-muted-foreground mt-1.5">The AI will monitor this city and alert you of significant weather.</p>
         </div>
         
-        <div className="space-y-4 rounded-xl border p-4 shadow-sm bg-background/50">
+        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
           <div className="flex items-center gap-3 mb-1">
             <Zap className="h-6 w-6 text-primary" />
             <div className="space-y-0.5">
@@ -213,7 +214,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           <RadioGroup name="notificationFrequency" defaultValue={preferences.notificationFrequency ?? 'balanced'} className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
              <div className="relative">
                 <RadioGroupItem value="everyHour" id="freq-max" className="sr-only peer" />
-                <Label htmlFor="freq-max" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-max" className="flex flex-col items-center justify-center p-4 rounded-md border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Maximum</span>
                     <span className="text-xs text-muted-foreground mt-1">Every hour</span>
                 </Label>
@@ -223,7 +224,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
              </div>
              <div className="relative">
                 <RadioGroupItem value="balanced" id="freq-bal" className="sr-only peer" />
-                <Label htmlFor="freq-bal" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-bal" className="flex flex-col items-center justify-center p-4 rounded-md border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Balanced</span>
                     <span className="text-xs text-muted-foreground mt-1">Every 4 hours</span>
                 </Label>
@@ -233,7 +234,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
              </div>
              <div className="relative">
                 <RadioGroupItem value="oncePerDay" id="freq-min" className="sr-only peer" />
-                <Label htmlFor="freq-min" className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
+                <Label htmlFor="freq-min" className="flex flex-col items-center justify-center p-4 rounded-md border-2 border-muted bg-popover hover:bg-accent peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all">
                     <span className="font-semibold text-sm">Minimal</span>
                     <span className="text-xs text-muted-foreground mt-1">Once a day</span>
                 </Label>
@@ -244,7 +245,7 @@ export function AlertsForm({ preferences }: AlertsFormProps) {
           </RadioGroup>
         </div>
         
-        <div className="space-y-4 rounded-xl border p-4 shadow-sm bg-background/50">
+        <div className="space-y-4 rounded-lg border p-4 shadow-sm bg-background/50">
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Clock className="h-6 w-6 text-primary" />

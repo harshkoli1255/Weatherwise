@@ -91,14 +91,16 @@ export async function fetchCurrentWeather(location: LocationIdentifier, apiKeys:
       data: {
         city: data.name,
         country: data.sys.country,
-        temperature: Math.round(data.main.temp),
-        feelsLike: Math.round(data.main.feels_like),
+        temperature: data.main.temp,
+        feelsLike: data.main.feels_like,
         humidity: data.main.humidity,
-        windSpeed: Math.round(data.wind.speed * 3.6), // m/s to km/h
+        windSpeed: data.wind.speed * 3.6, // m/s to km/h
         condition: data.weather[0].main,
         description: data.weather[0].description,
         iconCode: data.weather[0].icon,
         timezone: data.timezone,
+        sunrise: data.sys.sunrise,
+        sunset: data.sys.sunset,
       },
       error: null,
       status: 200,
@@ -133,13 +135,13 @@ export async function fetchHourlyForecast(location: LocationIdentifier, apiKeys:
     const forecastList = data.list.map(item => {
       return {
         timestamp: item.dt,
-        temp: Math.round(item.main.temp),
-        feelsLike: Math.round(item.main.feels_like),
+        temp: item.main.temp,
+        feelsLike: item.main.feels_like,
         iconCode: item.weather[0].icon,
         condition: item.weather[0].main,
         humidity: item.main.humidity,
-        windSpeed: Math.round(item.wind.speed * 3.6), // m/s to km/h
-        precipitationChance: Math.round((item.pop || 0) * 100),
+        windSpeed: item.wind.speed * 3.6, // m/s to km/h
+        precipitationChance: (item.pop || 0) * 100,
       };
     });
     return { data: forecastList, error: null, status: 200 };
