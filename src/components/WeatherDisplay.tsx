@@ -42,7 +42,7 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
   
   let borderColor = 'border-border/30';
   if (showPrecipitation) {
-    borderColor = 'border-blue-400/50';
+    borderColor = 'border-chart-2/50';
   }
 
   return (
@@ -64,8 +64,8 @@ function ForecastCard({ data, timezone, onClick }: ForecastCardProps) {
       <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
         {showPrecipitation ? (
           <>
-            <Droplets className="h-4 w-4 text-blue-400" />
-            <span className="font-semibold text-blue-400">{data.precipitationChance}%</span>
+            <Droplets className="h-4 w-4 text-chart-2" />
+            <span className="font-semibold text-chart-2">{data.precipitationChance}%</span>
           </>
         ) : (
           <>
@@ -85,7 +85,7 @@ const chartConfig = {
   },
   feelsLike: {
     label: "Feels Like",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig;
 
@@ -130,7 +130,7 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
         <div className="grid gap-1.5">
             <div className="flex w-full items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <CloudRain className="h-4 w-4 text-chart-1" />
+                <CloudRain className="h-4 w-4 text-chart-2" />
                 <span className="text-muted-foreground">Precipitation</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
@@ -139,7 +139,7 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
             </div>
             <div className="flex w-full items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <Droplets className="h-4 w-4 text-chart-4" />
+                <Droplets className="h-4 w-4 text-chart-5" />
                 <span className="text-muted-foreground">Humidity</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
@@ -148,7 +148,7 @@ const CustomChartTooltipContent = ({ active, payload, label }: any) => {
             </div>
             <div className="flex w-full items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <Wind className="h-4 w-4 text-chart-3" />
+                <Wind className="h-4 w-4 text-chart-4" />
                 <span className="text-muted-foreground">Wind</span>
               </div>
               <span className="font-mono font-medium tabular-nums text-foreground">
@@ -208,10 +208,10 @@ const PollutantDetail: React.FC<PollutantDetailProps> = ({ name, description, va
   const percentage = Math.min((value / progressMax) * 100, 100);
   
   let indicatorColorClass = "bg-success"; // Good
-  if (value > thresholds.unhealthy) indicatorColorClass = "bg-chart-1"; // Very Poor
+  if (value > thresholds.unhealthy) indicatorColorClass = "bg-chart-3"; // Very Poor
   else if (value > thresholds.usg) indicatorColorClass = "bg-destructive"; // Poor
-  else if (value > thresholds.moderate) indicatorColorClass = "bg-chart-3"; // Moderate
-  else if (value > thresholds.good) indicatorColorClass = "bg-chart-4"; // Fair
+  else if (value > thresholds.moderate) indicatorColorClass = "bg-chart-4"; // Moderate
+  else if (value > thresholds.good) indicatorColorClass = "bg-chart-5"; // Fair
 
   return (
     <div className="flex flex-col space-y-1.5 p-3 rounded-lg bg-background/50 border border-border/60 shadow-inner">
@@ -247,19 +247,19 @@ const aqiScale = [
     aqi: 2,
     level: "Fair",
     range: "51-100",
-    impact: "May cause minor breathing discomfort to very sensitive people.",
-    colorClass: "text-chart-4",
-    bgColorClass: "bg-chart-4/10",
-    borderColorClass: "border-chart-4/50",
+    impact: "Sensitive individuals may experience minor respiratory symptoms.",
+    colorClass: "text-chart-5",
+    bgColorClass: "bg-chart-5/10",
+    borderColorClass: "border-chart-5/50",
   },
   {
     aqi: 3,
     level: "Moderate",
     range: "101-200",
     impact: "Members of sensitive groups may experience health effects. The general public is not likely to be affected.",
-    colorClass: "text-chart-3",
-    bgColorClass: "bg-chart-3/10",
-    borderColorClass: "border-chart-3/50",
+    colorClass: "text-chart-4",
+    bgColorClass: "bg-chart-4/10",
+    borderColorClass: "border-chart-4/50",
   },
   {
     aqi: 4,
@@ -274,10 +274,10 @@ const aqiScale = [
     aqi: 5,
     level: "Very Poor",
     range: "301-400+",
-    impact: "Health alert: everyone may experience more serious health effects.",
-    colorClass: "text-chart-1",
-    bgColorClass: "bg-chart-1/10",
-    borderColorClass: "border-chart-1/50",
+    impact: "Health alert: everyone may experience more serious health effects. Outdoor activity is discouraged.",
+    colorClass: "text-chart-3",
+    bgColorClass: "bg-chart-3/10",
+    borderColorClass: "border-chart-3/50",
   },
 ];
 
@@ -321,14 +321,14 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
   }, [weatherData.airQuality]);
 
   const humidityColor = useMemo(() => {
-    if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-5))]'; // Blue for high humidity
-    if (weatherData.humidity < 30) return 'text-[hsl(var(--chart-4))]'; // Yellow for low humidity
+    if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-2))]'; // Blue for high humidity
+    if (weatherData.humidity < 30) return 'text-[hsl(var(--chart-5))]'; // Yellow for low humidity
     return 'text-primary';
   }, [weatherData.humidity]);
 
   const windColor = useMemo(() => {
-    if (weatherData.windSpeed > 35) return 'text-[hsl(var(--chart-3))]'; // Red/Orange for high wind
-    if (weatherData.windSpeed > 15) return 'text-[hsl(var(--chart-2))]'; // Teal for moderate wind
+    if (weatherData.windSpeed > 35) return 'text-[hsl(var(--chart-4))]'; // Red/Orange for high wind
+    if (weatherData.windSpeed > 15) return 'text-[hsl(var(--chart-3))]'; // Violet for moderate wind
     return 'text-primary';
   }, [weatherData.windSpeed]);
 
@@ -634,7 +634,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                           <>
                               <ReferenceLine x="Now" stroke="hsl(var(--primary))" strokeDasharray="3 3" strokeWidth={2} />
                               <ReferenceDot x="Now" y={chartData[0].temperature} r={8} fill="hsl(var(--chart-1))" stroke="hsl(var(--background))" strokeWidth={2} />
-                              <ReferenceDot x="Now" y={chartData[0].feelsLike} r={6} fill="hsl(var(--chart-2))" stroke="hsl(var(--background))" strokeWidth={2} />
+                              <ReferenceDot x="Now" y={chartData[0].feelsLike} r={6} fill="hsl(var(--chart-3))" stroke="hsl(var(--background))" strokeWidth={2} />
                           </>
                           )}
                       </AreaChart>
