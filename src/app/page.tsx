@@ -43,12 +43,13 @@ const initialState: WeatherPageState = {
 };
 
 // This scale is duplicated here to be used by the AQI notification logic.
+// It now uses themed chart colors to ensure consistency with the rest of the app.
 const aqiScale = [
   { aqi: 1, level: "Good", impact: "Minimal impact.", borderColorClass: "border-success/50", bgColorClass: "bg-success/10", colorClass: "text-success" },
-  { aqi: 2, level: "Fair", impact: "May cause minor breathing discomfort to sensitive people.", borderColorClass: "border-yellow-500/50", bgColorClass: "bg-yellow-500/10", colorClass: "text-yellow-500" },
-  { aqi: 3, level: "Moderate", impact: "May cause breathing discomfort to people with lung disease, children, and older adults.", borderColorClass: "border-orange-500/50", bgColorClass: "bg-orange-500/10", colorClass: "text-orange-500" },
+  { aqi: 2, level: "Fair", impact: "May cause minor breathing discomfort to sensitive people.", borderColorClass: "border-chart-4/50", bgColorClass: "bg-chart-4/10", colorClass: "text-chart-4" },
+  { aqi: 3, level: "Moderate", impact: "May cause breathing discomfort to people with lung disease, children, and older adults.", borderColorClass: "border-chart-3/50", bgColorClass: "bg-chart-3/10", colorClass: "text-chart-3" },
   { aqi: 4, level: "Poor", impact: "May cause breathing discomfort on prolonged exposure and discomfort to people with heart disease.", borderColorClass: "border-destructive/50", bgColorClass: "bg-destructive/10", colorClass: "text-destructive" },
-  { aqi: 5, level: "Very Poor", impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.", borderColorClass: "border-purple-600/50", bgColorClass: "bg-purple-600/10", colorClass: "text-purple-600" },
+  { aqi: 5, level: "Very Poor", impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.", borderColorClass: "border-chart-1/50", bgColorClass: "bg-chart-1/10", colorClass: "text-chart-1" },
 ];
 
 
@@ -427,7 +428,7 @@ function WeatherPageContent() {
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("shadow-xl bg-popover border-2", aqiInfo.borderColorClass)}>
+            <Card className={cn("shadow-xl bg-glass border-2", aqiInfo.borderColorClass)}>
                 <div className="p-4">
                     <div className="flex items-start gap-4">
                         {/* Icon and Title */}
