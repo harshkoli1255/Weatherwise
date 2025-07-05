@@ -426,39 +426,54 @@ function WeatherPageContent() {
       )}
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-xs animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("overflow-hidden border-2 shadow-xl bg-popover", aqiInfo.borderColorClass)}>
-                <CardHeader className="flex flex-row items-center gap-3 p-3">
-                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
-                        <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
-                    </div>
-                    <div className="min-w-0">
-                        <CardTitle className={cn("text-base font-bold", aqiInfo.colorClass)}>
-                            {aqiInfo.level} Air Quality Alert
-                        </CardTitle>
-                        <CardDescription className="text-xs text-muted-foreground truncate">
-                            for {weatherState.data.city}
-                        </CardDescription>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="p-3 pt-0 space-y-3">
-                    <div className="text-center rounded-lg p-2 bg-background border border-border">
-                        <p className="text-xs font-medium text-muted-foreground">Air Quality Index</p>
-                        <p className={cn("text-4xl font-bold", aqiInfo.colorClass)}>
-                            {weatherState.data.airQuality?.aqi}
-                            <span className="text-2xl text-muted-foreground">/5</span>
-                        </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-background border border-border">
-                        <p className="text-xs text-foreground/90 text-center">{aqiInfo.impact}</p>
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className={cn("shadow-xl bg-popover border-2", aqiInfo.borderColorClass)}>
+                <div className="p-4">
+                    <div className="flex items-start gap-4">
+                        {/* Icon and Title */}
+                        <div className="flex-1 flex items-center gap-3">
+                            <div className={cn("flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
+                                <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
+                            </div>
+                            <div>
+                                 <h3 className={cn("font-headline text-base font-semibold", aqiInfo.colorClass)}>
+                                    {aqiInfo.level} Air Quality
+                                </h3>
+                                <p className="text-sm text-muted-foreground -mt-1">
+                                    in {weatherState.data.city}
+                                </p>
+                            </div>
+                        </div>
+                        {/* AQI Value */}
+                        <div className="text-right">
+                            <div className="flex items-baseline justify-end gap-0.5">
+                                <p className={cn("text-4xl font-bold font-headline", aqiInfo.colorClass)}>
+                                    {weatherState.data.airQuality?.aqi}
+                                </p>
+                                <p className="text-2xl text-muted-foreground font-headline">/5</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground text-right -mt-1">AQI</p>
+                        </div>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    {/* Health Impact Text */}
+                    <p className="text-sm text-foreground/90 mt-3 border-t border-border pt-3">
+                        {aqiInfo.impact}
+                    </p>
+
+                    {/* Buttons */}
+                    <div className="flex justify-end gap-2 mt-4">
                         <Button
                             size="sm"
-                            className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+                            variant="ghost"
+                            className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
+                            onClick={() => setIsAqiNotificationVisible(false)}
+                        >
+                            Dismiss
+                        </Button>
+                        <Button
+                            size="sm"
+                            className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
                             onClick={() => {
                                 setActiveTab('health');
                                 setIsAqiNotificationVisible(false);
@@ -467,16 +482,8 @@ function WeatherPageContent() {
                             <Leaf className="mr-2 h-4 w-4" />
                             View Details
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
-                            onClick={() => setIsAqiNotificationVisible(false)}
-                        >
-                            Dismiss
-                        </Button>
                     </div>
-                </CardContent>
+                </div>
             </Card>
         </div>
       )}
@@ -492,5 +499,3 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
-
-    
