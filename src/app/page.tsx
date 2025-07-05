@@ -67,7 +67,7 @@ function WeatherPageContent() {
   const { lastSearch, setLastSearch } = useLastSearch();
   const { lastWeatherResult, setLastWeatherResult, clearLastWeatherResult, isInitialized: isSessionInitialized } = useLastWeatherResult();
   const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const isInitializationDone = useRef(false);
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
@@ -254,20 +254,16 @@ function WeatherPageContent() {
 
 
   useEffect(() => {
-    // This effect should only run ONCE when the component has initialized.
-    if (hasInitialized) {
-      return;
-    }
-
-    // Wait for all dependencies to be ready.
-    if (!isClerkLoaded || !isSessionInitialized) {
+    // This effect should only determine the initial weather to display.
+    // It should run only once after all contexts are ready.
+    if (isInitializationDone.current || !isClerkLoaded || !isSessionInitialized) {
       return;
     }
     
-    // Mark as initialized to prevent this from running again.
-    setHasInitialized(true);
-    
-    // Now, decide what to load.
+    // Mark as done to prevent re-running on other changes.
+    isInitializationDone.current = true;
+  
+    // Priority 1: Restore from a previous session result.
     if (lastWeatherResult) {
       console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
       setWeatherState({
@@ -278,29 +274,28 @@ function WeatherPageContent() {
         cityNotFound: false,
       });
       setInitialSearchTerm(lastWeatherResult.city);
-      return; // Stop here, no API call needed.
+      return; // Done. No API call needed.
     }
-
-    // If no session, proceed with fetch logic.
+  
+    // Priority 2: Use the user's saved default location.
     if (defaultLocation) {
       console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
       handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
       return;
     }
-
+  
+    // Priority 3: Use the user's last search query.
     if (lastSearch) {
       console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
       handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
       return;
     }
-
+  
+    // Priority 4: Fallback to IP Geolocation.
     console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
     handleLocate(true);
   
-  // Rerun this effect ONLY when the basic readiness flags change.
-  // The logic inside reads the latest values from the contexts without needing them as dependencies.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClerkLoaded, isSessionInitialized]);
+  }, [isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch, handleSearch, handleLocate]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -542,104 +537,105 @@ function WeatherPageContent() {
         )}
       </div>
       
-      {notificationPortal && isAqiNotificationVisible && aqiInfo && weatherState.data && createPortal(
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("shadow-xl bg-card", aqiInfo.borderColorClass)}>
-                <div className="p-3">
-                    <div className="grid grid-cols-3 items-center gap-2">
-                        <div className="flex items-center gap-3 col-span-2">
-                             <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 border", aqiInfo.bgColorClass, aqiInfo.borderColorClass)}>
-                                <Leaf className={cn("h-6 w-6", aqiInfo.colorClass)} />
-                            </div>
-                            <h3 className={cn("font-headline text-lg font-semibold", aqiInfo.colorClass)}>
-                                {aqiInfo.level} Air Quality
-                            </h3>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-xs text-muted-foreground font-semibold">AQI</p>
-                            <div className="flex items-baseline justify-end gap-0.5">
-                                <p className={cn("text-3xl font-bold font-headline", aqiInfo.colorClass)}>
-                                    {weatherState.data.airQuality?.aqi}
-                                </p>
-                                <p className="text-xl text-muted-foreground font-headline">/5</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-full h-px bg-border my-2.5" />
-                    <p className="text-sm text-muted-foreground px-1">{aqiInfo.impact}</p>
-                    <div className="flex justify-end gap-2 mt-3">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
-                            onClick={() => setIsAqiNotificationVisible(false)}
-                        >
-                            Dismiss
-                        </Button>
-                        <Button
-                            size="sm"
-                            className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
-                            onClick={() => {
-                                setActiveTab('health');
-                                setIsAqiNotificationVisible(false);
-                            }}
-                        >
-                            <Leaf className="mr-2 h-4 w-4" />
-                            View Details
-                        </Button>
-                    </div>
-                </div>
-            </Card>
-        </div>,
-        notificationPortal
-      )}
-
-      {notificationPortal && proactiveAlert && createPortal(
-        <div className="fixed bottom-24 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className="bg-card shadow-xl border-primary/30">
-                <div className="p-4">
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 bg-primary/10 border border-primary/20">
-                            {proactiveAlert.iconCode ? (
-                            <WeatherIcon iconCode={proactiveAlert.iconCode} className="h-6 w-6" />
-                            ) : (
-                            <Waypoints className="h-6 w-6 text-primary" />
-                            )}
-                        </div>
-                        <div className="flex-1 grid gap-y-1">
-                            <h3 className="font-headline text-base font-semibold text-primary">
-                                Weather Alert for {proactiveAlert.city}
-                            </h3>
-                            <div
-                                className="text-sm text-foreground/90 [&_strong]:font-bold [&_strong]:text-primary"
-                                dangerouslySetInnerHTML={{ __html: proactiveAlert.reason }}
-                            />
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
-                            onClick={() => setProactiveAlert(null)}
-                        >
-                            Dismiss
-                        </Button>
-                        <Button
-                            size="sm"
-                            className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
-                            onClick={() => {
-                                handleSearch(proactiveAlert.city);
-                                setProactiveAlert(null);
-                            }}
-                        >
-                            <MapPin className="mr-2 h-4 w-4" />
-                            View Location
-                        </Button>
-                    </div>
-                </div>
-            </Card>
+      {notificationPortal && (isAqiNotificationVisible || proactiveAlert) && createPortal(
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm space-y-4">
+          {proactiveAlert && (
+            <div className="animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+              <Card className="bg-card shadow-xl border-primary/30">
+                  <div className="p-4">
+                      <div className="flex items-start gap-4">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 bg-primary/10 border border-primary/20">
+                              {proactiveAlert.iconCode ? (
+                              <WeatherIcon iconCode={proactiveAlert.iconCode} className="h-6 w-6" />
+                              ) : (
+                              <Waypoints className="h-6 w-6 text-primary" />
+                              )}
+                          </div>
+                          <div className="flex-1 grid gap-y-1">
+                              <h3 className="font-headline text-base font-semibold text-primary">
+                                  Weather Alert for {proactiveAlert.city}
+                              </h3>
+                              <div
+                                  className="text-sm text-foreground/90 [&_strong]:font-bold [&_strong]:text-primary"
+                                  dangerouslySetInnerHTML={{ __html: proactiveAlert.reason }}
+                              />
+                          </div>
+                      </div>
+                      <div className="flex justify-end gap-2 mt-4">
+                          <Button
+                              size="sm"
+                              variant="ghost"
+                              className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
+                              onClick={() => setProactiveAlert(null)}
+                          >
+                              Dismiss
+                          </Button>
+                          <Button
+                              size="sm"
+                              className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+                              onClick={() => {
+                                  handleSearch(proactiveAlert.city);
+                                  setProactiveAlert(null);
+                              }}
+                          >
+                              <MapPin className="mr-2 h-4 w-4" />
+                              View Location
+                          </Button>
+                      </div>
+                  </div>
+              </Card>
+            </div>
+          )}
+          {isAqiNotificationVisible && aqiInfo && weatherState.data && (
+             <div className="animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+              <Card className={cn("shadow-xl bg-card", aqiInfo.borderColorClass)}>
+                  <div className="p-3">
+                      <div className="grid grid-cols-3 items-center gap-2">
+                          <div className="flex items-center gap-3 col-span-2">
+                              <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 border", aqiInfo.bgColorClass, aqiInfo.borderColorClass)}>
+                                  <Leaf className={cn("h-6 w-6", aqiInfo.colorClass)} />
+                              </div>
+                              <h3 className={cn("font-headline text-lg font-semibold", aqiInfo.colorClass)}>
+                                  {aqiInfo.level} Air Quality
+                              </h3>
+                          </div>
+                          <div className="text-right">
+                              <p className="text-xs text-muted-foreground font-semibold">AQI</p>
+                              <div className="flex items-baseline justify-end gap-0.5">
+                                  <p className={cn("text-3xl font-bold font-headline", aqiInfo.colorClass)}>
+                                      {weatherState.data.airQuality?.aqi}
+                                  </p>
+                                  <p className="text-xl text-muted-foreground font-headline">/5</p>
+                              </div>
+                          </div>
+                      </div>
+                      <div className="w-full h-px bg-border my-2.5" />
+                      <p className="text-sm text-muted-foreground px-1">{aqiInfo.impact}</p>
+                      <div className="flex justify-end gap-2 mt-3">
+                          <Button
+                              size="sm"
+                              variant="ghost"
+                              className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
+                              onClick={() => setIsAqiNotificationVisible(false)}
+                          >
+                              Dismiss
+                          </Button>
+                          <Button
+                              size="sm"
+                              className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+                              onClick={() => {
+                                  setActiveTab('health');
+                                  setIsAqiNotificationVisible(false);
+                              }}
+                          >
+                              <Leaf className="mr-2 h-4 w-4" />
+                              View Details
+                          </Button>
+                      </div>
+                  </div>
+              </Card>
+            </div>
+          )}
         </div>,
         notificationPortal
       )}
