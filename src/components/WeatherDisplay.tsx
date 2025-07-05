@@ -414,12 +414,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
   return (
     <Card className="w-full max-w-2xl bg-glass border-primary/20 shadow-2xl rounded-lg transition-transform duration-300 mt-4 animate-in fade-in-up">
       <CardHeader className="pt-6 pb-4 px-4 sm:px-6 border-b border-border/50">
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="w-8 sm:w-9" /> 
+        <div className="relative flex w-full items-center justify-center">
           <CardTitle className="min-w-0 text-center text-xl sm:text-2xl md:text-3xl font-headline font-bold text-primary drop-shadow-md leading-tight">
             {weatherData.city}, {weatherData.country}
           </CardTitle>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 flex-shrink-0">
             <TooltipProvider>
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
