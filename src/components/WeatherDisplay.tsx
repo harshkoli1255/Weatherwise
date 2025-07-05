@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -22,6 +22,8 @@ interface WeatherDisplayProps {
   onSaveCityToggle: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 interface ForecastCardProps {
@@ -263,7 +265,7 @@ const aqiScale = [
     aqi: 4,
     level: "Poor",
     range: "201-300",
-    impact: "May cause breathing discomfort to people on prolonged exposure and discomfort to people with heart disease.",
+    impact: "May cause breathing discomfort on prolonged exposure and discomfort to people with heart disease.",
     colorClass: "text-red-500",
     bgColorClass: "bg-destructive/10",
     borderColorClass: "border-destructive/50",
@@ -306,10 +308,8 @@ function AqiScaleGuide({ currentAqi }: { currentAqi: number }) {
 }
 
 
-export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle, onRefresh, isRefreshing }: WeatherDisplayProps) {
+export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle, onRefresh, isRefreshing, activeTab, onTabChange }: WeatherDisplayProps) {
   const [selectedHour, setSelectedHour] = useState<HourlyForecastData | null>(null);
-  const [activeTab, setActiveTab] = useState('forecast');
-  const [isAqiAlertVisible, setIsAqiAlertVisible] = useState(true);
   const { units, convertTemperature, getTemperatureUnitSymbol, convertWindSpeed, getWindSpeedUnitLabel, formatShortTime } = useUnits();
   const { isSyncing } = useSavedLocations();
 
@@ -317,13 +317,6 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
     if (!weatherData.airQuality) return null;
     return aqiScale.find(item => item.aqi === weatherData.airQuality?.aqi) || null;
   }, [weatherData.airQuality]);
-
-  useEffect(() => {
-    if (weatherData.airQuality && weatherData.airQuality.aqi >= 2) { // Show for Fair or worse
-      setIsAqiAlertVisible(true);
-    }
-  }, [weatherData.city, weatherData.airQuality]);
-
 
   const humidityColor = useMemo(() => {
     if (weatherData.humidity > 75) return 'text-[hsl(var(--chart-5))]'; // Blue for high humidity
@@ -477,51 +470,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
       </CardHeader>
 
       <CardContent className="p-0 pb-4">
-        {aqiInfo && aqiInfo.aqi >= 2 && isAqiAlertVisible && (
-          <div className="p-4 sm:p-6 pt-4 pb-2">
-            <Card className={cn("overflow-hidden border-2 shadow-xl animate-in fade-in-up", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
-                <div className="relative h-24 w-full">
-                    <Image 
-                        src="https://placehold.co/600x400.png"
-                        data-ai-hint="city air pollution"
-                        alt="An artistic image representing air quality"
-                        fill
-                        className="object-cover opacity-80"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-4 flex items-center gap-3">
-                        <AlertTriangle className={cn("h-6 w-6 flex-shrink-0 text-white drop-shadow-lg")} />
-                        <CardTitle className={cn("text-xl font-headline text-white drop-shadow-lg")}>
-                            {aqiInfo.level} Air Quality
-                        </CardTitle>
-                    </div>
-                </div>
-                <CardContent className="p-4">
-                    <p className="mb-4 text-sm text-foreground/90">{aqiInfo.impact}</p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <Button 
-                          className="w-full"
-                          onClick={() => {
-                              setActiveTab('health');
-                              setIsAqiAlertVisible(false); // Hide after clicking
-                          }}
-                        >
-                          View Health Details
-                        </Button>
-                        <Button 
-                            variant="ghost" 
-                            className="w-full"
-                            onClick={() => setIsAqiAlertVisible(false)}
-                        >
-                            Dismiss
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-          </div>
-        )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
             <div className="flex justify-center px-4 sm:px-6 pt-4">
                 <TabsList className="h-auto">
                     <TabsTrigger value="forecast" className="group text-xs sm:text-sm gap-1.5 sm:gap-2 px-2 sm:px-3 h-10">

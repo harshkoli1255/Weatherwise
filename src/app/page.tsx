@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback, Suspense } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
@@ -12,10 +12,12 @@ import { useDefaultLocation } from '@/hooks/useDefaultLocation';
 import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, MapPin, Compass } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, MapPin, Compass, AlertTriangle } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface WeatherPageState {
   data: WeatherSummaryData | null;
@@ -40,6 +42,16 @@ const initialState: WeatherPageState = {
   cityNotFound: false,
 };
 
+// This scale is duplicated here to be used by the AQI notification logic.
+const aqiScale = [
+  { aqi: 1, level: "Good", impact: "Minimal impact.", borderColorClass: "border-success/50", bgColorClass: "bg-success/10" },
+  { aqi: 2, level: "Fair", impact: "May cause minor breathing discomfort to sensitive people.", borderColorClass: "border-yellow-500/50", bgColorClass: "bg-yellow-500/10" },
+  { aqi: 3, level: "Moderate", impact: "May cause breathing discomfort to people with lung disease, children, and older adults.", borderColorClass: "border-orange-500/50", bgColorClass: "bg-orange-500/10" },
+  { aqi: 4, level: "Poor", impact: "May cause breathing discomfort on prolonged exposure and discomfort to people with heart disease.", borderColorClass: "border-destructive/50", bgColorClass: "bg-destructive/10" },
+  { aqi: 5, level: "Very Poor", impact: "May cause respiratory illness on prolonged exposure. Effects may be more pronounced in people with lung and heart diseases.", borderColorClass: "border-purple-600/50", bgColorClass: "bg-purple-600/10" },
+];
+
+
 function WeatherPageContent() {
   const [weatherState, setWeatherState] = useState<WeatherPageState>(initialState);
   const [isLocating, setIsLocating] = useState(false);
@@ -53,6 +65,9 @@ function WeatherPageContent() {
   const { lastWeatherResult, setLastWeatherResult } = useLastWeatherResult();
   const { isLoaded: isClerkLoaded } = useUser();
   const [hasInitialized, setHasInitialized] = useState(false);
+
+  const [activeTab, setActiveTab] = useState('forecast');
+  const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.forceRefresh
@@ -68,6 +83,7 @@ function WeatherPageContent() {
       error: null,
       cityNotFound: false,
     }));
+    setIsAqiNotificationVisible(false); // Hide any previous notification
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
@@ -90,6 +106,13 @@ function WeatherPageContent() {
         };
         setLastSearch(cityForStorage);
         setLastWeatherResult(result.data); // Save the full result to the session
+
+        // Check if we should show the AQI notification
+        if (result.data.airQuality && result.data.airQuality.aqi >= 3) {
+            setActiveTab('forecast'); // Reset to default tab
+            setIsAqiNotificationVisible(true);
+        }
+
       } else {
         // Clear last result on error to prevent showing stale data
         setLastWeatherResult(null);
@@ -104,6 +127,11 @@ function WeatherPageContent() {
       });
     });
   }, [setLastSearch, setLastWeatherResult]);
+
+  const aqiInfo = useMemo(() => {
+    if (!weatherState.data?.airQuality) return null;
+    return aqiScale.find(item => item.aqi === weatherState.data?.airQuality?.aqi) || null;
+  }, [weatherState.data?.airQuality]);
 
   const handleSearch = useCallback((city: string, lat?: number, lon?: number) => {
     if (!city || city.trim() === "") {
@@ -318,6 +346,8 @@ function WeatherPageContent() {
             onSaveCityToggle={handleSaveCityToggle}
             onRefresh={handleRefresh}
             isRefreshing={isLoadingDisplay}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
             />
         </SignedIn>
       )}
@@ -330,6 +360,8 @@ function WeatherPageContent() {
                 onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
                 onRefresh={handleRefresh}
                 isRefreshing={isLoadingDisplay}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
             />
         </SignedOut>
       )}
@@ -374,6 +406,50 @@ function WeatherPageContent() {
                 </CardHeader>
               </div>
           </Card>
+      )}
+
+      {isAqiNotificationVisible && aqiInfo && (
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className={cn("overflow-hidden border-2 shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
+                <div className="relative h-24 w-full">
+                    <Image
+                        src="https://placehold.co/600x400.png"
+                        data-ai-hint="city air pollution"
+                        alt="An artistic image representing air quality"
+                        fill
+                        className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute bottom-0 left-0 p-4 flex items-center gap-3">
+                        <AlertTriangle className="h-6 w-6 flex-shrink-0 text-white drop-shadow-lg" />
+                        <CardTitle className="text-xl font-headline text-white drop-shadow-lg">
+                            {aqiInfo.level} Air Quality
+                        </CardTitle>
+                    </div>
+                </div>
+                <CardContent className="p-4">
+                    <p className="mb-4 text-sm text-foreground/90">{aqiInfo.impact}</p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            className="w-full"
+                            onClick={() => {
+                                setActiveTab('health');
+                                setIsAqiNotificationVisible(false);
+                            }}
+                        >
+                            View Health Details
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full"
+                            onClick={() => setIsAqiNotificationVisible(false)}
+                        >
+                            Dismiss
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
       )}
     </div>
   );
