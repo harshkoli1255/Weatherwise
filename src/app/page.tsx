@@ -273,24 +273,17 @@ function WeatherPageContent() {
       setInitialSearchTerm(lastWeatherResult.city);
       return; // IMPORTANT: Exit after restoring session.
     }
-
-    // If no session, proceed with the loading sequence.
-    setWeatherState(prev => ({...prev, loadingMessage: 'Checking for default location...' }));
-    if (defaultLocation) {
-      console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
-      handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
-      return;
-    }
-
-    setWeatherState(prev => ({...prev, loadingMessage: 'Checking for last search...' }));
-    if (lastSearch) {
-      console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
-      handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
-      return;
-    }
-
-    console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
-    handleLocate(true);
+    
+    // If no session is found, simply stop loading and show the welcome state.
+    // DO NOT automatically fetch weather data.
+    console.log('[Perf] No session found. Awaiting user interaction.');
+    setWeatherState({
+      data: null,
+      isLoading: false,
+      error: null,
+      loadingMessage: null,
+      cityNotFound: false,
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClerkLoaded, isSessionInitialized]);
 
@@ -649,3 +642,5 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
+
+    
