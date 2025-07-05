@@ -4,10 +4,12 @@
 import { 
   type WeatherSummaryData, 
   type InterpretSearchQueryOutput,
+  type AqiImageInput,
 } from '@/lib/types';
 import { summarizeWeather } from '@/ai/flows/weather-summary';
 import { interpretSearchQuery } from '@/ai/flows/interpret-search-query';
 import { generateWeatherImage } from '@/ai/flows/generate-weather-image';
+import { generateAqiImage } from '@/ai/flows/generate-aqi-image';
 import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality, geocodeCity, reverseGeocode } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 import { summarizeError } from '@/ai/flows/summarize-error';
@@ -105,13 +107,9 @@ export async function fetchWeatherAndSummaryAction(
         cacheService.clear(cacheKey);
     }
     
-    const cachedData = cacheService.get<WeatherSummaryData>(cacheKey);
-    if (cachedData) {
-      // Ensure the display name is updated even when serving from cache
-      cachedData.city = userFriendlyDisplayName || cachedData.city;
-      console.log(`[Cache] HIT for key "${cacheKey}". Returning cached data for "${cachedData.city}".`);
-      return { data: cachedData, error: null, cityNotFound: false };
-    }
+    // We no longer restore from cache here to ensure fresh data and image generation.
+    // The last-viewed city logic is now handled on the client.
+    
     console.log(`[Cache] MISS for key "${cacheKey}". Fetching fresh data.`);
 
     // --- Step 3: Fetch all data in parallel ---
@@ -431,5 +429,18 @@ export async function getAIErrorSummaryAction(errorMessage: string): Promise<str
   } catch (err) {
     console.error("The AI error summarization action itself failed:", err);
     return 'An unexpected error occurred. Please try again later.';
+  }
+}
+
+export async function generateAqiImageAction(input: AqiImageInput): Promise<string> {
+  if (!isAiConfigured()) {
+    return '';
+  }
+  try {
+    const result = await generateAqiImage(input);
+    return result.imageUrl;
+  } catch (err) {
+    console.error("Error generating AQI image:", err);
+    return '';
   }
 }

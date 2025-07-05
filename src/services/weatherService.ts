@@ -170,8 +170,8 @@ export async function fetchAirQuality(lat: number, lon: number, apiKeys: string[
         const getAqiLevel = (index: number): AirQualityData['level'] => {
             switch (index) {
                 case 1: return 'Good';
-                case 2: return 'Satisfactory';
-                case 3: return 'Moderately Polluted';
+                case 2: return 'Fair';
+                case 3: return 'Moderate';
                 case 4: return 'Poor';
                 case 5: return 'Very Poor';
                 default: return 'Unknown';

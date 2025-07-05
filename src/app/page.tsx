@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
-import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
+import { fetchWeatherAndSummaryAction, fetchCityByIpAction, generateAqiImageAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
@@ -13,7 +13,7 @@ import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MapPin, Compass, AlertTriangle } from 'lucide-react';
+import { AlertCircle, MapPin, Compass, AlertTriangle, Loader2 } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
@@ -68,6 +68,9 @@ function WeatherPageContent() {
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
+  const [aqiImageUrl, setAqiImageUrl] = useState<string | null>(null);
+  const [isAqiImageLoading, setIsAqiImageLoading] = useState(false);
+
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.forceRefresh
@@ -84,6 +87,7 @@ function WeatherPageContent() {
       cityNotFound: false,
     }));
     setIsAqiNotificationVisible(false); // Hide any previous notification
+    setAqiImageUrl(null); // Reset AQI image on new search
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
@@ -111,6 +115,19 @@ function WeatherPageContent() {
         if (result.data.airQuality && result.data.airQuality.aqi >= 3) {
             setActiveTab('forecast'); // Reset to default tab
             setIsAqiNotificationVisible(true);
+
+            setIsAqiImageLoading(true);
+            generateAqiImageAction({
+                city: result.data.city,
+                aqiLevel: result.data.airQuality.level,
+                condition: result.data.condition,
+            }).then(url => {
+                setAqiImageUrl(url);
+                setIsAqiImageLoading(false);
+            });
+
+        } else if (result.data.airQuality && result.data.airQuality.aqi >= 2) {
+             setActiveTab('health');
         }
 
       } else {
@@ -220,9 +237,7 @@ function WeatherPageContent() {
   }, [weatherState.data, performWeatherFetch]);
 
   useEffect(() => {
-    if (hasInitialized || !isClerkLoaded) {
-      return;
-    }
+    if (hasInitialized) return;
   
     // Priority 1: Restore from last session
     if (lastWeatherResult) {
@@ -264,8 +279,10 @@ function WeatherPageContent() {
       handleLocate(true);
     };
   
-    initializeWeather();
-    setHasInitialized(true);
+    if (isClerkLoaded) {
+      initializeWeather();
+      setHasInitialized(true);
+    }
   }, [hasInitialized, isClerkLoaded, lastWeatherResult, defaultLocation, lastSearch, handleSearch, handleLocate]);
 
   useEffect(() => {
@@ -412,13 +429,22 @@ function WeatherPageContent() {
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
             <Card className={cn("overflow-hidden border-2 shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
                 <div className="relative h-24 w-full">
-                    <Image
-                        src="https://placehold.co/600x400.png"
-                        data-ai-hint="air pollution"
-                        alt="An artistic image representing air quality"
+                    {isAqiImageLoading ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                      </div>
+                    ) : aqiImageUrl ? (
+                      <Image
+                        src={aqiImageUrl}
+                        alt={`An artistic image representing ${aqiInfo?.level} air quality in ${weatherState.data.city}`}
                         fill
                         className="object-cover"
-                    />
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <AlertTriangle className="h-6 w-6 text-white/50" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                     <div className="absolute bottom-0 left-0 p-4 w-full">
                         <div className="flex items-center gap-3">

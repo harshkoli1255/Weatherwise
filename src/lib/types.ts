@@ -32,7 +32,7 @@ export interface WeatherData {
 
 export interface AirQualityData {
   aqi: 1 | 2 | 3 | 4 | 5;
-  level: 'Good' | 'Satisfactory' | 'Moderately Polluted' | 'Poor' | 'Very Poor' | 'Unknown';
+  level: 'Good' | 'Fair' | 'Moderate' | 'Poor' | 'Very Poor' | 'Unknown';
   components: {
     co: number;
     no2: number;
@@ -330,3 +330,16 @@ export const WeatherImageOutputSchema = z.object({
   imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
 });
 export type WeatherImageOutput = z.infer<typeof WeatherImageOutputSchema>;
+
+// AI Schema: Generate AQI Image
+export const AqiImageInputSchema = z.object({
+  city: z.string().describe('The name of the city.'),
+  aqiLevel: z.string().describe('The air quality level, e.g., "Poor", "Moderate".'),
+  condition: z.string().describe('The current weather condition, e.g., "sunny", "light rain".'),
+});
+export type AqiImageInput = z.infer<typeof AqiImageInputSchema>;
+
+export const AqiImageOutputSchema = z.object({
+  imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
+});
+export type AqiImageOutput = z.infer<typeof AqiImageOutputSchema>;
