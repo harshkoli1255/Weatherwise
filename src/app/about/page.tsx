@@ -5,13 +5,12 @@ import {
   AreaChart,
   BrainCircuit,
   BellRing,
-  Bookmark,
   UserCheck,
   Sparkles,
   Layers,
   Heart,
   CloudCog,
-  Waypoints,
+  Leaf,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -59,13 +58,8 @@ export default function AboutPage() {
   const features = [
     {
       icon: AreaChart,
-      title: 'Dynamic Weather Dashboard',
-      description: 'Get real-time weather data for any city worldwide, complete with an interactive hourly forecast and beautiful data visualizations.',
-    },
-    {
-      icon: Sparkles,
-      title: 'AI-Powered Insights',
-      description: 'Go beyond raw data. Get conversational summaries, creative activity suggestions, and a unique, AI-generated image that brings the weather to life.',
+      title: 'Comprehensive Weather & AI Insights',
+      description: 'Get real-time data with interactive forecasts, conversational summaries, activity suggestions, and a unique AI-generated image to bring the weather to life.',
     },
     {
       icon: BrainCircuit,
@@ -73,24 +67,19 @@ export default function AboutPage() {
       description: 'Our AI understands natural language, corrects typos, and interprets complex queries like landmarks or businesses (e.g., "weather at the eiffel tower").',
     },
     {
-      icon: BellRing,
-      title: 'Customizable Intelligent Alerts',
-      description: 'Define specific days, times, and a timezone for your alerts. An AI agent analyzes conditions to decide if an alert is significant enough to send.',
+      icon: Leaf,
+      title: 'Health & Air Quality',
+      description: 'Go beyond weather with a dedicated Health tab showing AQI, pollutant breakdowns, and actionable advice to help you plan your activities safely.',
     },
     {
-      icon: Waypoints,
-      title: 'Proactive Location Alerts',
-      description: 'As you move, Weatherwise can automatically check the weather at your new location and notify you of significant changes, keeping you prepared on the go.',
+      icon: BellRing,
+      title: 'Smart & Proactive Alerting',
+      description: 'Receive intelligent email alerts for your city. As you move, the app can also notify you of significant weather changes at your current location.',
     },
     {
       icon: CloudCog,
-      title: 'Synced & Personalized Experience',
-      description: 'Your saved locations, unit preferences (°C/°F, km/h/mph), and default city are saved to your account and sync seamlessly across all your devices.',
-    },
-    {
-      icon: Bookmark,
-      title: 'Live Saved Locations',
-      description: 'Your "Saved Locations" dropdown shows live weather for all your saved cities at a glance and allows setting your alert city with one click.',
+      title: 'Personalized & Synced Experience',
+      description: 'Your saved locations, unit preferences, and alert settings are synced to your account, providing a seamless experience on any device.',
     },
     {
       icon: UserCheck,
