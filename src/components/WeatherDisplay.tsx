@@ -519,8 +519,8 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                               style={{ animationDelay: '500ms' }}
                           />
                       )}
-                      <WeatherDetailItem icon={Sunrise} label="Sunrise" value={formatTime(weatherData.sunrise, weatherData.timezone)} className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
-                      <WeatherDetailItem icon={Sunset} label="Sunset" value={formatTime(weatherData.sunset, weatherData.timezone)} className="animate-in fade-in" style={{ animationDelay: '700ms' }}/>
+                      <WeatherDetailItem icon={Sunrise} label="Sunrise" value={formatTime(weatherData.sunrise, weatherData.timezone)} iconColor="text-[hsl(var(--chart-5))]" className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
+                      <WeatherDetailItem icon={Sunset} label="Sunset" value={formatTime(weatherData.sunset, weatherData.timezone)} iconColor="text-[hsl(var(--chart-4))]" className="animate-in fade-in" style={{ animationDelay: '700ms' }}/>
                   </div>
                   <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                       <div className="flex w-max space-x-3 py-2">
