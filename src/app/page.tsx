@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
-import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
+import { fetchWeatherAndSummaryAction, fetchCityByIpAction, getAIErrorSummaryAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
@@ -62,27 +62,32 @@ function WeatherPageContent() {
   const { saveLocation, removeLocation, isLocationSaved } = useSavedLocations();
   const { defaultLocation } = useDefaultLocation();
   const { lastSearch, setLastSearch } = useLastSearch();
-  const { lastWeatherResult, setLastWeatherResult } = useLastWeatherResult();
-  const { isLoaded: isClerkLoaded } = useUser();
+  const { lastWeatherResult, setLastWeatherResult, clearLastWeatherResult } = useLastWeatherResult();
+  const { isLoaded: isClerkLoaded, isSignedIn } = useUser();
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
 
-  const performWeatherFetch = useCallback((params: ApiLocationParams) => {
-    const loadingMessage = params.forceRefresh
-      ? `Refreshing data for ${params.city}...`
-      : params.city 
-      ? `Searching for ${params.city}...` 
-      : 'Fetching weather for your location...';
-      
-    setWeatherState(prevState => ({
-      ...prevState,
-      isLoading: true,
-      loadingMessage,
-      error: null,
-      cityNotFound: false,
-    }));
+  const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad = false) => {
+    // On initial page load, don't show loading state if restoring a session
+    const shouldShowLoading = !isInitialLoad || !lastWeatherResult || params.forceRefresh;
+
+    if (shouldShowLoading) {
+        const loadingMessage = params.forceRefresh
+        ? `Refreshing data for ${params.city}...`
+        : params.city 
+        ? `Searching for ${params.city}...` 
+        : 'Fetching weather for your location...';
+        
+        setWeatherState(prevState => ({
+            ...prevState,
+            isLoading: true,
+            loadingMessage,
+            error: null,
+            cityNotFound: false,
+        }));
+    }
     setIsAqiNotificationVisible(false); // Hide any previous notification
 
     startTransition(async () => {
@@ -94,6 +99,7 @@ function WeatherPageContent() {
           isLoading: false,
           error: 'An unexpected server error occurred. Please try again.',
         });
+        setLastWeatherResult(null); // Clear session on failure
         return;
       }
 
@@ -128,7 +134,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, [setLastSearch, setLastWeatherResult]);
+  }, [setLastSearch, setLastWeatherResult, lastWeatherResult]);
 
   const aqiInfo = useMemo(() => {
     if (!weatherState.data?.airQuality) return null;
@@ -212,7 +218,6 @@ function WeatherPageContent() {
   
   const handleRefresh = useCallback(() => {
     if (!weatherState.data) return;
-    console.log(`[Perf] Manual refresh requested for "${weatherState.data.city}"`);
     performWeatherFetch({
       lat: weatherState.data.lat,
       lon: weatherState.data.lon,
@@ -221,54 +226,53 @@ function WeatherPageContent() {
     });
   }, [weatherState.data, performWeatherFetch]);
 
+
   useEffect(() => {
-    if (hasInitialized) return;
-  
-    // Priority 1: Restore from last session
-    if (lastWeatherResult) {
-      console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
-      setWeatherState({
-        data: lastWeatherResult,
-        isLoading: false,
-        error: null,
-        loadingMessage: null,
-        cityNotFound: false,
-      });
-      setInitialSearchTerm(lastWeatherResult.city);
-      setHasInitialized(true);
-      return;
-    }
-  
-    // If no session, show loading and proceed with fetching
-    setWeatherState(prev => ({...prev, isLoading: true, loadingMessage: "Finding your location..."}));
+    if (hasInitialized || !isClerkLoaded) return;
   
     const initializeWeather = () => {
-      // Priority 2: Default location (if set)
-      if (defaultLocation) {
-        console.log(`[Perf] No session found. Initializing with default location: ${defaultLocation.name}`);
-        setInitialSearchTerm(defaultLocation.name);
-        handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
-        return;
-      }
-  
-      // Priority 3: Last search term (if set)
-      if (lastSearch) {
-        console.log(`[Perf] No session or default found. Initializing with last search: ${lastSearch.name}`);
-        setInitialSearchTerm(lastSearch.name);
-        handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
-        return;
-      }
-  
-      // Priority 4: IP Geolocation as final fallback
-      console.log('[Perf] No session, default, or last search. Initializing with IP Geolocation.');
-      handleLocate(true);
+        // Priority 1: Restore from last session's weather result
+        if (lastWeatherResult) {
+          console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
+          setWeatherState({
+            data: lastWeatherResult,
+            isLoading: false,
+            error: null,
+            loadingMessage: null,
+            cityNotFound: false,
+          });
+          setInitialSearchTerm(lastWeatherResult.city);
+          setHasInitialized(true);
+          return;
+        }
+
+        // Priority 2: Use the user's default location if set
+        if (defaultLocation) {
+            console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
+            performWeatherFetch({ city: defaultLocation.name, lat: defaultLocation.lat, lon: defaultLocation.lon }, true);
+            setInitialSearchTerm(defaultLocation.name);
+            setHasInitialized(true);
+            return;
+        }
+
+        // Priority 3: Use the last search term if available
+        if (lastSearch) {
+            console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
+            performWeatherFetch({ city: lastSearch.name, lat: lastSearch.lat, lon: lastSearch.lon }, true);
+            setInitialSearchTerm(lastSearch.name);
+            setHasInitialized(true);
+            return;
+        }
+
+        // Priority 4: Final fallback to IP-based geolocation
+        console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
+        handleLocate(true);
+        setHasInitialized(true);
     };
-  
-    if (isClerkLoaded) {
-      initializeWeather();
-      setHasInitialized(true);
-    }
-  }, [hasInitialized, isClerkLoaded, lastWeatherResult, defaultLocation, lastSearch, handleSearch, handleLocate]);
+
+    initializeWeather();
+
+  }, [hasInitialized, isClerkLoaded, lastWeatherResult, defaultLocation, lastSearch, performWeatherFetch, handleLocate]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -285,12 +289,16 @@ function WeatherPageContent() {
   }, [handleSearch]);
   
   useEffect(() => {
+    // We only want to show toasts for "real" errors, not for "city not found" which has its own UI state.
     if (weatherState.error && !weatherState.isLoading && !weatherState.cityNotFound) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: weatherState.error,
-      });
+        const t = toast({
+            variant: "destructive",
+            title: "An Error Occurred",
+            description: "Analyzing...",
+        });
+        getAIErrorSummaryAction(weatherState.error).then(aiDescription => {
+            t.update({ description: aiDescription });
+        });
     }
   }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
 
@@ -312,7 +320,14 @@ function WeatherPageContent() {
   }, [weatherState.data, isLocationSaved, saveLocation, removeLocation]);
 
   const isCurrentLocationSaved = weatherState.data ? isLocationSaved(weatherState.data) : false;
-  const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
+  const isLoadingDisplay = (weatherState.isLoading && !lastWeatherResult) || isTransitionPending;
+
+  // On sign-out, clear session data to prevent showing another user's weather.
+  useEffect(() => {
+    if (isClerkLoaded && !isSignedIn) {
+      clearLastWeatherResult();
+    }
+  }, [isClerkLoaded, isSignedIn, clearLastWeatherResult]);
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-10 md:py-12 flex flex-col items-center">
@@ -326,7 +341,7 @@ function WeatherPageContent() {
         <div className="mt-1 w-full flex justify-center px-2 sm:px-0">
           <SearchBar
             onSearch={handleSearch}
-            isSearchingWeather={isLoadingDisplay}
+            isSearchingWeather={isTransitionPending}
             initialValue={initialSearchTerm}
             onLocate={() => handleLocate(false)}
             isLocating={isLocating}
@@ -347,7 +362,7 @@ function WeatherPageContent() {
             isLocationSaved={isCurrentLocationSaved}
             onSaveCityToggle={handleSaveCityToggle}
             onRefresh={handleRefresh}
-            isRefreshing={isLoadingDisplay}
+            isRefreshing={isTransitionPending}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             />
@@ -361,7 +376,7 @@ function WeatherPageContent() {
                 isLocationSaved={false}
                 onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
                 onRefresh={handleRefresh}
-                isRefreshing={isLoadingDisplay}
+                isRefreshing={isTransitionPending}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
             />
@@ -411,37 +426,38 @@ function WeatherPageContent() {
       )}
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("overflow-hidden border-2 shadow-2xl bg-popover", aqiInfo.borderColorClass)}>
-                <CardHeader className="flex flex-row items-center gap-4 p-4">
-                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
-                        <ShieldAlert className={cn("h-6 w-6", aqiInfo.colorClass)} />
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-xs animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className={cn("overflow-hidden border-2 shadow-xl bg-popover", aqiInfo.borderColorClass)}>
+                <CardHeader className="flex flex-row items-center gap-3 p-3">
+                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
+                        <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
                     </div>
                     <div className="min-w-0">
-                        <CardTitle className={cn("text-lg font-bold", aqiInfo.colorClass)}>
+                        <CardTitle className={cn("text-base font-bold", aqiInfo.colorClass)}>
                             {aqiInfo.level} Air Quality Alert
                         </CardTitle>
-                        <CardDescription className="text-sm text-muted-foreground truncate">
+                        <CardDescription className="text-xs text-muted-foreground truncate">
                             for {weatherState.data.city}
                         </CardDescription>
                     </div>
                 </CardHeader>
 
-                <CardContent className="p-4 pt-0 space-y-4">
-                    <div className="text-center rounded-lg p-3 bg-background/50 border border-border/70">
-                        <p className="text-sm font-medium text-muted-foreground">Air Quality Index is currently</p>
-                        <p className={cn("text-5xl font-bold", aqiInfo.colorClass)}>
+                <CardContent className="p-3 pt-0 space-y-3">
+                    <div className="text-center rounded-lg p-2 bg-background border border-border">
+                        <p className="text-xs font-medium text-muted-foreground">Air Quality Index</p>
+                        <p className={cn("text-4xl font-bold", aqiInfo.colorClass)}>
                             {weatherState.data.airQuality?.aqi}
-                            <span className="text-3xl text-muted-foreground">/5</span>
+                            <span className="text-2xl text-muted-foreground">/5</span>
                         </p>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-background/50 border border-border/70">
-                        <p className="text-sm text-foreground/90 text-center">{aqiInfo.impact}</p>
+                    <div className="p-2.5 rounded-lg bg-background border border-border">
+                        <p className="text-xs text-foreground/90 text-center">{aqiInfo.impact}</p>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
                         <Button
+                            size="sm"
                             className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
                             onClick={() => {
                                 setActiveTab('health');
@@ -449,9 +465,10 @@ function WeatherPageContent() {
                             }}
                         >
                             <Leaf className="mr-2 h-4 w-4" />
-                            View Health Details
+                            View Details
                         </Button>
                         <Button
+                            size="sm"
                             variant="ghost"
                             className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
                             onClick={() => setIsAqiNotificationVisible(false)}
@@ -475,3 +492,5 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
+
+    
