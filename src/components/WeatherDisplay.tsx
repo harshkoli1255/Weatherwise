@@ -3,7 +3,7 @@ import type { WeatherSummaryData, HourlyForecastData } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { WeatherIcon } from './WeatherIcon';
-import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, Sunrise, Sunset } from 'lucide-react';
+import { Droplets, Wind, Brain, Lightbulb, Bookmark, Loader2, AreaChart as AreaChartIcon, Sparkles, CloudRain, GaugeCircle, Leaf, RefreshCw, Sunrise, Sunset, Gauge } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo, useEffect } from 'react';
@@ -505,9 +505,10 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                       </div>
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4 [&>*:last-child:nth-child(odd)]:col-span-2">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor={humidityColor} className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor={windColor} className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
+                      <WeatherDetailItem icon={Gauge} label="Pressure" value={`${weatherData.pressure} hPa`} iconColor="text-primary" className="animate-in fade-in" style={{ animationDelay: '500ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
                           <WeatherDetailItem 
                               icon={GaugeCircle} 
@@ -515,11 +516,11 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                               value={`${aqiInfo.level} (${weatherData.airQuality.aqi})`}
                               iconColor={aqiInfo.colorClass} 
                               className="animate-in fade-in" 
-                              style={{ animationDelay: '500ms' }}
+                              style={{ animationDelay: '600ms' }}
                           />
                       )}
-                      <WeatherDetailItem icon={Sunrise} label="Sunrise" value={formatTime(weatherData.sunrise, weatherData.timezone)} iconColor="text-[hsl(var(--chart-5))]" className="animate-in fade-in" style={{ animationDelay: '600ms' }}/>
-                      <WeatherDetailItem icon={Sunset} label="Sunset" value={formatTime(weatherData.sunset, weatherData.timezone)} iconColor="text-[hsl(var(--chart-4))]" className="animate-in fade-in" style={{ animationDelay: '700ms' }}/>
+                      <WeatherDetailItem icon={Sunrise} label="Sunrise" value={formatTime(weatherData.sunrise, weatherData.timezone)} iconColor="text-[hsl(var(--chart-5))]" className="animate-in fade-in" style={{ animationDelay: '700ms' }}/>
+                      <WeatherDetailItem icon={Sunset} label="Sunset" value={formatTime(weatherData.sunset, weatherData.timezone)} iconColor="text-[hsl(var(--chart-4))]" className="animate-in fade-in" style={{ animationDelay: '800ms' }}/>
                   </div>
                   <div className="w-full overflow-x-auto pb-2 horizontal-scrollbar">
                       <div className="flex w-max space-x-3 py-2">
@@ -775,13 +776,13 @@ interface WeatherDetailItemProps extends React.HTMLAttributes<HTMLDivElement> {
 
 function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...props }: WeatherDetailItemProps) {
   return (
-     <div className={cn("flex items-center space-x-2 sm:space-x-3 rounded-lg bg-muted/50 p-2 sm:p-3 shadow-inner border border-border/60", className)} {...props}>
-      <div className="p-1.5 sm:p-2 bg-background rounded-md shadow-sm">
-        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
+     <div className={cn("flex items-center space-x-3 rounded-lg bg-muted/50 p-3 shadow-inner border border-border/60", className)} {...props}>
+      <div className="p-2 bg-background rounded-lg shadow-sm">
+        <Icon className={cn("h-5 w-5", iconColor)} />
       </div>
       <div className="flex flex-col text-left">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className={cn("text-lg font-bold whitespace-nowrap", "text-foreground")}>{value}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className={cn("text-xl font-bold whitespace-nowrap", "text-foreground")}>{value}</span>
       </div>
     </div>
   );

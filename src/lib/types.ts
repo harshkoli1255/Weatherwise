@@ -24,6 +24,7 @@ export interface WeatherData {
   feelsLike: number;
   humidity: number;
   windSpeed: number;
+  pressure: number;
   condition: string; // e.g., "Clouds"
   description: string; // e.g., "scattered clouds"
   iconCode: string; // e.g., "03d"

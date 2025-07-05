@@ -95,6 +95,7 @@ export async function fetchCurrentWeather(location: LocationIdentifier, apiKeys:
         feelsLike: data.main.feels_like,
         humidity: data.main.humidity,
         windSpeed: data.wind.speed * 3.6, // m/s to km/h
+        pressure: data.main.pressure,
         condition: data.weather[0].main,
         description: data.weather[0].description,
         iconCode: data.weather[0].icon,
