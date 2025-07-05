@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
-import { fetchWeatherAndSummaryAction, fetchCityByIpAction, generateAqiImageAction } from './actions';
+import { fetchWeatherAndSummaryAction, fetchCityByIpAction } from './actions';
 import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
@@ -13,7 +13,7 @@ import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MapPin, Compass, AlertTriangle, Loader2, Leaf } from 'lucide-react';
+import { AlertCircle, MapPin, Compass, Loader2, Leaf, ShieldAlert } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
@@ -68,9 +68,6 @@ function WeatherPageContent() {
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
-  const [aqiImageUrl, setAqiImageUrl] = useState<string | null>(null);
-  const [isAqiImageLoading, setIsAqiImageLoading] = useState(false);
-
 
   const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     const loadingMessage = params.forceRefresh
@@ -87,7 +84,6 @@ function WeatherPageContent() {
       cityNotFound: false,
     }));
     setIsAqiNotificationVisible(false); // Hide any previous notification
-    setAqiImageUrl(null); // Reset AQI image on new search
 
     startTransition(async () => {
       const result = await fetchWeatherAndSummaryAction(params);
@@ -111,21 +107,10 @@ function WeatherPageContent() {
         setLastSearch(cityForStorage);
         setLastWeatherResult(result.data); // Save the full result to the session
 
-        // Check if we should show the AQI notification
+        // Check if we should show the AQI notification or switch tabs
         if (result.data.airQuality && result.data.airQuality.aqi >= 3) {
             setActiveTab('forecast'); // Reset to default tab
             setIsAqiNotificationVisible(true);
-
-            setIsAqiImageLoading(true);
-            generateAqiImageAction({
-                city: result.data.city,
-                aqiLevel: result.data.airQuality.level,
-                condition: result.data.condition,
-            }).then(url => {
-                setAqiImageUrl(url);
-                setIsAqiImageLoading(false);
-            });
-
         } else if (result.data.airQuality && result.data.airQuality.aqi >= 2) {
              setActiveTab('health');
         }
@@ -427,56 +412,37 @@ function WeatherPageContent() {
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("overflow-hidden border-2 shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass)}>
-                <div className="relative h-28 w-full">
-                    {isAqiImageLoading ? (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Loader2 className="h-6 w-6 text-white animate-spin" />
-                      </div>
-                    ) : aqiImageUrl ? (
-                      <Image
-                        src={aqiImageUrl}
-                        alt={`An artistic image representing ${aqiInfo?.level} air quality in ${weatherState.data.city}`}
-                        data-ai-hint="air pollution"
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <AlertTriangle className="h-6 w-6 text-white/50" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-4 w-full">
-                        <div className="flex items-center gap-3">
-                            <AlertTriangle className="h-6 w-6 flex-shrink-0 text-white drop-shadow-lg" />
-                            <div>
-                                <CardTitle className="text-xl font-headline text-white drop-shadow-lg">
-                                    {aqiInfo.level} Air Quality
-                                </CardTitle>
-                                <p className="text-sm text-white/90 drop-shadow-md">
-                                    in {weatherState.data.city}
-                                </p>
-                            </div>
-                        </div>
+            <Card className={cn("overflow-hidden border-2 shadow-2xl bg-popover", aqiInfo.borderColorClass)}>
+                <CardHeader className="flex flex-row items-center gap-4 p-4">
+                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
+                        <ShieldAlert className={cn("h-6 w-6", aqiInfo.colorClass)} />
                     </div>
-                </div>
-                <CardContent className="p-4 space-y-4">
-                     <div className={cn("text-center rounded-lg p-3", aqiInfo.bgColorClass, aqiInfo.borderColorClass, "border")}>
-                        <p className="text-sm font-medium text-muted-foreground">Air Quality Index</p>
-                        <p className={cn("text-4xl font-bold", aqiInfo.colorClass)}>
+                    <div className="min-w-0">
+                        <CardTitle className={cn("text-lg font-bold", aqiInfo.colorClass)}>
+                            {aqiInfo.level} Air Quality Alert
+                        </CardTitle>
+                        <CardDescription className="text-sm text-muted-foreground truncate">
+                            for {weatherState.data.city}
+                        </CardDescription>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="p-4 pt-0 space-y-4">
+                    <div className="text-center rounded-lg p-3 bg-background/50 border border-border/70">
+                        <p className="text-sm font-medium text-muted-foreground">Air Quality Index is currently</p>
+                        <p className={cn("text-5xl font-bold", aqiInfo.colorClass)}>
                             {weatherState.data.airQuality?.aqi}
-                            <span className="text-2xl text-muted-foreground">/5</span>
+                            <span className="text-3xl text-muted-foreground">/5</span>
                         </p>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-muted/50 border border-border/70">
+                    <div className="p-3 rounded-lg bg-background/50 border border-border/70">
                         <p className="text-sm text-foreground/90 text-center">{aqiInfo.impact}</p>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <Button
-                            className="w-full"
+                            className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
                             onClick={() => {
                                 setActiveTab('health');
                                 setIsAqiNotificationVisible(false);
@@ -487,7 +453,7 @@ function WeatherPageContent() {
                         </Button>
                         <Button
                             variant="ghost"
-                            className="w-full"
+                            className="w-full transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
                             onClick={() => setIsAqiNotificationVisible(false)}
                         >
                             Dismiss
@@ -509,6 +475,3 @@ export default function WeatherPage() {
         </Suspense>
     )
 }
-
-
-    
