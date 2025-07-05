@@ -17,13 +17,29 @@
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
 
-<p align="center">
-  <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
-  <img src="./public/WeatherwiseAI-Insights.png" alt="The Weatherwise dashboard showing AI Insights" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
-</p>
-<p align="center">
-  <img src="./public/WeatherwiseHealth.png" alt="The Weatherwise dashboard showing the Health tab" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
-</p>
+---
+
+### App Preview
+
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <p align="center"><strong>☀️ Dynamic Dashboard</strong></p>
+      <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" width="95%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    </td>
+    <td align="center" width="50%">
+      <p align="center"><strong>🧠 AI-Powered Insights</strong></p>
+      <img src="./public/WeatherwiseAI-Insights.png" alt="The Weatherwise dashboard showing AI Insights" width="95%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <br>
+      <p align="center"><strong>❤️ Health & Air Quality</strong></p>
+      <img src="./public/WeatherwiseHealth.png" alt="The Weatherwise dashboard showing the Health tab" width="47%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -171,5 +187,3 @@ To enable automatic hourly alerts, you must set up a "cron job" that calls a sec
 
 ### How to Verify
 Check your application's logs in the Firebase Console. If you see the log message `[CRON-AUTH-SUCCESS] Cron job authorized successfully`, it's working!
-
-    
