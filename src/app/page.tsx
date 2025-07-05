@@ -162,101 +162,25 @@ function WeatherPageContent() {
     performWeatherFetch(params);
   }, [performWeatherFetch]);
 
-  const handleLocate = useCallback(async (isAutoLocate = false) => {
-    if (!isAutoLocate) {
-        setIsLocating(true);
-    }
-    setWeatherState(prev => ({
-        ...prev,
-        isLoading: true,
-        loadingMessage: 'Detecting your location...',
-    }));
-
-    const getPosition = (): Promise<GeolocationPosition> => {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                return reject(new Error('Geolocation is not supported by your browser.'));
-            }
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
-        });
-    };
-
-    let locationParams: ApiLocationParams | null = null;
-
-    try {
-        if (!isAutoLocate) {
-            setWeatherState(prev => ({ ...prev, loadingMessage: 'Requesting location permission...' }));
-        }
-        const position = await getPosition();
-        locationParams = { lat: position.coords.latitude, lon: position.coords.longitude };
-    } catch (geoError: any) {
-        if (!isAutoLocate) {
-            toast({
-                title: "Location via GPS failed",
-                description: "Falling back to IP-based location, which may be less accurate.",
-                duration: 5000,
-            });
-        }
-
-        try {
-            setWeatherState(prev => ({ ...prev, loadingMessage: 'Detecting location via IP...' }));
-            const ipResult = await fetchCityByIpAction();
-            if (ipResult.error || typeof ipResult.lat !== 'number' || typeof ipResult.lon !== 'number') {
-                throw new Error(ipResult.error || 'Could not determine location from IP.');
-            }
-            locationParams = { city: ipResult.city ?? undefined, lat: ipResult.lat, lon: ipResult.lon };
-        } catch (ipError: any) {
-            setWeatherState({
-                ...initialState,
-                isLoading: false,
-                error: `Location detection failed. ${isAutoLocate ? 'Please' : ipError.message + ' Please'} use the search bar.`,
-            });
-            if (!isAutoLocate) setIsLocating(false);
-            return;
-        }
-    }
-
-    if (locationParams) {
-        performWeatherFetch(locationParams);
-    } else {
-         setWeatherState({ ...initialState, isLoading: false, error: 'Could not determine location.' });
-    }
-    if (!isAutoLocate) setIsLocating(false);
-  }, [performWeatherFetch, toast]);
-  
-  const handleRefresh = useCallback(() => {
-    if (!weatherState.data) return;
-
-    setWeatherState(prevState => ({
-        ...prevState,
-        isLoading: true,
-        loadingMessage: `Refreshing data for ${prevState.data?.city}...`,
-        error: null,
-        cityNotFound: false,
-    }));
-
-    performWeatherFetch({
-      lat: weatherState.data.lat,
-      lon: weatherState.data.lon,
-      city: weatherState.data.city,
-      forceRefresh: true,
-    });
-  }, [weatherState.data, performWeatherFetch]);
-
-  // This is the core initialization logic. It runs only once when contexts are ready.
   useEffect(() => {
-    if (lastWeatherResult) {
-      setWeatherState({
-        data: lastWeatherResult,
-        isLoading: false,
-        error: null,
-        loadingMessage: null,
-        cityNotFound: false,
-      });
-      setInitialSearchTerm(lastWeatherResult.city);
+    // This effect runs once when the component is ready.
+    // It restores the previous session if available, otherwise it does nothing.
+    if (isSessionInitialized) {
+        if (lastWeatherResult) {
+            setWeatherState({
+                data: lastWeatherResult,
+                isLoading: false,
+                error: null,
+                loadingMessage: null,
+                cityNotFound: false,
+            });
+            setInitialSearchTerm(lastWeatherResult.city);
+        } else {
+             // No session, just show the welcome screen without fetching.
+             setWeatherState(initialState);
+        }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSessionInitialized, lastWeatherResult]);
 
 
   useEffect(() => {
@@ -387,6 +311,25 @@ function WeatherPageContent() {
       saveLocation(cityData);
     }
   }, [weatherState.data, isLocationSaved, saveLocation, removeLocation]);
+  
+  const handleRefresh = useCallback(() => {
+    if (!weatherState.data) return;
+
+    setWeatherState(prevState => ({
+        ...prevState,
+        isLoading: true,
+        loadingMessage: `Refreshing data for ${prevState.data?.city}...`,
+        error: null,
+        cityNotFound: false,
+    }));
+
+    performWeatherFetch({
+      lat: weatherState.data.lat,
+      lon: weatherState.data.lon,
+      city: weatherState.data.city,
+      forceRefresh: true,
+    });
+  }, [weatherState.data, performWeatherFetch]);
 
   const isCurrentLocationSaved = weatherState.data ? isLocationSaved(weatherState.data) : false;
   const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
@@ -412,7 +355,20 @@ function WeatherPageContent() {
               onSearch={handleSearch}
               isSearchingWeather={isTransitionPending}
               initialValue={initialSearchTerm}
-              onLocate={() => handleLocate(false)}
+              onLocate={() => {
+                setIsLocating(true);
+                // The automatic search logic was removed to favor user-initiated actions.
+                // This callback will be updated to trigger the search.
+                fetchCityByIpAction()
+                  .then(res => {
+                    if (res.city && res.lat && res.lon) {
+                      handleSearch(res.city, res.lat, res.lon);
+                    } else {
+                      toast({ title: 'Location Error', description: res.error || 'Could not find your location.' });
+                    }
+                  })
+                  .finally(() => setIsLocating(false));
+              }}
               isLocating={isLocating}
             />
           </div>
@@ -472,25 +428,16 @@ function WeatherPageContent() {
         )}
 
         {!isLoadingDisplay && !weatherState.data && !weatherState.error && !weatherState.cityNotFound && (
-            <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-lg shadow-2xl relative overflow-hidden">
-                  <Image
-                      src="https://placehold.co/600x400.png"
-                      data-ai-hint="weather map"
-                      alt="Abstract weather map"
-                      fill
-                      className="object-cover opacity-10 dark:opacity-5"
-                  />
-                <div className="relative z-10">
-                  <CardHeader className="items-center text-center pt-2 pb-4">
-                      <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-                        <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
-                      </div>
-                      <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
-                      <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
-                          Use the search bar or location button to find weather information for any city.
-                      </CardDescription>
-                  </CardHeader>
-                </div>
+            <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-lg shadow-2xl">
+              <CardHeader className="items-center text-center pt-2 pb-4">
+                  <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
+                    <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
+                  </div>
+                  <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
+                  <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
+                      Use the search bar or location button to find weather information for any city.
+                  </CardDescription>
+              </CardHeader>
             </Card>
         )}
       </div>
