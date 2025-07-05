@@ -19,7 +19,8 @@
 
 <div align="center">
   <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">&nbsp;&nbsp;
-  <img src="./public/WeatherwiseDarkThemeScreenshot.png" alt="The Weatherwise dashboard in Dark Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
+  <img src="./public/WeatherwiseAI-Insights.png" alt="The Weatherwise dashboard in Dark Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
+  <img src="./public/WeatherwiseHealth.png" alt="The Weatherwise dashboard in Dark Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
 </div>
 
 ---
