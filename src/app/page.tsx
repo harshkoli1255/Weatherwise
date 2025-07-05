@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo } from 'react';
+import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo, useRef } from 'react';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
-import { fetchWeatherAndSummaryAction, fetchCityByIpAction, getAIErrorSummaryAction } from './actions';
-import type { WeatherSummaryData, CitySuggestion } from '@/lib/types';
+import { fetchWeatherAndSummaryAction, fetchCityByIpAction, getAIErrorSummaryAction, proactiveWeatherCheckAction } from './actions';
+import type { WeatherSummaryData, CitySuggestion, ProactiveAlertResult } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedLocations } from '@/hooks/useSavedLocations';
 import { useDefaultLocation } from '@/hooks/useDefaultLocation';
@@ -13,11 +13,12 @@ import { useLastSearch } from '@/hooks/useLastSearch.tsx';
 import { useLastWeatherResult } from '@/hooks/useLastWeatherResult';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MapPin, Compass, Loader2, Leaf, ShieldAlert } from 'lucide-react';
+import { AlertCircle, MapPin, Compass, Loader2, Leaf, ShieldAlert, Waypoints } from 'lucide-react';
 import { WeatherLoadingAnimation } from '@/components/WeatherLoadingAnimation';
 import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { WeatherIcon } from '@/components/WeatherIcon';
 
 interface WeatherPageState {
   data: WeatherSummaryData | null;
@@ -69,6 +70,21 @@ function WeatherPageContent() {
 
   const [activeTab, setActiveTab] = useState('forecast');
   const [isAqiNotificationVisible, setIsAqiNotificationVisible] = useState(false);
+  const [proactiveAlert, setProactiveAlert] = useState<ProactiveAlertResult | null>(null);
+
+  const lastProactiveCheckCoords = useRef<{ lat: number; lon: number } | null>(null);
+
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+  };
 
   const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad = false) => {
     // On initial page load, don't show loading state if restoring a session
@@ -303,6 +319,97 @@ function WeatherPageContent() {
     }
   }, [weatherState.error, weatherState.isLoading, weatherState.cityNotFound, toast]);
 
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation || !navigator.permissions) {
+        return;
+    }
+
+    let watchId: number | null = null;
+
+    const handlePositionChange = async (position: GeolocationPosition) => {
+        const { latitude, longitude } = position.coords;
+
+        if (lastProactiveCheckCoords.current) {
+            const distance = getDistance(
+                lastProactiveCheckCoords.current.lat,
+                lastProactiveCheckCoords.current.lon,
+                latitude,
+                longitude
+            );
+
+            // Trigger check if moved more than 1 km
+            if (distance < 1) {
+                return;
+            }
+        }
+        
+        console.log('[Proactive Check] Significant location change detected. Checking weather...');
+        lastProactiveCheckCoords.current = { lat: latitude, lon: longitude };
+        
+        startTransition(async () => {
+             const alertResult = await proactiveWeatherCheckAction(latitude, longitude);
+             if (alertResult) {
+                 setProactiveAlert(alertResult);
+                 setTimeout(() => setProactiveAlert(p => p === alertResult ? null : p), 60000);
+             }
+        })
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+        console.warn(`[Geolocation Watch] Error: ${error.message}`);
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+    };
+
+    const startWatching = () => {
+        if (watchId === null) {
+            watchId = navigator.geolocation.watchPosition(
+                handlePositionChange,
+                handleError,
+                { enableHighAccuracy: false, timeout: 30000, maximumAge: 15000 }
+            );
+            console.log('[Geolocation Watch] Started real-time location tracking.');
+        }
+    };
+
+    const stopWatching = () => {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            console.log('[Geolocation Watch] Stopped real-time location tracking.');
+        }
+    };
+
+    const checkPermissionsAndWatch = async () => {
+        try {
+            const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+            if (permissionStatus.state === 'granted') {
+                startWatching();
+            } else {
+                stopWatching();
+            }
+            permissionStatus.onchange = () => {
+                if (permissionStatus.state === 'granted') {
+                    startWatching();
+                } else {
+                    stopWatching();
+                }
+            };
+        } catch(e) {
+            console.error("Geolocation permissions API not supported.", e)
+        }
+    };
+
+    checkPermissionsAndWatch();
+
+    // Cleanup on unmount
+    return () => {
+        stopWatching();
+    };
+}, []);
+
   const handleSaveCityToggle = useCallback(() => {
     if (!weatherState.data) return;
 
@@ -427,12 +534,12 @@ function WeatherPageContent() {
       )}
 
       {isAqiNotificationVisible && aqiInfo && weatherState.data && (
-        <div className="fixed bottom-4 right-4 z-50 w-full max-w-xs animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("shadow-xl bg-popover", aqiInfo.borderColorClass)}>
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className={cn("bg-glass shadow-xl", aqiInfo.borderColorClass)}>
                 <div className="p-4">
                     <div className="flex items-start gap-4">
-                        <div className={cn("flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
-                            <ShieldAlert className={cn("h-5 w-5", aqiInfo.colorClass)} />
+                        <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
+                            <ShieldAlert className={cn("h-6 w-6", aqiInfo.colorClass)} />
                         </div>
                         <div className="flex-1 grid gap-y-1">
                             <h3 className={cn("font-headline text-base font-semibold", aqiInfo.colorClass)}>
@@ -440,6 +547,9 @@ function WeatherPageContent() {
                             </h3>
                             <p className="text-sm text-muted-foreground -mt-1">
                                 in {weatherState.data.city}
+                            </p>
+                            <p className="text-sm text-foreground/90 pt-2">
+                                {aqiInfo.impact}
                             </p>
                         </div>
                         <div className="text-right">
@@ -453,13 +563,7 @@ function WeatherPageContent() {
                         </div>
                     </div>
                     
-                    <div className="w-full h-px my-3 bg-border" />
-
-                    <p className="text-sm text-foreground/90">
-                        {aqiInfo.impact}
-                    </p>
-
-                    <div className="flex justify-end gap-2 mt-4">
+                    <div className="flex justify-end gap-2 mt-2">
                         <Button
                             size="sm"
                             variant="ghost"
@@ -478,6 +582,55 @@ function WeatherPageContent() {
                         >
                             <Leaf className="mr-2 h-4 w-4" />
                             View Details
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </div>
+      )}
+
+      {proactiveAlert && (
+        <div className="fixed bottom-24 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
+            <Card className="bg-glass shadow-xl border-primary/30">
+                <div className="p-4">
+                    <div className="flex items-start gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 bg-primary/10 border border-primary/20">
+                            {proactiveAlert.iconCode ? (
+                            <WeatherIcon iconCode={proactiveAlert.iconCode} className="h-6 w-6" />
+                            ) : (
+                            <Waypoints className="h-6 w-6 text-primary" />
+                            )}
+                        </div>
+                        <div className="flex-1 grid gap-y-1">
+                            <h3 className="font-headline text-base font-semibold text-primary">
+                                Weather Alert for {proactiveAlert.city}
+                            </h3>
+                            <div
+                                className="text-sm text-foreground/90 [&_strong]:font-bold [&_strong]:text-primary"
+                                dangerouslySetInnerHTML={{ __html: proactiveAlert.reason }}
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="transform-gpu transition-all duration-200 ease-in-out hover:bg-muted/80 active:scale-95"
+                            onClick={() => setProactiveAlert(null)}
+                        >
+                            Dismiss
+                        </Button>
+                        <Button
+                            size="sm"
+                            className="transform-gpu transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+                            onClick={() => {
+                                handleSearch(proactiveAlert.city);
+                                setProactiveAlert(null);
+                            }}
+                        >
+                            <MapPin className="mr-2 h-4 w-4" />
+                            View Location
                         </Button>
                     </div>
                 </div>

@@ -345,3 +345,12 @@ export const AqiImageOutputSchema = z.object({
   imageUrl: z.string().describe('The generated image as a data URI, or an empty string if generation fails.'),
 });
 export type AqiImageOutput = z.infer<typeof AqiImageOutputSchema>;
+
+// Proactive weather check from real-time location
+export const ProactiveAlertResultSchema = z.object({
+  showAlert: z.boolean(),
+  reason: z.string(),
+  city: z.string(),
+  iconCode: z.string().optional(),
+});
+export type ProactiveAlertResult = z.infer<typeof ProactiveAlertResultSchema>;

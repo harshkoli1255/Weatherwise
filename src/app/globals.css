@@ -14,8 +14,8 @@
     --popover: 210 40% 100%;
     --popover-foreground: 215 25% 25%;
 
-    --primary: 175 70% 40%;
-    --primary-foreground: 175 70% 98%;
+    --primary: 220 90% 60%;
+    --primary-foreground: 220 90% 98%;
 
     --secondary: 210 30% 94%;
     --secondary-foreground: 215 25% 10%;
@@ -34,37 +34,37 @@
     
     --border: 210 30% 88%;
     --input: 210 30% 90%;
-    --ring: 175 70% 40%;
+    --ring: 220 90% 60%;
     
     --radius: 0.5rem;
 
-    --chart-1: 175 70% 40%; /* Teal */
-    --chart-2: 210 80% 55%; /* Bright Blue */
-    --chart-3: 260 85% 65%; /* Indigo-Violet */
-    --chart-4: 5 80% 65%;   /* Orange-Red */
+    --chart-1: 220 90% 60%; /* Primary Blue */
+    --chart-2: 260 85% 65%; /* Indigo-Violet */
+    --chart-3: 340 90% 65%; /* Vibrant Pink/Magenta */
+    --chart-4: 20 95% 60%;  /* Orange */
     --chart-5: 45 90% 60%;  /* Yellow-Gold */
   }
 
   .dark {
-    --background: 215 28% 15%;
+    --background: 220 20% 12%;
     --foreground: 210 40% 96%;
 
-    --card: 215 28% 20%;
+    --card: 220 20% 17%;
     --card-foreground: 210 40% 96%;
 
-    --popover: 215 28% 20%;
+    --popover: 220 20% 17%;
     --popover-foreground: 210 40% 96%;
 
-    --primary: 175 65% 55%;
-    --primary-foreground: 175 65% 10%;
+    --primary: 220 85% 70%;
+    --primary-foreground: 220 85% 15%;
 
-    --secondary: 215 28% 25%;
+    --secondary: 220 20% 22%;
     --secondary-foreground: 210 40% 96%;
 
-    --muted: 215 28% 25%;
+    --muted: 220 20% 22%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 215 28% 25%;
+    --accent: 220 20% 22%;
     --accent-foreground: 210 40% 96%;
 
     --destructive: 0 62.8% 50.6%;
@@ -73,14 +73,14 @@
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 144 60% 9%;
 
-    --border: 215 28% 30%;
-    --input: 215 28% 30%;
-    --ring: 175 65% 55%;
+    --border: 220 20% 27%;
+    --input: 220 20% 27%;
+    --ring: 220 85% 70%;
 
-    --chart-1: 175 65% 55%; /* Teal */
-    --chart-2: 210 85% 65%; /* Bright Blue */
-    --chart-3: 260 85% 70%; /* Indigo-Violet */
-    --chart-4: 5 85% 70%;   /* Orange-Red */
+    --chart-1: 220 85% 70%; /* Primary Blue */
+    --chart-2: 260 85% 70%; /* Indigo-Violet */
+    --chart-3: 340 90% 70%; /* Vibrant Pink/Magenta */
+    --chart-4: 20 95% 65%;  /* Orange */
     --chart-5: 45 95% 65%;  /* Yellow-Gold */
   }
 }

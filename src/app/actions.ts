@@ -13,7 +13,8 @@ import { generateAqiImage } from '@/ai/flows/generate-aqi-image';
 import { fetchCurrentWeather, fetchHourlyForecast, fetchAirQuality, geocodeCity, reverseGeocode } from '@/services/weatherService';
 import { cacheService } from '@/services/cacheService';
 import { summarizeError } from '@/ai/flows/summarize-error';
-import type { LocationIdentifier, IpApiLocationResponse, CitySuggestion, SavedLocationsWeatherMap, SavedLocationWeatherResult } from '@/lib/types';
+import type { LocationIdentifier, IpApiLocationResponse, CitySuggestion, SavedLocationsWeatherMap, SavedLocationWeatherResult, ProactiveAlertResult } from '@/lib/types';
+import { shouldSendWeatherAlert } from '@/ai/flows/alert-decision';
 
 function isAiConfigured() {
   const geminiApiKey = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k)[0];
@@ -442,5 +443,45 @@ export async function generateAqiImageAction(input: AqiImageInput): Promise<stri
   } catch (err) {
     console.error("Error generating AQI image:", err);
     return '';
+  }
+}
+
+export async function proactiveWeatherCheckAction(
+  lat: number,
+  lon: number
+): Promise<ProactiveAlertResult | null> {
+  try {
+    const weatherResult = await fetchWeatherAndSummaryAction({ lat, lon });
+    if (weatherResult.error || !weatherResult.data) {
+      console.warn(`[Proactive Check] Could not fetch weather for ${lat},${lon}.`, weatherResult.error);
+      return null;
+    }
+
+    const weatherData = weatherResult.data;
+
+    const decisionResult = await shouldSendWeatherAlert({
+      city: weatherData.city,
+      temperature: weatherData.temperature,
+      feelsLike: weatherData.feelsLike,
+      humidity: weatherData.humidity,
+      windSpeed: weatherData.windSpeed,
+      condition: weatherData.condition,
+      description: weatherData.description,
+      hourlyForecast: weatherData.hourlyForecast,
+    });
+
+    if (decisionResult.shouldSendAlert) {
+      return {
+        showAlert: true,
+        reason: decisionResult.reason,
+        city: weatherData.city,
+        iconCode: weatherData.iconCode,
+      };
+    }
+
+    return null; // No alert needed
+  } catch (error) {
+    console.error(`[Proactive Check] Error during proactive check for ${lat},${lon}:`, error);
+    return null;
   }
 }
