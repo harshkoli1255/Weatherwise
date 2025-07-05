@@ -37,6 +37,7 @@
 *   **🔔 Intelligent, Customizable Alerts:**
     *   **AI-Driven Decisions:** An AI agent analyzes weather conditions to decide if an alert is significant enough to send, preventing notification fatigue.
     *   **Custom Schedules & Sensitivity:** Define specific days, times, and a timezone to receive alerts, and control notification frequency.
+*   **🚶 Proactive Location Alerts:** As you move, Weatherwise can automatically check the weather at your new location and notify you of significant changes, keeping you prepared on the go.
 *   **🔖 Live Saved Locations:** Your "Saved Locations" dropdown shows live weather for all your saved cities at a glance and allows you to set any location as your primary alert city with one click.
 *   **🔒 Secure User Authentication:** Full sign-up, sign-in, and profile management powered by Clerk.
 *   **🎨 Modern, Responsive UI:** A polished, responsive interface built with Tailwind CSS and ShadCN UI, featuring beautifully matched light and dark modes.

@@ -13,6 +13,7 @@ import {
   Heart,
   SlidersHorizontal,
   CloudCog,
+  Waypoints,
 } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -74,6 +75,11 @@ export default function AboutPage() {
       icon: BellRing,
       title: 'Intelligent Alerts',
       description: 'Receive customizable email alerts with scheduling, sensitivity controls, and AI-driven decision-making.',
+    },
+    {
+      icon: Waypoints,
+      title: 'Proactive Location Alerts',
+      description: 'Get automatic notifications when you travel to a new area with significant changes in weather.',
     },
     {
       icon: SlidersHorizontal,
