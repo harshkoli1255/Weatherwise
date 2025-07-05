@@ -98,19 +98,21 @@ function WeatherPageContent() {
     setIsAqiNotificationVisible(false);
 
     startTransition(async () => {
+      console.log(`[Perf] Performing weather fetch with params:`, params);
       const result = await fetchWeatherAndSummaryAction(params);
       
       if (!result) {
+        console.error('[Perf] Fetch returned no result.');
         setWeatherState({
           ...initialState,
           isLoading: false,
           error: 'An unexpected server error occurred. Please try again.',
         });
-        setLastWeatherResult(null);
         return;
       }
 
       if (result.data) {
+        console.log(`[Perf] Fetch successful for "${result.data.city}". Setting last search and weather result.`);
         const cityForStorage: CitySuggestion = {
             name: result.data.city,
             country: result.data.country,
@@ -128,7 +130,8 @@ function WeatherPageContent() {
         }
 
       } else {
-        setLastWeatherResult(null);
+        // This is the key change: do NOT clear the last successful result on a failed search.
+        console.warn(`[Perf] Fetch failed. Error: ${result.error}. The last successful weather result will be preserved.`);
       }
       
       setWeatherState({
@@ -251,50 +254,53 @@ function WeatherPageContent() {
 
 
   useEffect(() => {
-    if (hasInitialized || !isClerkLoaded || !isSessionInitialized) return;
+    // This effect should only run ONCE when the component has initialized.
+    if (hasInitialized) {
+      return;
+    }
+
+    // Wait for all dependencies to be ready.
+    if (!isClerkLoaded || !isSessionInitialized) {
+      return;
+    }
+    
+    // Mark as initialized to prevent this from running again.
+    setHasInitialized(true);
+    
+    // Now, decide what to load.
+    if (lastWeatherResult) {
+      console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
+      setWeatherState({
+        data: lastWeatherResult,
+        isLoading: false,
+        error: null,
+        loadingMessage: null,
+        cityNotFound: false,
+      });
+      setInitialSearchTerm(lastWeatherResult.city);
+      return; // Stop here, no API call needed.
+    }
+
+    // If no session, proceed with fetch logic.
+    if (defaultLocation) {
+      console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
+      handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
+      return;
+    }
+
+    if (lastSearch) {
+      console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
+      handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
+      return;
+    }
+
+    console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
+    handleLocate(true);
   
-    const initializeWeather = () => {
-        if (lastWeatherResult) {
-          console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
-          setWeatherState({
-            data: lastWeatherResult,
-            isLoading: false,
-            error: null,
-            loadingMessage: null,
-            cityNotFound: false,
-          });
-          setInitialSearchTerm(lastWeatherResult.city);
-          setHasInitialized(true);
-          return;
-        }
-
-        if (defaultLocation) {
-            console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
-            setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Loading default: ${defaultLocation.name}...`}));
-            performWeatherFetch({ city: defaultLocation.name, lat: defaultLocation.lat, lon: defaultLocation.lon });
-            setInitialSearchTerm(defaultLocation.name);
-            setHasInitialized(true);
-            return;
-        }
-
-        if (lastSearch) {
-            console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
-             setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Loading last search: ${lastSearch.name}...`}));
-            performWeatherFetch({ city: lastSearch.name, lat: lastSearch.lat, lon: lastSearch.lon });
-            setInitialSearchTerm(lastSearch.name);
-            setHasInitialized(true);
-            return;
-        }
-
-        console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
-        handleLocate(true);
-        setHasInitialized(true);
-    };
-
-    initializeWeather();
-
+  // Rerun this effect ONLY when the basic readiness flags change.
+  // The logic inside reads the latest values from the contexts without needing them as dependencies.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasInitialized, isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch]);
+  }, [isClerkLoaded, isSessionInitialized]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
