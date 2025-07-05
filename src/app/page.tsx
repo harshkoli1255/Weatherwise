@@ -534,35 +534,30 @@ function WeatherPageContent() {
       
       {notificationPortal && isAqiNotificationVisible && aqiInfo && weatherState.data && createPortal(
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("bg-glass shadow-xl", aqiInfo.borderColorClass)}>
-                <div className="p-4">
-                    <div className="flex items-start gap-4">
-                        <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0", aqiInfo.bgColorClass)}>
-                            <ShieldAlert className={cn("h-6 w-6", aqiInfo.colorClass)} />
-                        </div>
-                        <div className="flex-1 grid gap-y-1">
-                            <h3 className={cn("font-headline text-base font-semibold", aqiInfo.colorClass)}>
+            <Card className={cn("shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass.replace('/10', '/20'))}>
+                <div className="p-3">
+                    <div className="grid grid-cols-3 items-center gap-2">
+                        <div className="flex items-center gap-3 col-span-2">
+                             <div className={cn("flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 border", aqiInfo.bgColorClass, aqiInfo.borderColorClass)}>
+                                <Leaf className={cn("h-6 w-6", aqiInfo.colorClass)} />
+                            </div>
+                            <h3 className={cn("font-headline text-lg font-semibold", aqiInfo.colorClass)}>
                                 {aqiInfo.level} Air Quality
                             </h3>
-                            <p className="text-sm text-muted-foreground -mt-1">
-                                in {weatherState.data.city}
-                            </p>
-                            <p className="text-sm text-foreground/90 pt-2">
-                                {aqiInfo.impact}
-                            </p>
                         </div>
                         <div className="text-right">
+                            <p className="text-xs text-muted-foreground font-semibold">AQI</p>
                             <div className="flex items-baseline justify-end gap-0.5">
-                                <p className={cn("text-4xl font-bold font-headline", aqiInfo.colorClass)}>
+                                <p className={cn("text-3xl font-bold font-headline", aqiInfo.colorClass)}>
                                     {weatherState.data.airQuality?.aqi}
                                 </p>
-                                <p className="text-2xl text-muted-foreground font-headline">/5</p>
+                                <p className="text-xl text-muted-foreground font-headline">/5</p>
                             </div>
-                            <p className="text-xs text-muted-foreground text-right -mt-1">AQI</p>
                         </div>
                     </div>
-                    
-                    <div className="flex justify-end gap-2 mt-2">
+                    <div className="w-full h-px bg-border my-2.5" />
+                    <p className="text-sm text-muted-foreground px-1">{aqiInfo.impact}</p>
+                    <div className="flex justify-end gap-2 mt-3">
                         <Button
                             size="sm"
                             variant="ghost"
@@ -591,7 +586,7 @@ function WeatherPageContent() {
 
       {notificationPortal && proactiveAlert && createPortal(
         <div className="fixed bottom-24 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className="bg-glass shadow-xl border-primary/30">
+            <Card className="bg-card shadow-xl border-primary/30">
                 <div className="p-4">
                     <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 bg-primary/10 border border-primary/20">
