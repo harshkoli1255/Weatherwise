@@ -17,15 +17,13 @@
 
 **Weatherwise** is a modern, full-stack web application that provides real-time weather data, AI-powered insights, and a highly customizable, intelligent alert system. It's built with a modern tech stack designed for performance, scalability, and a superior developer experience.
 
-<div align="center">
-  <p>
-    <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">&nbsp;&nbsp;
-    <img src="./public/WeatherwiseAI-Insights.png" alt="The Weatherwise dashboard showing AI Insights" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
-  </p>
-  <p>
-    <img src="./public/WeatherwiseHealth.png" alt="The Weatherwise dashboard showing the Health tab" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="49%">
-  </p>
-</div>
+<p align="center">
+  <img src="./public/WeatherwiseLightThemeScreenshot.png" alt="The Weatherwise dashboard in Light Theme" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
+  <img src="./public/WeatherwiseAI-Insights.png" alt="The Weatherwise dashboard showing AI Insights" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
+</p>
+<p align="center">
+  <img src="./public/WeatherwiseHealth.png" alt="The Weatherwise dashboard showing the Health tab" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" width="48%">
+</p>
 
 ---
 
