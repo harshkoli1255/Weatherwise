@@ -506,7 +506,7 @@ export function WeatherDisplay({ weatherData, isLocationSaved, onSaveCityToggle,
                       </div>
                       <WeatherIcon iconCode={weatherData.iconCode} className="h-20 w-20 sm:h-24 md:h-28 text-primary drop-shadow-2xl order-2 animate-icon-pop-in" />
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 [&>*:last-child:nth-child(odd)]:col-span-2">
                       <WeatherDetailItem icon={Droplets} label="Humidity" value={`${weatherData.humidity}%`} iconColor={humidityColor} className="animate-in fade-in" style={{ animationDelay: '300ms' }}/>
                       <WeatherDetailItem icon={Wind} label="Wind" value={`${convertWindSpeed(weatherData.windSpeed)} ${getWindSpeedUnitLabel()}`} iconColor={windColor} className="animate-in fade-in" style={{ animationDelay: '400ms' }}/>
                       {aqiInfo && weatherData.airQuality && (
@@ -782,7 +782,7 @@ function WeatherDetailItem({ icon: Icon, label, value, iconColor, className, ...
       </div>
       <div className="flex flex-col text-left">
         <span className="text-xs text-muted-foreground">{label}</span>
-        <span className={cn("text-sm font-semibold", "text-foreground")}>{value}</span>
+        <span className={cn("text-lg font-bold whitespace-nowrap", "text-foreground")}>{value}</span>
       </div>
     </div>
   );

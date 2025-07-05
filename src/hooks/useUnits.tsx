@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo, useTransition } from 'react';
@@ -145,14 +146,20 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
   }, [units.windSpeed]);
 
   const formatTime = useCallback((timestamp: number, timezoneOffset: number): string => {
-    // Provides a PRECISE time format for detailed views (e.g., dialogs).
-    const date = new Date((timestamp + timezoneOffset) * 1000);
-    const h = date.getUTCHours();
-    const m = String(date.getUTCMinutes()).padStart(2, '0');
+    if (typeof timestamp !== 'number' || typeof timezoneOffset !== 'number' || !isFinite(timestamp) || !isFinite(timezoneOffset)) {
+      return '--:--';
+    }
+    
+    // Create a new Date object representing the UTC time, then apply the offset to get the correct local time for the location.
+    const localDate = new Date((timestamp + timezoneOffset) * 1000);
+    
+    // Read the time components from this new date object as UTC values to avoid double-offsetting by the client's browser.
+    const h = localDate.getUTCHours();
+    const m = String(localDate.getUTCMinutes()).padStart(2, '0');
     
     if (units.timeFormat === '12h') {
       const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
+      const h12 = h % 12 || 12; // Converts 0h to 12 AM
       return `${h12}:${m} ${ampm}`;
     }
     
@@ -161,6 +168,9 @@ export function UnitsProvider({ children }: { children: ReactNode }) {
 
   const formatShortTime = useCallback((timestamp: number, timezoneOffset: number): string => {
     // Provides a CLEAN, ROUNDED time for summary cards.
+    if (typeof timestamp !== 'number' || typeof timezoneOffset !== 'number' || !isFinite(timestamp) || !isFinite(timezoneOffset)) {
+      return '--:--';
+    }
     const date = new Date((timestamp + timezoneOffset) * 1000);
     const h = date.getUTCHours();
     const m = date.getUTCMinutes();
