@@ -16,22 +16,30 @@ interface LastWeatherResultContextType {
 
 const LastWeatherResultContext = createContext<LastWeatherResultContextType | undefined>(undefined);
 
+// This function runs synchronously to get the initial state.
+// It's safe because it checks for `window` and won't run on the server.
+const getInitialState = (): WeatherSummaryData | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const storedResult = localStorage.getItem(LAST_WEATHER_RESULT_KEY);
+    return storedResult ? JSON.parse(storedResult) : null;
+  } catch (error) {
+    console.error("Error reading last weather result from localStorage", error);
+    return null;
+  }
+};
+
+
 export function LastWeatherResultProvider({ children }: { children: ReactNode }) {
-  const [lastWeatherResult, setLastWeatherResultState] = useState<WeatherSummaryData | null>(null);
+  // Initialize state directly from localStorage, preventing the race condition.
+  const [lastWeatherResult, setLastWeatherResultState] = useState<WeatherSummaryData | null>(getInitialState);
   const { toast } = useToast();
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load from localStorage on initial mount
+  // This effect now only serves to signal that the provider has mounted.
   useEffect(() => {
-    try {
-      const storedResult = localStorage.getItem(LAST_WEATHER_RESULT_KEY);
-      if (storedResult) {
-        setLastWeatherResultState(JSON.parse(storedResult));
-      }
-    } catch (error) {
-      console.error("Error reading last weather result from localStorage", error);
-      setLastWeatherResultState(null);
-    }
     setIsInitialized(true);
   }, []);
 

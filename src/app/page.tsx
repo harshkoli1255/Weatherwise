@@ -252,17 +252,14 @@ function WeatherPageContent() {
     });
   }, [weatherState.data, performWeatherFetch]);
 
-
+  // This is the core initialization logic. It runs only once when contexts are ready.
   useEffect(() => {
-    // This effect should only determine the initial weather to display.
-    // It should run only once after all contexts are ready.
+    // Wait until both Clerk and the session are initialized.
     if (isInitializationDone.current || !isClerkLoaded || !isSessionInitialized) {
       return;
     }
-    
-    // Mark as done to prevent re-running on other changes.
     isInitializationDone.current = true;
-  
+
     // Priority 1: Restore from a previous session result.
     if (lastWeatherResult) {
       console.log(`[Perf] Restoring previous session for "${lastWeatherResult.city}"`);
@@ -274,28 +271,29 @@ function WeatherPageContent() {
         cityNotFound: false,
       });
       setInitialSearchTerm(lastWeatherResult.city);
-      return; // Done. No API call needed.
+      return; // IMPORTANT: Exit after restoring session.
     }
-  
-    // Priority 2: Use the user's saved default location.
+
+    // If no session, proceed with the loading sequence.
+    setWeatherState(prev => ({...prev, loadingMessage: 'Checking for default location...' }));
     if (defaultLocation) {
       console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
       handleSearch(defaultLocation.name, defaultLocation.lat, defaultLocation.lon);
       return;
     }
-  
-    // Priority 3: Use the user's last search query.
+
+    setWeatherState(prev => ({...prev, loadingMessage: 'Checking for last search...' }));
     if (lastSearch) {
       console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
       handleSearch(lastSearch.name, lastSearch.lat, lastSearch.lon);
       return;
     }
-  
-    // Priority 4: Fallback to IP Geolocation.
+
     console.log('[Perf] No session, default, or last search. Using IP Geolocation.');
     handleLocate(true);
-  
-  }, [isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch, handleSearch, handleLocate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClerkLoaded, isSessionInitialized]);
+
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -431,7 +429,7 @@ function WeatherPageContent() {
   }, [weatherState.data, isLocationSaved, saveLocation, removeLocation]);
 
   const isCurrentLocationSaved = weatherState.data ? isLocationSaved(weatherState.data) : false;
-  const isLoadingDisplay = (weatherState.isLoading && !lastWeatherResult) || isTransitionPending;
+  const isLoadingDisplay = weatherState.isLoading || isTransitionPending;
 
   useEffect(() => {
     if (isClerkLoaded && !isSignedIn) {
