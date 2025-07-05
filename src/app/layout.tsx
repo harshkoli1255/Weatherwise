@@ -72,6 +72,7 @@ export default function RootLayout({
                         </footer>
                       </div>
                       <Toaster />
+                      <div id="notification-portal-root" />
                     </LastWeatherResultProvider>
                   </LastSearchProvider>
                 </SavedLocationsProvider>

@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useTransition, useCallback, Suspense, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { WeatherDisplay } from '@/components/WeatherDisplay';
 import { SearchBar } from '@/components/SearchBar';
 import { fetchWeatherAndSummaryAction, fetchCityByIpAction, getAIErrorSummaryAction, proactiveWeatherCheckAction } from './actions';
@@ -73,6 +74,16 @@ function WeatherPageContent() {
   const [proactiveAlert, setProactiveAlert] = useState<ProactiveAlertResult | null>(null);
 
   const lastProactiveCheckCoords = useRef<{ lat: number; lon: number } | null>(null);
+
+  // New state for the portal container
+  const [notificationPortal, setNotificationPortal] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // This effect runs only on the client, after the initial render.
+    // It finds the portal root element in the DOM.
+    const portalRoot = document.getElementById('notification-portal-root');
+    setNotificationPortal(portalRoot);
+  }, []);
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of the Earth in km
@@ -438,102 +449,104 @@ function WeatherPageContent() {
   }, [isClerkLoaded, isSignedIn, clearLastWeatherResult]);
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-10 md:py-12 flex flex-col items-center">
-      <section className="relative z-10 w-full max-w-2xl mb-6 sm:mb-8 text-center animate-in fade-in-up">
-        <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
-          Weatherwise
-        </h1>
-        <p className="text-base sm:text-lg text-muted-foreground mb-6 px-2">
-          Your smart companion for real-time weather updates and AI-powered insights.
-        </p>
-        <div className="mt-1 w-full flex justify-center px-2 sm:px-0">
-          <SearchBar
-            onSearch={handleSearch}
-            isSearchingWeather={isTransitionPending}
-            initialValue={initialSearchTerm}
-            onLocate={() => handleLocate(false)}
-            isLocating={isLocating}
-          />
-        </div>
-      </section>
-
-      {isLoadingDisplay && (
-        <div className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-lg animate-in fade-in-0">
-          <WeatherLoadingAnimation message={weatherState.loadingMessage || "Loading..."} />
-        </div>
-      )}
-
-      {!isLoadingDisplay && weatherState.data && (
-        <SignedIn>
-            <WeatherDisplay
-            weatherData={weatherState.data}
-            isLocationSaved={isCurrentLocationSaved}
-            onSaveCityToggle={handleSaveCityToggle}
-            onRefresh={handleRefresh}
-            isRefreshing={isTransitionPending}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
+    <>
+      <div className="container mx-auto px-4 py-6 sm:py-10 md:py-12 flex flex-col items-center">
+        <section className="relative z-10 w-full max-w-2xl mb-6 sm:mb-8 text-center animate-in fade-in-up">
+          <h1 className="text-3xl sm:text-5xl font-headline font-extrabold text-primary mb-3 drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-b from-primary to-primary/70">
+            Weatherwise
+          </h1>
+          <p className="text-base sm:text-lg text-muted-foreground mb-6 px-2">
+            Your smart companion for real-time weather updates and AI-powered insights.
+          </p>
+          <div className="mt-1 w-full flex justify-center px-2 sm:px-0">
+            <SearchBar
+              onSearch={handleSearch}
+              isSearchingWeather={isTransitionPending}
+              initialValue={initialSearchTerm}
+              onLocate={() => handleLocate(false)}
+              isLocating={isLocating}
             />
-        </SignedIn>
-      )}
-      
-      {!isLoadingDisplay && weatherState.data && (
-        <SignedOut>
-             <WeatherDisplay
-                weatherData={weatherState.data}
-                isLocationSaved={false}
-                onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
-                onRefresh={handleRefresh}
-                isRefreshing={isTransitionPending}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-            />
-        </SignedOut>
-      )}
+          </div>
+        </section>
 
-      {!isLoadingDisplay && !weatherState.data && (weatherState.error || weatherState.cityNotFound) && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-destructive/50 shadow-2xl p-6 sm:p-8 rounded-lg">
-              <CardHeader className="items-center text-center pt-2 pb-4">
-                  <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
-                    {weatherState.cityNotFound ?
-                        <MapPin className="h-12 w-12 text-destructive drop-shadow-lg" /> :
-                        <AlertCircle className="h-12 w-12 text-destructive drop-shadow-lg" />
-                    }
-                  </div>
-                  <CardTitle className="text-2xl sm:text-3xl font-headline text-destructive">
-                      {weatherState.cityNotFound ? "City Not Found" : "Weather Error"}
-                  </CardTitle>
-                   <CardDescription className="text-base sm:text-lg text-destructive/90 mt-2 px-4">
-                      {weatherState.error}
-                  </CardDescription>
-              </CardHeader>
-          </Card>
-      )}
+        {isLoadingDisplay && (
+          <div className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-lg animate-in fade-in-0">
+            <WeatherLoadingAnimation message={weatherState.loadingMessage || "Loading..."} />
+          </div>
+        )}
 
-      {!isLoadingDisplay && !weatherState.data && !weatherState.error && !weatherState.cityNotFound && (
-           <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-lg shadow-2xl relative overflow-hidden">
-                <Image
-                    src="https://placehold.co/600x400.png"
-                    data-ai-hint="weather map"
-                    alt="Abstract weather map"
-                    fill
-                    className="object-cover opacity-10 dark:opacity-5"
-                />
-              <div className="relative z-10">
+        {!isLoadingDisplay && weatherState.data && (
+          <SignedIn>
+              <WeatherDisplay
+              weatherData={weatherState.data}
+              isLocationSaved={isCurrentLocationSaved}
+              onSaveCityToggle={handleSaveCityToggle}
+              onRefresh={handleRefresh}
+              isRefreshing={isTransitionPending}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              />
+          </SignedIn>
+        )}
+        
+        {!isLoadingDisplay && weatherState.data && (
+          <SignedOut>
+              <WeatherDisplay
+                  weatherData={weatherState.data}
+                  isLocationSaved={false}
+                  onSaveCityToggle={() => toast({ title: "Sign in to save locations", description: "Create an account to save and manage your locations."})}
+                  onRefresh={handleRefresh}
+                  isRefreshing={isTransitionPending}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+              />
+          </SignedOut>
+        )}
+
+        {!isLoadingDisplay && !weatherState.data && (weatherState.error || weatherState.cityNotFound) && (
+            <Card className="w-full max-w-2xl mt-4 bg-glass border-destructive/50 shadow-2xl p-6 sm:p-8 rounded-lg">
                 <CardHeader className="items-center text-center pt-2 pb-4">
-                    <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
-                      <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
+                    <div className="p-3 bg-destructive/20 rounded-full mb-4 border border-destructive/30">
+                      {weatherState.cityNotFound ?
+                          <MapPin className="h-12 w-12 text-destructive drop-shadow-lg" /> :
+                          <AlertCircle className="h-12 w-12 text-destructive drop-shadow-lg" />
+                      }
                     </div>
-                    <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
-                    <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
-                        Use the search bar or location button to find weather information for any city.
+                    <CardTitle className="text-2xl sm:text-3xl font-headline text-destructive">
+                        {weatherState.cityNotFound ? "City Not Found" : "Weather Error"}
+                    </CardTitle>
+                    <CardDescription className="text-base sm:text-lg text-destructive/90 mt-2 px-4">
+                        {weatherState.error}
                     </CardDescription>
                 </CardHeader>
-              </div>
-          </Card>
-      )}
+            </Card>
+        )}
 
-      {isAqiNotificationVisible && aqiInfo && weatherState.data && (
+        {!isLoadingDisplay && !weatherState.data && !weatherState.error && !weatherState.cityNotFound && (
+            <Card className="w-full max-w-2xl mt-4 bg-glass border-primary/20 p-6 sm:p-8 rounded-lg shadow-2xl relative overflow-hidden">
+                  <Image
+                      src="https://placehold.co/600x400.png"
+                      data-ai-hint="weather map"
+                      alt="Abstract weather map"
+                      fill
+                      className="object-cover opacity-10 dark:opacity-5"
+                  />
+                <div className="relative z-10">
+                  <CardHeader className="items-center text-center pt-2 pb-4">
+                      <div className="p-4 bg-primary/20 rounded-full mb-4 border border-primary/30">
+                        <Compass className="h-12 w-12 text-primary drop-shadow-lg" />
+                      </div>
+                      <CardTitle className="text-2xl sm:text-3xl font-headline text-primary">Welcome to Weatherwise!</CardTitle>
+                      <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 px-4">
+                          Use the search bar or location button to find weather information for any city.
+                      </CardDescription>
+                  </CardHeader>
+                </div>
+            </Card>
+        )}
+      </div>
+      
+      {notificationPortal && isAqiNotificationVisible && aqiInfo && weatherState.data && createPortal(
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
             <Card className={cn("bg-glass shadow-xl", aqiInfo.borderColorClass)}>
                 <div className="p-4">
@@ -586,10 +599,11 @@ function WeatherPageContent() {
                     </div>
                 </div>
             </Card>
-        </div>
+        </div>,
+        notificationPortal
       )}
 
-      {proactiveAlert && (
+      {notificationPortal && proactiveAlert && createPortal(
         <div className="fixed bottom-24 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
             <Card className="bg-glass shadow-xl border-primary/30">
                 <div className="p-4">
@@ -635,9 +649,10 @@ function WeatherPageContent() {
                     </div>
                 </div>
             </Card>
-        </div>
+        </div>,
+        notificationPortal
       )}
-    </div>
+    </>
   );
 }
 
