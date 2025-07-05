@@ -94,24 +94,7 @@ function WeatherPageContent() {
     return R * c; // Distance in km
   };
 
-  const performWeatherFetch = useCallback((params: ApiLocationParams, isInitialLoad = false) => {
-    const shouldShowLoading = !isInitialLoad || !lastWeatherResult || params.forceRefresh;
-
-    if (shouldShowLoading) {
-        const loadingMessage = params.forceRefresh
-        ? `Refreshing data for ${params.city}...`
-        : params.city 
-        ? `Searching for ${params.city}...` 
-        : 'Fetching weather for your location...';
-        
-        setWeatherState(prevState => ({
-            ...prevState,
-            isLoading: true,
-            loadingMessage,
-            error: null,
-            cityNotFound: false,
-        }));
-    }
+  const performWeatherFetch = useCallback((params: ApiLocationParams) => {
     setIsAqiNotificationVisible(false);
 
     startTransition(async () => {
@@ -156,7 +139,7 @@ function WeatherPageContent() {
         cityNotFound: result.cityNotFound,
       });
     });
-  }, [setLastSearch, setLastWeatherResult, lastWeatherResult]);
+  }, [setLastSearch, setLastWeatherResult]);
 
   const aqiInfo = useMemo(() => {
     if (!weatherState.data?.airQuality) return null;
@@ -168,6 +151,15 @@ function WeatherPageContent() {
       setWeatherState(prev => ({ ...prev, error: "Please enter a city name.", data: null, isLoading: false, cityNotFound: true, loadingMessage: null }));
       return;
     }
+
+    setWeatherState(prevState => ({
+        ...prevState,
+        isLoading: true,
+        loadingMessage: `Searching for ${city.trim()}...`,
+        error: null,
+        cityNotFound: false,
+    }));
+    
     const params: ApiLocationParams = { city: city.trim() };
     if (typeof lat === 'number') params.lat = lat;
     if (typeof lon === 'number') params.lon = lon;
@@ -240,6 +232,15 @@ function WeatherPageContent() {
   
   const handleRefresh = useCallback(() => {
     if (!weatherState.data) return;
+
+    setWeatherState(prevState => ({
+        ...prevState,
+        isLoading: true,
+        loadingMessage: `Refreshing data for ${prevState.data?.city}...`,
+        error: null,
+        cityNotFound: false,
+    }));
+
     performWeatherFetch({
       lat: weatherState.data.lat,
       lon: weatherState.data.lon,
@@ -269,7 +270,8 @@ function WeatherPageContent() {
 
         if (defaultLocation) {
             console.log(`[Perf] No session. Using default location: ${defaultLocation.name}`);
-            performWeatherFetch({ city: defaultLocation.name, lat: defaultLocation.lat, lon: defaultLocation.lon }, true);
+            setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Loading default: ${defaultLocation.name}...`}));
+            performWeatherFetch({ city: defaultLocation.name, lat: defaultLocation.lat, lon: defaultLocation.lon });
             setInitialSearchTerm(defaultLocation.name);
             setHasInitialized(true);
             return;
@@ -277,7 +279,8 @@ function WeatherPageContent() {
 
         if (lastSearch) {
             console.log(`[Perf] No session or default. Using last search: ${lastSearch.name}`);
-            performWeatherFetch({ city: lastSearch.name, lat: lastSearch.lat, lon: lastSearch.lon }, true);
+             setWeatherState(prev => ({ ...prev, isLoading: true, loadingMessage: `Loading last search: ${lastSearch.name}...`}));
+            performWeatherFetch({ city: lastSearch.name, lat: lastSearch.lat, lon: lastSearch.lon });
             setInitialSearchTerm(lastSearch.name);
             setHasInitialized(true);
             return;
@@ -290,7 +293,8 @@ function WeatherPageContent() {
 
     initializeWeather();
 
-  }, [hasInitialized, isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch, performWeatherFetch, handleLocate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInitialized, isClerkLoaded, isSessionInitialized, lastWeatherResult, defaultLocation, lastSearch]);
 
   useEffect(() => {
     const handleSearchEvent = (event: Event) => {
@@ -534,7 +538,7 @@ function WeatherPageContent() {
       
       {notificationPortal && isAqiNotificationVisible && aqiInfo && weatherState.data && createPortal(
         <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm animate-in slide-in-from-bottom-5 slide-in-from-right-5">
-            <Card className={cn("shadow-xl", aqiInfo.borderColorClass, aqiInfo.bgColorClass.replace('/10', '/20'))}>
+            <Card className={cn("shadow-xl bg-card", aqiInfo.borderColorClass)}>
                 <div className="p-3">
                     <div className="grid grid-cols-3 items-center gap-2">
                         <div className="flex items-center gap-3 col-span-2">
