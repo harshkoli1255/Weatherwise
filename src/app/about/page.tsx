@@ -2,7 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  MapPin,
   AreaChart,
   BrainCircuit,
   BellRing,
@@ -11,7 +10,6 @@ import {
   Sparkles,
   Layers,
   Heart,
-  SlidersHorizontal,
   CloudCog,
   Waypoints,
 } from 'lucide-react';
@@ -23,16 +21,19 @@ export const metadata: Metadata = {
 };
 
 const FeatureItem = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-  <div className="flex h-full flex-col items-start rounded-lg bg-background/50 p-4 shadow-lg border border-border/30 transition-all duration-300 hover:bg-muted/60 hover:border-primary/40 hover:scale-[1.02]">
-    <div className="flex items-center gap-4 mb-3">
-        <div className="p-3 bg-primary/10 rounded-lg">
-            <Icon className="h-5 w-5 text-primary" />
-        </div>
+  <div className="relative h-full overflow-hidden rounded-lg bg-background/50 p-4 shadow-lg border border-border/30 transition-all duration-300 hover:border-primary/40 hover:bg-muted/60 hover:shadow-primary/10 hover:scale-[1.02]">
+    <div className="flex items-start gap-4">
+      <div className="mt-1 flex-shrink-0 rounded-lg bg-primary/10 p-3">
+        <Icon className="h-6 w-6 text-primary" />
+      </div>
+      <div>
         <h3 className="text-base font-semibold text-primary">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{children}</p>
+      </div>
     </div>
-    <p className="text-sm text-muted-foreground">{children}</p>
   </div>
 );
+
 
 const TechItem = ({ name }: { name: string }) => (
     <Badge variant="secondary" className="px-3 py-1 text-sm shadow-md border-border/50 border">
@@ -41,9 +42,9 @@ const TechItem = ({ name }: { name: string }) => (
 );
 
 const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
-    <div className="mb-6 flex items-center justify-center gap-3">
-        <Icon className="h-6 w-6 text-primary" />
-        <h2 className="text-center font-headline text-lg sm:text-xl font-semibold text-primary">
+    <div className="mb-8 flex items-center justify-center gap-3">
+        <Icon className="h-7 w-7 text-primary" />
+        <h2 className="text-center font-headline text-xl sm:text-2xl font-semibold text-primary">
             {title}
         </h2>
     </div>
@@ -57,54 +58,49 @@ export default function AboutPage() {
   
   const features = [
     {
-      icon: MapPin,
+      icon: AreaChart,
       title: 'Dynamic Weather Dashboard',
-      description: 'Get real-time weather data for any city, or use your current location automatically.',
+      description: 'Get real-time weather data for any city worldwide, complete with an interactive hourly forecast and beautiful data visualizations.',
     },
     {
-      icon: AreaChart,
-      title: 'Interactive Forecast',
-      description: 'Visualize the 24-hour temperature trend with a beautiful, interactive set of forecast cards.',
+      icon: Sparkles,
+      title: 'AI-Powered Insights',
+      description: 'Go beyond raw data. Get conversational summaries, creative activity suggestions, and a unique, AI-generated image that brings the weather to life.',
     },
     {
       icon: BrainCircuit,
-      title: 'AI-Powered Search & Insights',
-      description: 'Our AI understands natural language, corrects typos, and provides helpful, conversational weather summaries.',
+      title: 'Intelligent Search',
+      description: 'Our AI understands natural language, corrects typos, and interprets complex queries like landmarks or businesses (e.g., "weather at the eiffel tower").',
     },
     {
       icon: BellRing,
-      title: 'Intelligent Alerts',
-      description: 'Receive customizable email alerts with scheduling, sensitivity controls, and AI-driven decision-making.',
+      title: 'Customizable Intelligent Alerts',
+      description: 'Define specific days, times, and a timezone for your alerts. An AI agent analyzes conditions to decide if an alert is significant enough to send.',
     },
     {
       icon: Waypoints,
       title: 'Proactive Location Alerts',
-      description: 'Get automatic notifications when you travel to a new area with significant changes in weather.',
-    },
-    {
-      icon: SlidersHorizontal,
-      title: 'Customizable Display',
-      description: 'Tailor the app with your preferred units for temperature (°C/°F), wind speed (km/h/mph), and time format (12/24h).',
+      description: 'As you move, Weatherwise can automatically check the weather at your new location and notify you of significant changes, keeping you prepared on the go.',
     },
     {
       icon: CloudCog,
-      title: 'Synced Preferences',
-      description: 'Your saved locations, unit settings, and default location are saved to your account and sync seamlessly across all your devices.',
-    },
-    {
-      icon: UserCheck,
-      title: 'Secure Authentication',
-      description: 'Full sign-up, sign-in, and profile management powered by Clerk, complete with a modern settings hub.',
+      title: 'Synced & Personalized Experience',
+      description: 'Your saved locations, unit preferences (°C/°F, km/h/mph), and default city are saved to your account and sync seamlessly across all your devices.',
     },
     {
       icon: Bookmark,
       title: 'Live Saved Locations',
-      description: 'Your "Saved Locations" dropdown acts as a mini-dashboard, showing live weather for all your saved cities at a glance.',
+      description: 'Your "Saved Locations" dropdown shows live weather for all your saved cities at a glance and allows setting your alert city with one click.',
+    },
+    {
+      icon: UserCheck,
+      title: 'Secure User Authentication',
+      description: 'Full sign-up, sign-in, and profile management powered by Clerk for a secure and seamless user experience.',
     },
   ];
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8 md:py-12">
+    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12">
         <Card className="mx-auto w-full max-w-4xl rounded-lg border-primary/20 bg-glass shadow-2xl">
             <CardHeader className="items-center pt-8 pb-6 text-center">
                  <div className="mb-4 rounded-full border border-primary/30 bg-primary/20 p-4 animate-in fade-in zoom-in-95">
@@ -118,10 +114,10 @@ export default function AboutPage() {
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-12 px-6 pb-8 sm:px-8">
+            <CardContent className="space-y-16 px-6 pb-8 sm:px-8">
                 <section>
                     <SectionHeader icon={Sparkles} title="Core Features" />
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                         {features.map((feature, index) => (
                            <div key={feature.title} className="animate-in fade-in-up" style={{ animationDelay: `${150 + index * 100}ms` }}>
                              <FeatureItem icon={feature.icon} title={feature.title}>
@@ -134,10 +130,10 @@ export default function AboutPage() {
 
                 <section>
                     <SectionHeader icon={Layers} title="Technology Stack" />
-                    <p className="mx-auto mb-6 max-w-xl text-center text-sm text-muted-foreground">
+                    <p className="mx-auto mb-8 max-w-xl text-center text-sm text-muted-foreground">
                         Weatherwise is built with a modern tech stack designed for performance, scalability, and a superior developer experience.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-2">
+                    <div className="flex flex-wrap justify-center gap-3">
                         {techStack.map((tech, index) => (
                             <div key={tech} className="animate-in fade-in-up" style={{ animationDelay: `${200 + index * 75}ms` }}>
                                 <TechItem key={tech} name={tech} />
